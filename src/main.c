@@ -1,0 +1,38 @@
+#include "sc_boot.h"
+#include "sc_game.h"
+#include "sc_engine.h"
+
+static int
+run_game_controlled(int argc, char **argv)
+{
+    sc_engine_init();
+    sc_game_mainloop();
+    sc_engine_shutdown();
+    return 0;
+}
+
+
+#if SC_PLATFORM == SC_PLATFORM_WINDOWS
+INT WINAPI
+WinMain(HINSTANCE, HINSTANCE, LPSTR, INT)
+{
+    return run_game_controlled(__argc, __argv);
+}
+
+/* On OS X this function is called client_main and the real main function
+   is in the os x launcher which is a (not so simple) obj-c app */
+#elif SC_PLATFORM == SC_PLATFORM_OSX
+int
+client_main(int argc, char **argv)
+{
+    return run_game_controlled(argc, argv);
+}
+
+/* on linux just call into run_game_controlled */
+#elif SC_PLATFORM == SC_PLATFORM_LINUX
+int
+main(int argc, char **argv)
+{
+	return run_game_controlled(argc, argv);
+}
+#endif

@@ -1,0 +1,5 @@
+CMakeCache.txt
+CMakeFiles
+*.cmake
+SandboxCraft.app
+Makefile
