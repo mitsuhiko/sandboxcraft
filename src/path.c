@@ -12,25 +12,26 @@
 const char *sc_get_resource_path(void)
 {
     static char *path = NULL;
-    char *pathptr;
     if (path != NULL)
         return path;
 
 #if SC_PLATFORM == SC_PLATFORM_WINDOWS
-    path = sc_xmalloc(MAX_PATH + 20);
-    pathptr = path;
+    {
+        char *pathptr;
+        path = sc_xmalloc(MAX_PATH + 20);
 
-    GetModuleFileNameA(0, path, MAX_PATH);
-    while (1) {
-        if ((pathptr = strrchr(path, '\\')) == 0) {
-            /* assume working directory, shouldn't happen anyways */
-            strcpy(path, ".");
-            return path;
+        GetModuleFileNameA(0, path, MAX_PATH);
+        while (1) {
+            if ((pathptr = strrchr(path, '\\')) == 0) {
+                /* assume working directory, shouldn't happen anyways */
+                strcpy(path, ".");
+                return path;
+            }
+            strcpy(pathptr, "\\resources");
+            if (PathIsDirectoryA(path))
+                break;
+            *pathptr = '\0';
         }
-        strcpy(pathptr, "\\resources");
-        if (PathIsDirectoryA(path))
-            break;
-        *pathptr = '\0';
     }
 #elif SC_PLATFORM == SC_PLATFORM_LINUX
     path = sc_xmalloc(MAXPATHLEN + 30);

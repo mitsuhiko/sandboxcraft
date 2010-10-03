@@ -33,6 +33,9 @@ if (APPLE)
 	set(HEADERS ${HEADERS} osxlauncher/launcher.h)
 endif()
 
+set(CMAKE_C_FLAGS "-g -Wall")
+set(CMAKE_CXX_FLAGS "-g -Wall")
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${SDL_INCLUDE_DIR})
 
 add_executable(
