@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "sc_engine.h"
 #include "sc_error.h"
 
@@ -6,9 +8,12 @@
 #define HEIGHT 600
 #define FULLSCREEN 0
 #define FOV 55
+#define FPS_LIMIT 60
+
+sc_gametime_t sc_gametime;
 
 static void
-resize_viewport()
+resize_viewport(void)
 {
     Uint32 flags = SDL_OPENGL;
     if (FULLSCREEN)
@@ -34,7 +39,7 @@ resize_viewport()
 }
 
 static void
-init_graphics()
+init_graphics(void)
 {
     /* double buffering and MSAA */
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -65,4 +70,25 @@ void
 sc_engine_shutdown(void)
 {
     SDL_Quit();
+}
+
+void
+sc_engine_begin_frame(void)
+{
+    sc_gametime.start = sc_engine_get_ticks();
+}
+
+void
+sc_engine_end_frame(void)
+{
+    sc_gametime.end = sc_engine_get_ticks();
+    sc_gametime.delta = sc_gametime.end - sc_gametime.start;
+
+#ifdef FPS_LIMIT
+    if (sc_gametime.delta < (1000.0f / FPS_LIMIT))
+        sc_engine_delay((sc_ticks_t)((1000.0f / FPS_LIMIT) -
+                                     sc_gametime.delta));
+#endif
+
+    sc_engine_swap_buffers();
 }

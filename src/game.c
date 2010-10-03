@@ -3,10 +3,9 @@
 static int running;
 
 
-static void
-iterate_mainloop(void)
+void
+sc_game_handle_events(void)
 {
-    /* handle events */
     SDL_Event evt;
     while (SDL_PollEvent(&evt)) {
         if (evt.type == SDL_QUIT)
@@ -14,7 +13,6 @@ iterate_mainloop(void)
         else
             sc_game_handle_event(&evt);
     }
-    sc_game_render();
 }
 
 void
@@ -23,6 +21,11 @@ sc_game_handle_event(SDL_Event *evt)
     if (evt->type == SDL_KEYDOWN &&
         evt->key.keysym.sym == SDLK_ESCAPE)
         sc_game_stop();
+}
+
+void
+sc_game_update(void)
+{
 }
 
 void
@@ -39,9 +42,6 @@ sc_game_render(void)
     glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
     glColor3f(1.0f, 1.0f, 1.0f);
     glutSolidCube(50.0);
-
-    /* swap buffers */
-    SDL_GL_SwapBuffers();
 }
 
 void
@@ -54,8 +54,13 @@ void
 sc_game_mainloop(void)
 {
     running = 1;
-    while (running)
-        iterate_mainloop();
+    while (running) {
+        sc_engine_begin_frame();
+        sc_game_handle_events();
+        sc_game_update();
+        sc_game_render();
+        sc_engine_end_frame();
+    }
 }
 
 void
