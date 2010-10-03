@@ -9,6 +9,7 @@ set(SOURCES
     src/engine.c
     src/game.c
     src/path.c
+    src/texture.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -19,9 +20,11 @@ set(HEADERS
     include/sc_path.h
     include/sc_engine.h
     include/sc_game.h
+    include/sc_texture.h
 )
 
 find_package(SDL 1.2.7 REQUIRED)
+find_package(SDL_Image 1.2 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 

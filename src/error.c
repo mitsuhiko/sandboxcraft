@@ -7,6 +7,7 @@ static const char *error_names[] = {
     "out of memory",                                        /* SC_EOOM */
     "general error",                                        /* SC_GENERAL */
     "SDL error",                                            /* SC_ESDL */
+    "Graphic subsystem error",                              /* SC_EGRAPHIC */
     NULL
 };
 

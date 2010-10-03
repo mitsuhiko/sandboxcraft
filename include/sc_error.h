@@ -33,5 +33,6 @@ void sc_unset_error(void);
 #define SC_EOOM             0
 #define SC_EGENERAL         1
 #define SC_ESDL             2
+#define SC_EGRAPHIC         3
 
 #endif

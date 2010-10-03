@@ -28,6 +28,7 @@
 /* SDL includes */
 #include "SDL.h"
 #include "SDL_opengl.h"
+#include "SDL_image.h"
 
 /* do not use the main macro.  We take care of that ourselves */
 #ifdef main
