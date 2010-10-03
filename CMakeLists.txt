@@ -8,6 +8,7 @@ set(SOURCES
     src/error.c
     src/engine.c
     src/game.c
+    src/path.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -15,6 +16,7 @@ set(HEADERS
     include/sc_engine.h
     include/sc_error.h
     include/sc_stringutils.h
+    include/sc_path.h
     include/sc_engine.h
     include/sc_game.h
 )

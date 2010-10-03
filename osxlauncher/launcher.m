@@ -140,7 +140,13 @@ customApplicationMain(int argc, char **argv)
 	[NSApp run];
 
 	[m release];
-	[pool release];
+
+	/* normally we would have to release the pool here, but for some
+	   reason we are executing quartz code after that point and the
+	   release complains that there is no pool.  So just keep the
+	   pool around and leak for a splitsecond until the application
+	   closes. */
+	//[pool release];
 }
 
 /* Called when the internal event loop has just started running */

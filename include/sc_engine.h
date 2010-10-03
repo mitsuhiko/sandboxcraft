@@ -4,6 +4,7 @@
 
 #include "sc_boot.h"
 
+/* engine management */
 void sc_engine_init(void);
 void sc_engine_shutdown(void);
 

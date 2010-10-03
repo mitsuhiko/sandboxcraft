@@ -57,3 +57,13 @@ sc_game_mainloop(void)
     while (running)
         iterate_mainloop();
 }
+
+void
+sc_game_init(void)
+{
+}
+
+void
+sc_game_shutdown(void)
+{
+}

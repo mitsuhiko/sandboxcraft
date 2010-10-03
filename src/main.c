@@ -1,13 +1,18 @@
+#include <stdlib.h>
+
 #include "sc_boot.h"
 #include "sc_game.h"
 #include "sc_engine.h"
+#include "sc_path.h"
 
 static int
 run_game_controlled(int argc, char **argv)
 {
     sc_engine_init();
+    atexit(sc_engine_shutdown);
+    sc_game_init();
+    atexit(sc_game_shutdown);
     sc_game_mainloop();
-    sc_engine_shutdown();
     return 0;
 }
 
