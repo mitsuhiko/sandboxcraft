@@ -105,7 +105,7 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
 {
     int local_x, local_y, size;
     sc_chunk_t *chunk;
-    sc_chunk_node_t **node;
+    sc_chunk_node_t *node, *child;
 
     chunk = resolve_block(world, x, y, z, &local_x, &local_y);
     /* blocks can only be set in the known world */
@@ -113,22 +113,22 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
         return 0;
 
     /* Find the block in the octree */
-    node = &chunk->root;
+    node = chunk->root;
     size = SC_CHUNK_RESOLUTION;
-    while (size) {
-        if (!*node)
-            *node = sc_new_chunk_node();
-        else if (!(**node).is_leaf) {
-            size /= 2;
-            node = &(**node).children[(local_x & size) << 2 |
-                                      (local_y & size) << 1 |
-                                      (z & size)];
+    while (size != 1) {
+        size_t idx;
+        size /= 2;
+        idx = (local_x & size) << 2 | (local_y & size) << 1 | (z & size);
+        child = node->children[idx];
+        if (!child) {
+            child = sc_new_chunk_node();
+            node->is_leaf = 0;
+            node->children[idx] = child;
         }
-        else
-            break;
+        node = child;
     }
 
-    (**node).block = block;
+    node->block = block;
     return 1;
 }
 

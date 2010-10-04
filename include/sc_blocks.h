@@ -28,6 +28,7 @@ typedef struct {
    set and the application aborts. */
 void sc_init_blocks(void);
 void sc_free_blocks(void);
+const char *sc_get_block_name(sc_blocktype_t type);
 
 sc_block_t *sc_get_block(sc_blocktype_t type);
 #define sc_get_block_texture(type) (sc_get_block(type)->texture)

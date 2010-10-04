@@ -29,6 +29,21 @@ sc_init_blocks(void)
     ADD_BLOCK(SC_BLOCK_WATER, "water.png", 0, 0.7f);
 }
 
+const char *
+sc_get_block_name(sc_blocktype_t type)
+{
+    switch (type) {
+    case SC_BLOCK_GRASS:        return "Grass";
+    case SC_BLOCK_STONE:        return "Stone";
+    case SC_BLOCK_PLANKS:       return "Planks";
+    case SC_BLOCK_SAND:         return "Sand";
+    case SC_BLOCK_GRAVEL:       return "Gravel";
+    case SC_BLOCK_COBBELSTONE:  return "Cobbelstone";
+    case SC_BLOCK_WATER:        return "Water";
+    default:                    return "Unknown";
+    }
+}
+
 void
 sc_free_blocks(void)
 {
