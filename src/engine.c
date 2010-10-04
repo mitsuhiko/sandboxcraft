@@ -21,6 +21,8 @@ resize_viewport(void)
     if (!SDL_SetVideoMode(WIDTH, HEIGHT, 32, flags))
         sc_critical_error(SC_ESDL, __FILE__, __LINE__, "%s", SDL_GetError());
 
+    SDL_WM_SetCaption("SandboxCraft", NULL);
+
     /* activate opengl features */
     glEnable(GL_TEXTURE_2D);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);

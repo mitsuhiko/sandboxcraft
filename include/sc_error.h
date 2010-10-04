@@ -7,7 +7,7 @@
 #include "sc_boot.h"
 
 typedef struct {
-    int errno;          /* internal error number, see below */
+    int code;           /* internal error number, see below */
     char *description;  /* textual description of the error */
     char *filename;     /* the filename that caused that error.  This might
                            be a source file (__FILE__) or a shader file,
@@ -30,7 +30,7 @@ void sc_show_last_error(void);
 
    In case the return value clashes with a valid return value, the return
    value must be returned with a parameter. */
-void sc_set_error(int errno, const char *filename, int lineno,
+void sc_set_error(int code, const char *filename, int lineno,
                   const char *description, ...);
 
 /* clears the current error */
@@ -43,7 +43,7 @@ void sc_augment_error_context(const char *filename, int lineno);
 void sc_error_make_critical(void);
 
 /* shortcut for set_error + make_critical */
-void sc_critical_error(int errno, const char *filename, int lineno,
+void sc_critical_error(int code, const char *filename, int lineno,
                        const char *description, ...);
 
 /* error codes, must correspond to the names in error.c */

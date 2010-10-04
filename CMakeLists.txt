@@ -36,11 +36,11 @@ if (APPLE)
 	set(SOURCES ${SOURCES} osxlauncher/launcher.m)
 	set(HEADERS ${HEADERS} osxlauncher/launcher.h)
 endif()
+if (NOT WIN32)
+    set(CMAKE_C_FLAGS "-g -Wall")
+endif()
 
-set(CMAKE_C_FLAGS "-g -Wall")
-set(CMAKE_CXX_FLAGS "-g -Wall")
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${SDL_INCLUDE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${SDL_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR})
 
 add_executable(
 	SandboxCraft
@@ -58,3 +58,14 @@ target_link_libraries(
 	${GLU_LIBRARY}
 	${GLUT_LIBRARY}
 )
+
+if (WIN32)
+    set(VS_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})
+    add_custom_command(TARGET SandboxCraft POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SDL_INCLUDE_DIR}/../lib/SDL.dll" "${VS_OUTPUT_DIR}/SDL.dll"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SDLIMAGE_INCLUDE_DIR}/../lib/SDL_image.dll" "${VS_OUTPUT_DIR}/SDL_image.dll"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SDLIMAGE_INCLUDE_DIR}/../lib/libpng12-0.dll" "${VS_OUTPUT_DIR}/libpng12-0.dll"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SDLIMAGE_INCLUDE_DIR}/../lib/jpeg.dll" "${VS_OUTPUT_DIR}/jpeg.dll"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SDLIMAGE_INCLUDE_DIR}/../lib/zlib1.dll" "${VS_OUTPUT_DIR}/zlib1.dll"
+    )
+endif()

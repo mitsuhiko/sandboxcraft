@@ -21,12 +21,13 @@ sc_texture_t *
 sc_texture_from_resource(const char *filename, GLint filtering)
 {
     char *path = sc_path_to_resource("textures", filename);
+    sc_texture_t *rv;
     SDL_Surface *surface = IMG_Load(path);
     if (!surface) {
         sc_set_error(SC_EGRAPHIC, path, 0, "Unable to load texture");
         return NULL;
     }
-    sc_texture_t *rv = sc_texture_from_surface(surface, filtering);
+    rv = sc_texture_from_surface(surface, filtering);
     if (!rv)
         sc_augment_error_context(filename, 0);
     sc_free(path);
@@ -37,6 +38,7 @@ sc_texture_from_resource(const char *filename, GLint filtering)
 sc_texture_t *
 sc_texture_from_surface(SDL_Surface *img, GLint filtering)
 {
+    GLenum format;
     int i, yl, yh;
     float scale[2] = {1.0f, 1.0f};
     GLuint tex;
@@ -50,7 +52,6 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
     texture->stored_height = next_power_of_two(img->h);
 
     /* figure out format */
-    GLenum format;
     switch (img->format->BytesPerPixel) {
     case 4:
         format = (img->format->Rmask == 0x000000ff) ? GL_RGBA : GL_BGRA;
@@ -79,6 +80,7 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
        with the requested size before uploading */
     if (texture->stored_width != texture->actual_width ||
         texture->stored_height != texture->actual_height) {
+        SDL_Rect rect = {0, 0, img->w, img->h};
         stored_img = SDL_CreateRGBSurface(img->flags,
             texture->stored_width, texture->stored_height,
             img->format->BitsPerPixel, img->format->Rmask,
@@ -90,7 +92,6 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
             texture = NULL;
             goto bailout;
         }
-        SDL_Rect rect = {0, 0, img->w, img->h};
         SDL_BlitSurface(img, &rect, stored_img, &rect);
         data = (Uint8 *)stored_img->pixels;
         scale[0] = (float)texture->actual_width / texture->stored_width;

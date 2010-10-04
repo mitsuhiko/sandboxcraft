@@ -14,6 +14,13 @@ static void
 perform_late_init(void)
 {
     sc_texture_t *loading = sc_texture_from_resource("loading.png", GL_NEAREST);
+    GLfloat vertices[16] = {
+        -10.0f, -10.0f,  10.0f,
+            10.0f, -10.0f,  10.0f,
+            10.0f, -10.0f, -10.0f,
+        -10.0f, -10.0f, -10.0f
+    };
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -21,12 +28,6 @@ perform_late_init(void)
         glTranslatef(0.0f, 8.0f, -30.0f);
         glRotatef(35.0f, 1.0f, 0.0f, 0.0f);
         glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
-        GLfloat vertices[16] = {
-            -10.0f, -10.0f,  10.0f,
-             10.0f, -10.0f,  10.0f,
-             10.0f, -10.0f, -10.0f,
-            -10.0f, -10.0f, -10.0f
-        };
         sc_bind_texture(loading);
         glVertexPointer(3, GL_FLOAT, 0, vertices);
         glDrawArrays(GL_QUADS, 0, 4);
@@ -65,6 +66,13 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
+    GLfloat vertices[16] = {
+        -10.0f, -10.0f,  10.0f,
+         10.0f, -10.0f,  10.0f,
+         10.0f, -10.0f, -10.0f,
+        -10.0f, -10.0f, -10.0f
+    };
+
     /* clear display first and load identity matrix into model view */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
@@ -76,12 +84,6 @@ sc_game_render(void)
     glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
 
     /* draw a tile */
-    GLfloat vertices[16] = {
-        -10.0f, -10.0f,  10.0f,
-         10.0f, -10.0f,  10.0f,
-         10.0f, -10.0f, -10.0f,
-        -10.0f, -10.0f, -10.0f
-    };
     sc_bind_texture(sc_get_block_texture(SC_BLOCK_PLANKS));
     glVertexPointer(3, GL_FLOAT, 0, vertices);
     glDrawArrays(GL_QUADS, 0, 4);

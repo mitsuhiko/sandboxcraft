@@ -19,7 +19,7 @@ run_game_controlled(int argc, char **argv)
 
 #if SC_PLATFORM == SC_PLATFORM_WINDOWS
 INT WINAPI
-WinMain(HINSTANCE, HINSTANCE, LPSTR, INT)
+WinMain(HINSTANCE hinst, HINSTANCE previnst, LPSTR cmdline, INT cmdshow)
 {
     return run_game_controlled(__argc, __argv);
 }

@@ -5,6 +5,10 @@
 #include "sc_boot.h"
 
 /* just in case.  Beware when switching out the allocator */
-#define sc_strdup strdup
+#if SC_PLATFORM == SC_PLATFORM_WINDOWS
+#   define sc_strdup _strdup
+#else
+#   define sc_strdup strdup
+#endif
 
 #endif

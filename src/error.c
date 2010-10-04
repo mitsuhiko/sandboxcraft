@@ -14,10 +14,10 @@ static const char *error_names[] = {
 };
 
 static void
-show_error(int errno, const char *filename, int lineno, const char *msg)
+show_error(int code, const char *filename, int lineno, const char *msg)
 {
-    fprintf(stderr, "Error %d [%s]: %s\n", errno,
-            error_names[errno], msg ? msg : "no further error description");
+    fprintf(stderr, "Error %d [%s]: %s\n", code,
+            error_names[code], msg ? msg : "no further error description");
     if (filename) {
         fprintf(stderr, "  problem location: %s", filename);
         if (lineno > 0)
@@ -27,25 +27,40 @@ show_error(int errno, const char *filename, int lineno, const char *msg)
     fflush(stderr);
 }
 
+static char *
+format_error(va_list argptr, const char *description)
+{
+#if SC_PLATFORM == SC_PLATFORM_WINDOWS
+    size_t bufsize = _vscprintf(description, argptr) + 1;
+    char *buf = (char *)malloc(bufsize);
+    _vsnprintf(buf, bufsize, description, argptr);
+#else
+    char *buf;
+    va_start(argptr, description);
+    vasprintf(&buf, description, argptr);
+#endif
+    return buf;
+}
+
 void
 sc_show_last_error(void)
 {
     if (!last_error)
         return;
-    show_error(last_error->errno,
+    show_error(last_error->code,
                last_error->filename,
                last_error->lineno,
                last_error->description);
 }
 
 void
-sc_set_error(int errno, const char *filename, int lineno,
+sc_set_error(int code, const char *filename, int lineno,
              const char *description, ...)
 {
-    va_list argptr;
     char *buf;
+    va_list argptr;
     va_start(argptr, description);
-    vasprintf(&buf, description, argptr);
+    buf = format_error(argptr, description);
     va_end(argptr);
 
     if (!last_error) {
@@ -55,7 +70,7 @@ sc_set_error(int errno, const char *filename, int lineno,
         sc_free(last_error->description);
         sc_free(last_error->filename);
     }
-    last_error->errno = errno;
+    last_error->code = code;
     last_error->description = buf;
     last_error->filename = filename ? sc_strdup(filename) : NULL;
     last_error->lineno = lineno;
@@ -91,15 +106,15 @@ sc_error_make_critical(void)
 }
 
 void
-sc_critical_error(int errno, const char *filename, int lineno,
+sc_critical_error(int code, const char *filename, int lineno,
                   const char *description, ...)
 {
     char *buf;
     va_list argptr;
     va_start(argptr, description);
-    vasprintf(&buf, description, argptr);
+    buf = format_error(argptr, description);
     va_end(argptr);
-    show_error(errno, filename, lineno, buf);
+    show_error(code, filename, lineno, buf);
     exit(1);
 }
 

@@ -8,7 +8,7 @@
 #define SC_PLATFORM_LINUX   3
 
 /* figure out the current platform and include whatever's necessary */
-#if defined(WIN32) || defined(_WINDOWS)
+#if defined(_WIN32) || defined(_WINDOWS)
 #  define _CRT_SECURE_NO_WARNINGS
 #  define WIN32_LEAN_AND_MEAN
 #  define NOMINMAX

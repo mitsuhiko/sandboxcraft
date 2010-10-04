@@ -35,13 +35,13 @@ discover_world(sc_world_t *world, int new_width, int new_height)
 
     /* fill the new world with the old contents if any and fill blanks
        with newly generated world. */
-    for (y = 0; y < world->height; y++) {
+    for (y = 0; y < (int)world->height; y++) {
         sc_chunk_t *row = sc_xcalloc(new_width, sizeof(sc_chunk_t));
         world->known[y] = row;
         /* existing row */
-        if (y >= off_y && y < world->height - off_y - 1) {
-            for (x = 0; x < world->width; x++)
-                if (x >= off_x && x < world->width - off_x - 1) {
+        if (y >= off_y && y < (int)world->height - off_y - 1) {
+            for (x = 0; x < (int)world->width; x++)
+                if (x >= off_x && x < (int)world->width - off_x - 1) {
                     row[x].root = old_known[y][x - off_x].root;
                     /* update reflected location information */
                     row[x].x = x - half_width;
@@ -53,7 +53,7 @@ discover_world(sc_world_t *world, int new_width, int new_height)
         }
         /* completely new row */
         else
-            for (x = 0; x < world->width; x++)
+            for (x = 0; x < (int)world->width; x++)
                 discover_chunk(world, &row[x], x - half_width,
                                y - half_height);
     }
@@ -81,7 +81,7 @@ resolve_block(sc_world_t *world, int x, int y, int z, int discover,
        world and we don't want to discover right now.  Bail out */
     if (!discover) {
         if (chunk_x < 0 || chunk_y < 0 ||
-            chunk_x >= world->width || chunk_y >= world->height)
+            chunk_x >= (int)world->width || chunk_y >= (int)world->height)
             return NULL;
     }
     /* there is also a hard limit we must not hit, make sure we're
@@ -92,7 +92,7 @@ resolve_block(sc_world_t *world, int x, int y, int z, int discover,
     /* at that point we have to make sure we expand the known world
        as necessary. */
     else if (chunk_x < 0 || chunk_y < 0 ||
-             chunk_x > world->width || chunk_y > world->height) {
+             chunk_x > (int)world->width || chunk_y > (int)world->height) {
         discover_world(world, world->width + abs(chunk_x),
                        world->height + abs(chunk_y));
         /* we have to recalculate the chunk offsets because the
@@ -208,9 +208,9 @@ sc_new_chunk_node(void)
 void
 sc_free_chunk_node(sc_chunk_node_t *node)
 {
+    size_t i;
     if (!node)
         return;
-    size_t i;
     for (i = 0; i < 8; i++)
         sc_free_chunk_node(node->children[i]);
     sc_free(node);
