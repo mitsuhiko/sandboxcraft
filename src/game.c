@@ -1,9 +1,13 @@
 #include "sc_game.h"
 #include "sc_texture.h"
 #include "sc_blocks.h"
+#include "sc_world.h"
 
 static int running;
 static int late_initialized;
+
+
+static sc_world_t *world;
 
 
 static void
@@ -123,11 +127,16 @@ sc_game_late_init(void)
     if (late_initialized)
         return;
     sc_init_blocks();
+
+    world = sc_new_world();
+    printf("%d\n", sc_world_get_block(world, 0, 0, 0)->type);
+
     late_initialized = 1;
 }
 
 void
 sc_game_shutdown(void)
 {
+    sc_free_world(world);
     sc_free_blocks();
 }

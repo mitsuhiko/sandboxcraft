@@ -11,7 +11,7 @@ static sc_chunk_t *
 discover_chunk(sc_world_t *world, sc_chunk_t *ref, int offx, int offy)
 {
     int x = (ref ? ref->x : 0) + offx;
-    int y = (ref ? ref->y : 0) + ref->y + offy;
+    int y = (ref ? ref->y : 0) + offy;
     sc_chunk_t *chunk = sc_world_get_chunk(world, x, y);
     chunk->x = x;
     chunk->y = y;
@@ -34,7 +34,7 @@ resolve_block(sc_world_t *world, int x, int y, int z, int *local_x, int *local_y
     chunk_y = half_y + y / SC_CHUNK_RESOLUTION;
 
     /* tried to reference a non-explored chunk in the world */
-    if (chunk_x < 0 || chunk_y < 0 || chunk_x >= half_x || chunk_y >= half_y)
+    if (chunk_x < 0 || chunk_y < 0 || chunk_x > half_x || chunk_y > half_y)
         return NULL;
 
     /* there is a chunk, return it and get local coordinates */
@@ -48,9 +48,10 @@ sc_new_world(void)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
     world->known = sc_xalloc(sc_chunk_t *);
-    discover_chunk(world, NULL, 0, 0);
+    world->known[0] = sc_xalloc(sc_chunk_t);
     world->size_x = 1;
     world->size_y = 1;
+    discover_chunk(world, NULL, 0, 0);
     return world;
 }
 
@@ -123,15 +124,12 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
                                       (local_y & size) << 1 |
                                       (z & size)];
         }
-        else {
-            (**node).block = block;
-            return 1;
-        }
+        else
+            break;
     }
 
-    /* this should not happen */
-    assert(0);
-    return 0;
+    (**node).block = block;
+    return 1;
 }
 
 sc_chunk_node_t *

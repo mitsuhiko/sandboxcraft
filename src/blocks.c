@@ -11,7 +11,7 @@
     block->movement_factor = bmovement_factor; \
 } while (0)
 
-sc_block_t* blocks;
+static sc_block_t* blocks;
 
 void
 sc_init_blocks(void)

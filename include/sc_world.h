@@ -6,7 +6,17 @@
    addressed by positive and negative numbers where 0, 0 is the center
    of the world.
 
-   Each chunk is an octree by itself. */
+   Each chunk is an octree by itself.
+
+   This means that upon exploration of the world, the map moves the
+   pointers to the octree roots around in the world->known array so
+   that the center of the new world is again the original root chunk.
+   As a second effect the world always grows symmetrically.  This does
+   not yet mean that the world in the other direction was generated,
+   it just means that space is allocated for a pointer that could point
+   upon discovery to a new octree root.
+   
+   */
 #ifndef _INC_SC_WORLD_H_
 #define _INC_SC_WORLD_H_
 
