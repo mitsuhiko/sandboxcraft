@@ -45,13 +45,15 @@ sc_game_render(void)
     glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
 
     /* draw a tile */
-    glBegin(GL_QUADS);
-        glVertex3f(-10.0f, -10.0f, 10.0f);
-        glVertex3f(10.0f, -10.0f, 10.0f);
-        glVertex3f(10.0f, -10.0f, -10.0f);
-        glVertex3f(-10.0f, -10.0f, -10.0f);
-        sc_bind_texture(grass_texture);
-    glEnd();
+    GLfloat vertices[16] = {
+        -10.0f, -10.0f,  10.0f,
+         10.0f, -10.0f,  10.0f,
+         10.0f, -10.0f, -10.0f,
+        -10.0f, -10.0f, -10.0f
+    };
+    sc_bind_texture(grass_texture);
+    glVertexPointer(3, GL_FLOAT, 0, vertices);
+    glDrawArrays(GL_QUADS, 0, 4);
 }
 
 void
@@ -63,7 +65,7 @@ sc_game_stop(void)
 void
 sc_game_mainloop(void)
 {
-    grass_texture = sc_texture_from_resource("grass.png");
+    grass_texture = sc_texture_from_resource("grass.png", GL_NEAREST);
 
     running = 1;
     while (running) {

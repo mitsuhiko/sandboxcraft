@@ -16,8 +16,8 @@ typedef struct {
     float coords[8];
 } sc_texture_t;
 
-sc_texture_t *sc_texture_from_resource(const char *filename);
-sc_texture_t *sc_texture_from_surface(SDL_Surface *img);
+sc_texture_t *sc_texture_from_resource(const char *filename, GLint filtering);
+sc_texture_t *sc_texture_from_surface(SDL_Surface *img, GLint filtering);
 void sc_free_texture(sc_texture_t *texture);
 void sc_bind_texture(sc_texture_t *texture);
 

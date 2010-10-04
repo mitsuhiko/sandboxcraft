@@ -25,7 +25,6 @@ resize_viewport(void)
     glEnable(GL_TEXTURE_2D);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
 
     /* setup projection */
     glViewport(0, 0, WIDTH, HEIGHT);

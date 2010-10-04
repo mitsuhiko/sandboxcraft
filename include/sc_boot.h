@@ -25,6 +25,9 @@
 #  error "Unsupported platform"
 #endif
 
+/* handy little helper to trigger a segfault */
+#define SC_SEGFAULT { int *x = 0; *x = 42; }
+
 /* SDL includes */
 #include "SDL.h"
 #include "SDL_opengl.h"

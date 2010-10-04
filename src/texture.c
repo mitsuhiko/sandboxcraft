@@ -18,20 +18,20 @@ next_power_of_two(size_t value)
 }
 
 sc_texture_t *
-sc_texture_from_resource(const char *filename)
+sc_texture_from_resource(const char *filename, GLint filtering)
 {
     char *path = sc_path_to_resource("textures", filename);
     SDL_Surface *surface = IMG_Load(path);
     if (!surface)
         sc_critical_error(SC_EGRAPHIC, "Unable to load texture");
+    sc_texture_t *rv = sc_texture_from_surface(surface, filtering);
     sc_free(path);
-    sc_texture_t *rv = sc_texture_from_surface(surface);
     SDL_FreeSurface(surface);
     return rv;
 }
 
 sc_texture_t *
-sc_texture_from_surface(SDL_Surface *img)
+sc_texture_from_surface(SDL_Surface *img, GLint filtering)
 {
     int i, yl, yh;
     float scale[2] = {1.0f, 1.0f};
@@ -59,7 +59,7 @@ sc_texture_from_surface(SDL_Surface *img)
     }
 
     /* flip image data because of flipped opengl coordinate system */
-    data = (Uint8 *)(img->pixels);
+    data = (Uint8 *)img->pixels;
     line = sc_xmalloc(sizeof(Uint8) * img->pitch);
     yl = 0;
     yh = img->h - 1;
@@ -91,8 +91,8 @@ sc_texture_from_surface(SDL_Surface *img)
     /* upload texture to graphics device */
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtering);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture->stored_width,
@@ -102,6 +102,7 @@ sc_texture_from_surface(SDL_Surface *img)
     /* remember default texture coordinates */
     for (i = 0; i < 8; i++)
         texture->coords[i] = default_texture_coordinates[i] * scale[i % 2];
+    texture->id = tex;
 
     sc_free(stored_img);
     sc_free(line);
