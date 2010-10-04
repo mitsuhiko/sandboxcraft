@@ -67,7 +67,7 @@ sc_game_render(void)
     glLoadIdentity();
 
     /* rotate and translate camera */
-    glTranslatef(0.0f, 0.0f, -50.0f);
+    glTranslatef(0.0f, 0.0f, -100.0f);
     glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
 

@@ -11,6 +11,7 @@ set(SOURCES
     src/path.c
     src/texture.c
     src/blocks.c
+    src/world.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -23,6 +24,7 @@ set(HEADERS
     include/sc_game.h
     include/sc_texture.h
     include/sc_blocks.h
+    include/sc_world.h
 )
 
 find_package(SDL 1.2.7 REQUIRED)
