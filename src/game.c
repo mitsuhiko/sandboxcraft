@@ -1,10 +1,8 @@
 #include "sc_game.h"
 #include "sc_texture.h"
-#include "sc_shaders.h"
+#include "sc_blocks.h"
 
 static int running;
-
-static sc_texture_t *grass_texture;
 
 
 void
@@ -52,7 +50,7 @@ sc_game_render(void)
          10.0f, -10.0f, -10.0f,
         -10.0f, -10.0f, -10.0f
     };
-    sc_bind_texture(grass_texture);
+    sc_bind_texture(sc_get_block_texture(SC_BLOCK_GRASS));
     glVertexPointer(3, GL_FLOAT, 0, vertices);
     glDrawArrays(GL_QUADS, 0, 4);
 }
@@ -66,8 +64,6 @@ sc_game_stop(void)
 void
 sc_game_mainloop(void)
 {
-    grass_texture = sc_texture_from_resource("grass.png", GL_NEAREST);
-
     running = 1;
     while (running) {
         sc_engine_begin_frame();
@@ -76,18 +72,16 @@ sc_game_mainloop(void)
         sc_game_render();
         sc_engine_end_frame();
     }
-
-    sc_free_texture(grass_texture);
 }
 
 void
 sc_game_init(void)
 {
-    sc_program_t *program = sc_program_from_resource("grass.program");
-    sc_free_program(program);
+    sc_init_blocks();
 }
 
 void
 sc_game_shutdown(void)
 {
+    sc_free_blocks();
 }
