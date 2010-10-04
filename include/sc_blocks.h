@@ -7,7 +7,8 @@
 
 typedef enum {
     SC_BLOCK_GRASS = 0,
-    SC_BLOCK_STONE = 1
+    SC_BLOCK_STONE = 1,
+    SC_BLOCK_PLANKS = 2
 } sc_blocktype_t;
 
 typedef struct {
@@ -17,7 +18,7 @@ typedef struct {
     float movement_factor;
 } sc_block_t;
 
-#define SC_BLOCK_SLOTS 2
+#define SC_BLOCK_SLOTS 3
 
 void sc_init_blocks(void);
 void sc_free_blocks(void);

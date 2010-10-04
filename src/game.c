@@ -78,7 +78,7 @@ sc_game_render(void)
          10.0f, -10.0f, -10.0f,
         -10.0f, -10.0f, -10.0f
     };
-    sc_bind_texture(sc_get_block_texture(SC_BLOCK_GRASS));
+    sc_bind_texture(sc_get_block_texture(SC_BLOCK_PLANKS));
     glVertexPointer(3, GL_FLOAT, 0, vertices);
     glDrawArrays(GL_QUADS, 0, 4);
 }

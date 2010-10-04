@@ -22,6 +22,7 @@ sc_init_blocks(void)
 
     ADD_BLOCK(SC_BLOCK_GRASS, "grass.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_STONE, "stone.png", 0, 0.0f);
+    ADD_BLOCK(SC_BLOCK_PLANKS, "planks.png", 0, 0.0f);
 }
 
 void
