@@ -11,7 +11,7 @@ typedef enum {
     SC_BLOCK_PLANKS = 2,
     SC_BLOCK_SAND = 3,
     SC_BLOCK_GRAVEL = 4,
-    SC_BLOCK_COBBELSTONE = 5,
+    SC_BLOCK_COBBLESTONE = 5,
     SC_BLOCK_WATER = 6
 } sc_blocktype_t;
 

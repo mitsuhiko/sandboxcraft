@@ -25,7 +25,7 @@ sc_init_blocks(void)
     ADD_BLOCK(SC_BLOCK_PLANKS, "planks.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_SAND, "sand.png", 1, 0.0f);
     ADD_BLOCK(SC_BLOCK_GRAVEL, "gravel.png", 1, 0.0f);
-    ADD_BLOCK(SC_BLOCK_COBBELSTONE, "cobblestone.png", 0, 0.0f);
+    ADD_BLOCK(SC_BLOCK_COBBLESTONE, "cobblestone.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_WATER, "water.png", 0, 0.7f);
 }
 
@@ -38,7 +38,7 @@ sc_get_block_name(sc_blocktype_t type)
     case SC_BLOCK_PLANKS:       return "Planks";
     case SC_BLOCK_SAND:         return "Sand";
     case SC_BLOCK_GRAVEL:       return "Gravel";
-    case SC_BLOCK_COBBELSTONE:  return "Cobbelstone";
+    case SC_BLOCK_COBBLESTONE:  return "Cobblestone";
     case SC_BLOCK_WATER:        return "Water";
     default:                    return "Unknown";
     }
