@@ -81,6 +81,11 @@ sc_game_render(void)
     sc_bind_texture(sc_get_block_texture(SC_BLOCK_PLANKS));
     glVertexPointer(3, GL_FLOAT, 0, vertices);
     glDrawArrays(GL_QUADS, 0, 4);
+    glPushMatrix();
+        sc_bind_texture(sc_get_block_texture(SC_BLOCK_WATER));
+        glTranslatef(20.0f, 0.0f, 0.0f);
+        glDrawArrays(GL_QUADS, 0, 4);
+    glPopMatrix();
 }
 
 void

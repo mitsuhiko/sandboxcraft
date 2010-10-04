@@ -17,12 +17,15 @@ sc_init_blocks(void)
 {
     if (blocks)
         return;
-
     blocks = sc_memassert(sc_xmalloc(sizeof(sc_block_t) * SC_BLOCK_SLOTS));
 
     ADD_BLOCK(SC_BLOCK_GRASS, "grass.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_STONE, "stone.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_PLANKS, "planks.png", 0, 0.0f);
+    ADD_BLOCK(SC_BLOCK_SAND, "sand.png", 1, 0.0f);
+    ADD_BLOCK(SC_BLOCK_GRAVEL, "gravel.png", 1, 0.0f);
+    ADD_BLOCK(SC_BLOCK_COBBELSTONE, "cobblestone.png", 0, 0.0f);
+    ADD_BLOCK(SC_BLOCK_WATER, "water.png", 0, 0.7f);
 }
 
 void
