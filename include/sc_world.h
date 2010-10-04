@@ -11,10 +11,7 @@
    This means that upon exploration of the world, the map moves the
    pointers to the octree roots around in the world->known array so
    that the center of the new world is again the original root chunk.
-   As a second effect the world always grows symmetrically.  This does
-   not yet mean that the world in the other direction was generated,
-   it just means that space is allocated for a pointer that could point
-   upon discovery to a new octree root.
+   As a second effect the world always grows symmetrically.
    
    */
 #ifndef _INC_SC_WORLD_H_
@@ -23,7 +20,8 @@
 #include "sc_boot.h"
 #include "sc_blocks.h"
 
-#define SC_CHUNK_RESOLUTION 128
+#define SC_CHUNK_RESOLUTION     128
+#define SC_CHUNK_LIMIT          1024
 
 struct _sc_chunk_node;
 typedef struct _sc_chunk_node {
@@ -40,18 +38,32 @@ typedef struct {
 typedef struct {
     sc_chunk_t **known;                 /* the known world :) */
     uint32_t seed;                      /* the seed for the world */
-    size_t size_x;
-    size_t size_y;
+    size_t width;
+    size_t height;
 } sc_world_t;
 
 
+/* creates a new world */
 sc_world_t *sc_new_world(void);
-void sc_free_world(sc_world_t *world);
-#define sc_world_get_chunk(world, x, y) \
-    (&world->known[y + (world->size_y / 2)][x + (world->size_x / 2)])
 
+/* frees the world from memory again.  At that point care must be taken
+   that nothing references it any more. */
+void sc_free_world(sc_world_t *world);
+
+/* can be used to automatically discover new parts of the world.  This
+   can be called when the view is expanded beyond SC_CHUNK_RESOLUTION.
+   The z value is currently ignored, 0 can be assumed to probe into
+   the wild. */
+void sc_probe_world(sc_world_t *world, int x, int y, int z);
+
+/* returns a block for a given tripple of world coodinates. */
 sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
+
+/* Sets a block in the world.  This will automatically rediscover the
+   world if the boundaries are hit.  If something outside the hard limits
+   is referenced, 0 is returned, 1 otherwise. */
 int sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block);
+
 
 sc_chunk_node_t *sc_new_chunk_node(void);
 void sc_free_chunk_node(sc_chunk_node_t *node);

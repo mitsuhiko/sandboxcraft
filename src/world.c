@@ -1,57 +1,120 @@
 #include <assert.h>
+#include <stdlib.h>
 
 #include "sc_world.h"
 
 #define DEFAULT_BLOCK SC_BLOCK_STONE
 
 
-/* discover a new chunk that is a neighbour of ref.  Requires that the
-   world was already resized to hold the given chunk. */
-static sc_chunk_t *
-discover_chunk(sc_world_t *world, sc_chunk_t *ref, int offx, int offy)
+/* helper that discovers a single chunk. x/y are world coords */
+static void
+discover_chunk(sc_world_t *world, sc_chunk_t *chunk, int x, int y)
 {
-    int x = (ref ? ref->x : 0) + offx;
-    int y = (ref ? ref->y : 0) + offy;
-    sc_chunk_t *chunk = sc_world_get_chunk(world, x, y);
+    chunk->root = sc_new_chunk_node();
     chunk->x = x;
     chunk->y = y;
-    chunk->root = sc_new_chunk_node();
-    return chunk;
+}
+
+/* helper for resolve block that expands the world as necessary */
+static void
+discover_world(sc_world_t *world, int new_width, int new_height)
+{
+    int y, x, half_width, half_height;
+    int old_height = world->height;
+    sc_chunk_t **old_known = world->known;
+    int off_x = (new_width - world->width) / 2;
+    int off_y = (new_height - world->height) / 2;
+
+    /* create the new world */
+    world->known = sc_xcalloc(new_height, sizeof(sc_chunk_t *));
+    world->width = new_width;
+    world->height = new_height;
+    half_width = new_width / 2;
+    half_height = new_height / 2;
+
+    /* fill the new world with the old contents if any and fill blanks
+       with newly generated world. */
+    for (y = 0; y < world->height; y++) {
+        sc_chunk_t *row = sc_xcalloc(new_width, sizeof(sc_chunk_t));
+        world->known[y] = row;
+        /* existing row */
+        if (y >= off_y && y < world->height - off_y - 1) {
+            for (x = 0; x < world->width; x++)
+                if (x >= off_x && x < world->width - off_x - 1) {
+                    row[x].root = old_known[y][x - off_x].root;
+                    /* update reflected location information */
+                    row[x].x = x - half_width;
+                    row[x].y = y - half_height;
+                }
+                else
+                    discover_chunk(world, &row[x], x - half_width,
+                                   y - half_height);
+        }
+        /* completely new row */
+        else
+            for (x = 0; x < world->width; x++)
+                discover_chunk(world, &row[x], x - half_width,
+                               y - half_height);
+    }
+
+    /* free old world pointers */
+    for (y = 0; y < old_height; y++)
+        sc_free(old_known[y]);
+    sc_free(old_known);
 }
 
 static sc_chunk_t *
-resolve_block(sc_world_t *world, int x, int y, int z, int *local_x, int *local_y)
+resolve_block(sc_world_t *world, int x, int y, int z, int discover,
+              int *local_x, int *local_y)
 {
-    int half_x, half_y, chunk_x, chunk_y;
+    int chunk_x, chunk_y;
 
     /* z is limited by the resolution of a single chunk */
     if (z < 0 || z >= SC_CHUNK_RESOLUTION)
         return NULL;
 
-    half_x = world->size_x / 2;
-    half_y = world->size_y / 2;
-    chunk_x = half_x + x / SC_CHUNK_RESOLUTION;
-    chunk_y = half_y + y / SC_CHUNK_RESOLUTION;
+    chunk_x = (world->width / 2) + x / SC_CHUNK_RESOLUTION;
+    chunk_y = (world->height / 2) + y / SC_CHUNK_RESOLUTION;
 
-    /* tried to reference a non-explored chunk in the world */
-    if (chunk_x < 0 || chunk_y < 0 || chunk_x > half_x || chunk_y > half_y)
+    /* tried to reference a non-explored chunk in the non-discovered
+       world and we don't want to discover right now.  Bail out */
+    if (!discover) {
+        if (chunk_x < 0 || chunk_y < 0 ||
+            chunk_x >= world->width || chunk_y >= world->height)
+            return NULL;
+    }
+    /* there is also a hard limit we must not hit, make sure we're
+       below that. */
+    else if (chunk_x < -SC_CHUNK_LIMIT || chunk_x >= SC_CHUNK_LIMIT ||
+             chunk_y < -SC_CHUNK_LIMIT || chunk_y >= SC_CHUNK_LIMIT)
         return NULL;
+    /* at that point we have to make sure we expand the known world
+       as necessary. */
+    else if (chunk_x < 0 || chunk_y < 0 ||
+             chunk_x > world->width || chunk_y > world->height) {
+        discover_world(world, world->width + abs(chunk_x),
+                       world->height + abs(chunk_y));
+        /* we have to recalculate the chunk offsets because the
+           world size changed */
+        chunk_x = (world->width / 2) + x / SC_CHUNK_RESOLUTION;
+        chunk_y = (world->height / 2) + y / SC_CHUNK_RESOLUTION;
+    }
 
-    /* there is a chunk, return it and get local coordinates */
-    *local_x = x % SC_CHUNK_RESOLUTION;
-    *local_y = y % SC_CHUNK_RESOLUTION;
-    return sc_world_get_chunk(world, chunk_x, chunk_y);
+    /* if local coordinates are requested, calculate them */
+    if (local_x) *local_x = x % SC_CHUNK_RESOLUTION;
+    if (local_y) *local_y = y % SC_CHUNK_RESOLUTION;
+
+    return &world->known[chunk_y][chunk_x];
 }
 
 sc_world_t *
 sc_new_world(void)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
-    world->known = sc_xalloc(sc_chunk_t *);
-    world->known[0] = sc_xalloc(sc_chunk_t);
-    world->size_x = 1;
-    world->size_y = 1;
-    discover_chunk(world, NULL, 0, 0);
+    world->known = NULL;
+    world->width = 0;
+    world->height = 0;
+    discover_world(world, 1, 1);
     return world;
 }
 
@@ -60,12 +123,18 @@ sc_free_world(sc_world_t *world)
 {
     size_t x, y;
 
-    for (x = 0; x < world->size_x; x++)
-        for (y = 0; y < world->size_y; y++) {
+    for (x = 0; x < world->width; x++)
+        for (y = 0; y < world->height; y++) {
             sc_chunk_t *chunk = &world->known[y][x];
             if (chunk)
                 sc_free_chunk_node(chunk->root);
         }
+}
+
+void
+sc_probe_world(sc_world_t *world, int x, int y, int z)
+{
+    resolve_block(world, x, y, z, 1, NULL, NULL);
 }
 
 sc_block_t *
@@ -75,7 +144,7 @@ sc_world_get_block(sc_world_t *world, int x, int y, int z)
     sc_chunk_t *chunk;
     sc_chunk_node_t *node, *child;
 
-    chunk = resolve_block(world, x, y, z, &local_x, &local_y);
+    chunk = resolve_block(world, x, y, z, 0, &local_x, &local_y);
     if (!chunk)
         return NULL;
 
@@ -102,8 +171,8 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
     sc_chunk_t *chunk;
     sc_chunk_node_t *node, *child;
 
-    chunk = resolve_block(world, x, y, z, &local_x, &local_y);
-    /* blocks can only be set in the known world */
+    chunk = resolve_block(world, x, y, z, 1, &local_x, &local_y);
+    /* we're past the hard boundaries or z was too low/high */
     if (!chunk)
         return 0;
 
