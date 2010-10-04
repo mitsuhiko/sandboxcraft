@@ -27,9 +27,8 @@
 
 struct _sc_chunk_node;
 typedef struct _sc_chunk_node {
-    struct _sc_chunk_node *children[8]; /* lt, rt, lb, rb  front/back */
-    int is_leaf;
     sc_block_t *block;
+    struct _sc_chunk_node *children[8];
 } sc_chunk_node_t;
 
 typedef struct {

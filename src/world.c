@@ -82,22 +82,17 @@ sc_world_get_block(sc_world_t *world, int x, int y, int z)
     /* locate the block in the octree */
     node = chunk->root;
     size = SC_CHUNK_RESOLUTION;
-    while (size) {
-        if (node->is_leaf)
-            return node->block;
+    while (size != 1) {
+        size_t idx;
         size /= 2;
-        child = node->children[(local_x & size) << 2 |
-                               (local_y & size) << 1 |
-                               (z & size)];
-        /* missing child means use block of parent */
+        idx = !!(local_x & size) << 2 | !!(local_y & size) << 1 | !!(z & size);
+        child = node->children[idx];
         if (!child)
-            return node->block;
+            break;
         node = child;
     }
 
-    /* this should not happen */
-    assert(0);
-    return NULL;
+    return node->block;
 }
 
 int
@@ -118,11 +113,10 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
     while (size != 1) {
         size_t idx;
         size /= 2;
-        idx = (local_x & size) << 2 | (local_y & size) << 1 | (z & size);
+        idx = !!(local_x & size) << 2 | !!(local_y & size) << 1 | !!(z & size);
         child = node->children[idx];
         if (!child) {
             child = sc_new_chunk_node();
-            node->is_leaf = 0;
             node->children[idx] = child;
         }
         node = child;
@@ -138,7 +132,6 @@ sc_new_chunk_node(void)
     sc_chunk_node_t *node = sc_xalloc(sc_chunk_node_t);
     memset(node->children, 0, sizeof(node->children));
     node->block = sc_get_block(DEFAULT_BLOCK);
-    node->is_leaf = 1;
     return node;
 }
 

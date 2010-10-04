@@ -131,10 +131,14 @@ sc_game_late_init(void)
     world = sc_new_world();
     printf("(0, 0, 0) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 0)->type));
     printf("(0, 0, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 1)->type));
+    printf("(5, 3, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 5, 3, 1)->type));
     printf("(0, 0, 1) <- Grass\n");
     sc_world_set_block(world, 0, 0, 1, sc_get_block(SC_BLOCK_GRASS));
+    printf("(5, 3, 1) <- Planks\n");
+    sc_world_set_block(world, 5, 3, 1, sc_get_block(SC_BLOCK_PLANKS));
     printf("(0, 0, 0) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 0)->type));
     printf("(0, 0, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 1)->type));
+    printf("(5, 3, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 5, 3, 1)->type));
 
     late_initialized = 1;
 }
