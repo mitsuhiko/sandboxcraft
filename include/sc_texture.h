@@ -16,8 +16,12 @@ typedef struct {
     float coords[8];
 } sc_texture_t;
 
+/* loads a texture from a resource.  This might fail */
 sc_texture_t *sc_texture_from_resource(const char *filename, GLint filtering);
+
+/* loads a texture from a surface.  This might fail */
 sc_texture_t *sc_texture_from_surface(SDL_Surface *img, GLint filtering);
+
 void sc_free_texture(sc_texture_t *texture);
 void sc_bind_texture(sc_texture_t *texture);
 
