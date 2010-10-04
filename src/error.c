@@ -36,7 +36,6 @@ format_error(va_list argptr, const char *description)
     _vsnprintf(buf, bufsize, description, argptr);
 #else
     char *buf;
-    va_start(argptr, description);
     vasprintf(&buf, description, argptr);
 #endif
     return buf;
