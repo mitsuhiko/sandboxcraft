@@ -17,21 +17,22 @@ static const char *error_names[] = {
 static void
 show_error(int errno, const char *filename, int lineno, const char *msg)
 {
-    fprintf(stderr, "Error %d [%s]: %s", errno,
+    fprintf(stderr, "Error %d [%s]: %s\n", errno,
             error_names[errno], msg ? msg : "no further error description");
     if (filename) {
-        fprintf(stderr, "Error location: %s", filename);
-        if (lineno >= 0)
+        fprintf(stderr, "  problem location: %s", filename);
+        if (lineno > 0)
             fprintf(stderr, ":%d", lineno);
-        fputs(stderr, "\n");
+        fputs("\n", stderr);
     }
+    fflush(stderr);
 }
 
 void
 sc_show_last_error(void)
 {
     if (!last_error)
-        return
+        return;
     show_error(last_error->errno,
                last_error->filename,
                last_error->lineno,
@@ -50,7 +51,6 @@ sc_set_error(int errno, const char *filename, int lineno,
 
     if (!last_error) {
         last_error = sc_xalloc(sc_error_t);
-        last_error->description = 0;
     }
     else {
         sc_free(last_error->description);

@@ -12,7 +12,7 @@ typedef struct {
     char *filename;     /* the filename that caused that error.  This might
                            be a source file (__FILE__) or a shader file,
                            image file etc. */
-    int lineno;         /* if available, otherwise -1 */
+    int lineno;         /* > 0 if available */
 } sc_error_t;
 
 void sc_show_last_error(void);

@@ -23,14 +23,12 @@ sc_texture_from_resource(const char *filename, GLint filtering)
     char *path = sc_path_to_resource("textures", filename);
     SDL_Surface *surface = IMG_Load(path);
     if (!surface) {
-        sc_set_error(SC_EGRAPHIC, filename, NULL, "Unable to load texture");
+        sc_set_error(SC_EGRAPHIC, path, 0, "Unable to load texture");
         return NULL;
     }
     sc_texture_t *rv = sc_texture_from_surface(surface, filtering);
-    if (!rv) {
+    if (!rv)
         sc_augment_error_context(filename, 0);
-        return NULL;
-    }
     sc_free(path);
     SDL_FreeSurface(surface);
     return rv;
@@ -126,7 +124,8 @@ sc_free_texture(sc_texture_t *texture)
 {
     if (!texture)
         return;
-    glDeleteTextures(1, &texture->id);
+    if (texture->id)
+        glDeleteTextures(1, &texture->id);
     sc_free(texture);
 }
 

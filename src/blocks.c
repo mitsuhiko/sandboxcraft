@@ -18,7 +18,7 @@ sc_init_blocks(void)
 {
     if (blocks)
         return;
-    blocks = sc_memassert(sc_xmalloc(sizeof(sc_block_t) * SC_BLOCK_SLOTS));
+    blocks = sc_memassert(sc_xcalloc(SC_BLOCK_SLOTS, sizeof(sc_block_t)));
 
     ADD_BLOCK(SC_BLOCK_GRASS, "grass.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_STONE, "stone.png", 0, 0.0f);
@@ -36,7 +36,8 @@ sc_free_blocks(void)
     if (!blocks)
         return;
     for (i = 0; i < SC_BLOCK_SLOTS; i++)
-        sc_free_texture(blocks[i].texture);
+        if (blocks[i].texture)
+            sc_free_texture(blocks[i].texture);
     sc_free(blocks);
     blocks = 0;
 }
