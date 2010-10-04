@@ -13,6 +13,7 @@ discover_chunk(sc_world_t *world, sc_chunk_t *chunk, int x, int y)
     chunk->root = sc_new_chunk_node();
     chunk->x = x;
     chunk->y = y;
+    /* TODO: use a perlin noise function here to generate a map */
 }
 
 /* helper for resolve block that expands the world as necessary */
