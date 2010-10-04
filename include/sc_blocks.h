@@ -24,6 +24,8 @@ typedef struct {
 
 #define SC_BLOCK_SLOTS 7
 
+/* initializes the blocks.  If that does not work, a critical error is
+   set and the application aborts. */
 void sc_init_blocks(void);
 void sc_free_blocks(void);
 

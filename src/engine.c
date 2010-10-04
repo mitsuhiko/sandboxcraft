@@ -19,7 +19,7 @@ resize_viewport(void)
     if (FULLSCREEN)
         flags |= SDL_FULLSCREEN;
     if (!SDL_SetVideoMode(WIDTH, HEIGHT, 32, flags))
-        sc_critical_error(SC_ESDL, SDL_GetError());
+        sc_critical_error(SC_ESDL, __FILE__, __LINE__, "%s", SDL_GetError());
 
     /* activate opengl features */
     glEnable(GL_TEXTURE_2D);
@@ -60,7 +60,7 @@ sc_engine_init(void)
 {
     Uint32 sdl_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO;
     if (SDL_Init(sdl_flags) < 0)
-        sc_critical_error(SC_ESDL, SDL_GetError());
+        sc_critical_error(SC_ESDL, __FILE__, __LINE__, "%s", SDL_GetError());
 
     init_graphics();
 }

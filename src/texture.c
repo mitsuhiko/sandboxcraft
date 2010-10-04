@@ -22,9 +22,15 @@ sc_texture_from_resource(const char *filename, GLint filtering)
 {
     char *path = sc_path_to_resource("textures", filename);
     SDL_Surface *surface = IMG_Load(path);
-    if (!surface)
-        sc_critical_error(SC_EGRAPHIC, "Unable to load texture");
+    if (!surface) {
+        sc_set_error(SC_EGRAPHIC, filename, NULL, "Unable to load texture");
+        return NULL;
+    }
     sc_texture_t *rv = sc_texture_from_surface(surface, filtering);
+    if (!rv) {
+        sc_augment_error_context(filename, 0);
+        return NULL;
+    }
     sc_free(path);
     SDL_FreeSurface(surface);
     return rv;
@@ -55,7 +61,8 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
         format = (img->format->Rmask == 0x000000ff) ? GL_RGB : GL_BGR;
         break;
     default:
-        sc_critical_error(SC_EGRAPHIC, "Unsupported texture depth");
+        sc_set_error(SC_EGRAPHIC, __FILE__, __LINE__, "Unsupported texture depth");
+        return NULL;
     }
 
     /* flip image data because of flipped opengl coordinate system */
@@ -79,8 +86,12 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
             img->format->BitsPerPixel, img->format->Rmask,
             img->format->Gmask, img->format->Bmask,
             img->format->Amask);
-        if (!stored_img)
-            sc_critical_error(SC_EGRAPHIC, "Unable to resize texture");
+        if (!stored_img) {
+            sc_set_error(SC_EGRAPHIC, __FILE__, __LINE__, "Unable to resize texture");
+            sc_free(texture);
+            texture = NULL;
+            goto bailout;
+        }
         SDL_Rect rect = {0, 0, img->w, img->h};
         SDL_BlitSurface(img, &rect, stored_img, &rect);
         data = (Uint8 *)stored_img->pixels;
@@ -104,6 +115,7 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
         texture->coords[i] = default_texture_coordinates[i] * scale[i % 2];
     texture->id = tex;
 
+bailout:
     sc_free(stored_img);
     sc_free(line);
     return texture;

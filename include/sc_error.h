@@ -7,27 +7,22 @@
 #include "sc_boot.h"
 
 typedef struct {
-    int errno;
-    char *description;
+    int errno;          /* internal error number, see below */
+    char *description;  /* textual description of the error */
+    char *filename;     /* the filename that caused that error.  This might
+                           be a source file (__FILE__) or a shader file,
+                           image file etc. */
+    int lineno;         /* if available, otherwise -1 */
 } sc_error_t;
 
-/* shows the given error on stderr */
-void sc_show_error(int errno, const char *description);
-
-/* shows the last set error */
 void sc_show_last_error(void);
-
-/* sets an error */
-void sc_set_error(int errno, const char *description);
-
-/* shows an error and aborts */
-void sc_critical_error(int errno, const char *description);
-
-/* true if there is an error */
-int sc_has_error(void);
-
-/* unsets an error again */
-void sc_unset_error(void);
+void sc_set_error(int errno, const char *filename, int lineno,
+                  const char *description, ...);
+void sc_clear_error(void);
+void sc_augment_error_context(const char *filename, int lineno);
+void sc_error_make_critical(void);
+void sc_critical_error(int errno, const char *filename, int lineno,
+                       const char *description, ...);
 
 /* error codes, must correspond to the names in error.c */
 #define SC_EOOM             0

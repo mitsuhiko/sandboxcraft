@@ -5,7 +5,7 @@ void *
 sc_memassert(void *p)
 {
     if (!p) {
-        sc_show_error(SC_EOOM, "out of memory on general allocation");
+        sc_critical_error(SC_EOOM, NULL, 0, "out of memory on general allocation");
         exit(1);
     }
     return p;

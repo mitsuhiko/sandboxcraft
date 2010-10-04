@@ -5,6 +5,7 @@
 #define ADD_BLOCK(btype, filename, bfalls_down, bmovement_factor) do { \
     sc_block_t *block = &blocks[btype]; \
     block->texture = sc_texture_from_resource(filename, GL_NEAREST); \
+    if (!block->texture) sc_error_make_critical(); \
     block->type = btype; \
     block->falls_down = bfalls_down; \
     block->movement_factor = bmovement_factor; \

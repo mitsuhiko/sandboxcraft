@@ -10,7 +10,6 @@ set(SOURCES
     src/game.c
     src/path.c
     src/texture.c
-    src/shaders.c
     src/blocks.c
 )
 set(HEADERS
@@ -23,7 +22,6 @@ set(HEADERS
     include/sc_engine.h
     include/sc_game.h
     include/sc_texture.h
-    include/sc_shaders.h
     include/sc_blocks.h
 )
 

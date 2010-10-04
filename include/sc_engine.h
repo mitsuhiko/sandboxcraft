@@ -20,7 +20,8 @@ extern sc_gametime_t sc_gametime;
 /* same for the buffer swapping */
 #define sc_engine_swap_buffers SDL_GL_SwapBuffers
 
-/* engine management */
+/* initializes the engine.  If that does not work, a critical error is set
+   and the application aborts. */
 void sc_engine_init(void);
 void sc_engine_shutdown(void);
 
