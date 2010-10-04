@@ -34,5 +34,6 @@ void sc_unset_error(void);
 #define SC_EGENERAL         1
 #define SC_ESDL             2
 #define SC_EGRAPHIC         3
+#define SC_ESHADER          4
 
 #endif

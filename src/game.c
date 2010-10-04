@@ -1,5 +1,6 @@
 #include "sc_game.h"
 #include "sc_texture.h"
+#include "sc_shaders.h"
 
 static int running;
 
@@ -82,6 +83,8 @@ sc_game_mainloop(void)
 void
 sc_game_init(void)
 {
+    sc_program_t *program = sc_program_from_resource("grass.program");
+    sc_free_program(program);
 }
 
 void
