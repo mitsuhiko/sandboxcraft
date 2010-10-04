@@ -10,7 +10,7 @@ run_game_controlled(int argc, char **argv)
 {
     sc_engine_init();
     atexit(sc_engine_shutdown);
-    sc_game_init();
+    sc_game_early_init();
     atexit(sc_game_shutdown);
     sc_game_mainloop();
     return 0;

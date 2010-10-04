@@ -5,7 +5,13 @@
 #include "sc_boot.h"
 #include "sc_engine.h"
 
-void sc_game_init(void);
+/* init that happens right after graphics system is loaded */
+void sc_game_early_init(void);
+
+/* init that happens in a loading screen */
+void sc_game_late_init(void);
+
+/* shutdown's early and late init, but late must not have happened yet */
 void sc_game_shutdown(void);
 
 void sc_game_mainloop();

@@ -3,7 +3,35 @@
 #include "sc_blocks.h"
 
 static int running;
+static int late_initialized;
 
+
+static void
+perform_late_init(void)
+{
+    sc_texture_t *loading = sc_texture_from_resource("loading.png", GL_NEAREST);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+        glLoadIdentity();
+        glTranslatef(0.0f, 8.0f, -30.0f);
+        glRotatef(35.0f, 1.0f, 0.0f, 0.0f);
+        glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
+        GLfloat vertices[16] = {
+            -10.0f, -10.0f,  10.0f,
+             10.0f, -10.0f,  10.0f,
+             10.0f, -10.0f, -10.0f,
+            -10.0f, -10.0f, -10.0f
+        };
+        sc_bind_texture(loading);
+        glVertexPointer(3, GL_FLOAT, 0, vertices);
+        glDrawArrays(GL_QUADS, 0, 4);
+    glPopMatrix();
+
+    sc_engine_swap_buffers();
+    sc_game_late_init();
+    sc_free_texture(loading);
+}
 
 void
 sc_game_handle_events(void)
@@ -67,17 +95,30 @@ sc_game_mainloop(void)
     running = 1;
     while (running) {
         sc_engine_begin_frame();
-        sc_game_handle_events();
-        sc_game_update();
-        sc_game_render();
+        if (late_initialized) {
+            sc_game_handle_events();
+            sc_game_update();
+            sc_game_render();
+        }
+        else
+            perform_late_init();
         sc_engine_end_frame();
     }
 }
 
 void
-sc_game_init(void)
+sc_game_early_init(void)
 {
+    late_initialized = 0;
+}
+
+void
+sc_game_late_init(void)
+{
+    if (late_initialized)
+        return;
     sc_init_blocks();
+    late_initialized = 1;
 }
 
 void
