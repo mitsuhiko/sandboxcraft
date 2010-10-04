@@ -16,10 +16,23 @@ next_token(const char *str, void **ctx)
     while (*str && isspace(*str))
         str++;
     rv_start = str;
-    while (*str && !isspace(*str))
-        size++, str++;
-    if (!size)
-        return NULL;
+
+    if (*str == '"' || *str == '\'') {
+        char delim = *str++;
+        while (*str != delim) {
+            str++, size++;
+            if (!*str)
+                sc_critical_error(SC_ESHADER, "Unexpected end of string");
+        }
+        str++;
+        size += 2;
+    }
+    else {
+        while (*str && !isspace(*str))
+            size++, str++;
+        if (!size)
+            return NULL;
+    }
 
     rv = sc_xmalloc(size + 1);
     memcpy(rv, rv_start, size);

@@ -1,6 +1,6 @@
 # a comment
 
-   vertex grass.vertex
+   vertex "grass.vertex"
 fragment grass.fragment
 
 texture 0 grass.png
