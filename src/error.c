@@ -10,7 +10,6 @@ static const char *error_names[] = {
     "general error",                                        /* SC_GENERAL */
     "SDL error",                                            /* SC_ESDL */
     "Graphic subsystem error",                              /* SC_EGRAPHIC */
-    "Shader subsystem error",                               /* SC_ESHADER */
     NULL
 };
 
