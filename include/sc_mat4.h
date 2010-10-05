@@ -3,8 +3,10 @@
 #define _INC_SC_MAT4_H_
 
 #include "sc_boot.h"
+#include "sc_vec3.h"
 
-typedef struct {
+struct _sc_quaternion;
+typedef struct _sc_mat4 {
     float elms[16];
 } sc_mat4_t;
 
@@ -30,7 +32,7 @@ sc_mat4_t * sc_mat4_adjugate(sc_mat4_t *mat_out, const sc_mat4_t *mat);
    is not possible. */
 sc_mat4_t *sc_mat4_inverse(sc_mat4_t *mat_out, const sc_mat4_t *mat);
 
-/* mulitplies two matrices */
+/* multiplies two matrices */
 sc_mat4_t *sc_mat4_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat1,
                        const sc_mat4_t *mat2);
 

@@ -1,6 +1,7 @@
 #include <math.h>
 
 #include "sc_mat4.h"
+#include "sc_quaternion.h"
 
 sc_mat4_t *
 sc_mat4_set(sc_mat4_t *mat, float a, float b, float c, float d, float e,
