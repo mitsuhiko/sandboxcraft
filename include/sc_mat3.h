@@ -31,7 +31,14 @@ sc_mat3_t * sc_mat3_adjugate(sc_mat3_t *mat_out, const sc_mat3_t *mat);
    is not possible. */
 sc_mat3_t *sc_mat3_inverse(sc_mat3_t *mat_out, const sc_mat3_t *mat);
 
+/* multiplies a matrix with another matrix */
+sc_mat3_t *sc_mat3_mul(sc_mat3_t *mat_out, const sc_mat3_t *mat1,
+                       const sc_mat3_t *mat2);
+
 /* multiply the matrix by a factor */
 sc_mat3_t *sc_mat3_scalar_mul(sc_mat3_t *mat_out, const sc_mat3_t *mat, float factor);
+
+/* transposes the matrix */
+sc_mat3_t *sc_mat3_transpose(sc_mat3_t *mat_out, const sc_mat3_t *mat);
 
 #endif
