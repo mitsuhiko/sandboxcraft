@@ -1,0 +1,30 @@
+
+                              ________
+                             /       /|
+                            /_______/ |
+    ~~ SandboxCraft ~~      |       | |
+       ````````````         |  S C  | /
+                            |_______|/
+
+    // Compilation //
+
+        / OS X & Linux /
+
+            $ cmake .
+            $ make
+
+            Make sure to have libsdl and libsdl-image as
+            well as the development headers installed
+
+        / Windows /
+
+            > mkdir win_deps
+
+            download SDL and SDL_Image and drop it into
+            the win_deps folders.  You should have a
+            win_deps\SDL\lib\SDL.lib afterwards.
+
+            $ generate-vs.bat
+
+            This then generates a visual studio solution.
+
