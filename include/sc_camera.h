@@ -4,9 +4,11 @@
 
 #include "sc_boot.h"
 #include "sc_vec3.h"
+#include "sc_quaternion.h"
 
 typedef struct {
     sc_vec3_t position;
+    sc_quaternion_t orientation;
 } sc_camera_t;
 
 sc_camera_t *sc_new_camera(void);

@@ -14,6 +14,9 @@ typedef struct {
 sc_quaternion_t *sc_quaternion_set(sc_quaternion_t *quat, float w, float x,
                                    float y, float z);
 
+/* sets the quaternion to identity */
+sc_quaternion_t *sc_quaternion_set_identity(sc_quaternion_t *quat);
+
 /* zeroes out a quaternion and returns it */
 sc_quaternion_t *sc_quaternion_zero(sc_quaternion_t *quat);
 

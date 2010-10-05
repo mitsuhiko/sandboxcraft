@@ -5,6 +5,7 @@ sc_new_camera(void)
 {
     sc_camera_t *rv = sc_xalloc(sc_camera_t);
     sc_vec3_zero(&rv->position);
+    sc_quaternion_set_identity(&rv->orientation);
     return rv;
 }
 

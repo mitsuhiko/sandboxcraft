@@ -11,6 +11,14 @@ sc_quaternion_set(sc_quaternion_t *quat, float w, float x, float y, float z)
 }
 
 sc_quaternion_t *
+sc_quaternion_set_identity(sc_quaternion_t *quat)
+{
+    quat->w = 1.0f;
+    sc_vec3_set(&quat->vec, 0.0f, 0.0f, 0.0f);
+    return quat;
+}
+
+sc_quaternion_t *
 sc_quaternion_zero(sc_quaternion_t *quat)
 {
     quat->w = 0.0f;
