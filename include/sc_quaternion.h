@@ -21,8 +21,29 @@ sc_quaternion_t *sc_quaternion_set_identity(sc_quaternion_t *quat);
 /* zeroes out a quaternion and returns it */
 sc_quaternion_t *sc_quaternion_zero(sc_quaternion_t *quat);
 
+/* returns the length of the quaternion */
+float sc_quaternion_length(const sc_quaternion_t *quat);
+
+/* returns the length2 of the quaternion */
+float sc_quaternion_length2(const sc_quaternion_t *quat);
+
 /* negates the given quaternion in place and returns it. */
 sc_quaternion_t *sc_quaternion_neg(sc_quaternion_t *quat);
+
+/* adds two quaternions */
+sc_quaternion_t *sc_quaternion_add(sc_quaternion_t *quat_out,
+                                   const sc_quaternion_t *quat1,
+                                   const sc_quaternion_t *quat2);
+
+/* subtracts two quaternions */
+sc_quaternion_t *sc_quaternion_sub(sc_quaternion_t *quat_out,
+                                   const sc_quaternion_t *quat1,
+                                   const sc_quaternion_t *quat2);
+
+/* multiplies two quaternions */
+sc_quaternion_t *sc_quaternion_mul(sc_quaternion_t *quat_out,
+                                   const sc_quaternion_t *quat1,
+                                   const sc_quaternion_t *quat2);
 
 /* checks if two quaternions are nearly equal. */
 int sc_quaternion_equal(const sc_quaternion_t *quat1,
