@@ -103,8 +103,8 @@ int
 sc_vec3_nonzero(const sc_vec3_t *vec)
 {
     return (
-        (vec->x >= EPSILON || vec->x <= -EPSILON) ||
-        (vec->y >= EPSILON || vec->y <= -EPSILON) ||
-        (vec->z >= EPSILON || vec->z <= -EPSILON)
+        vec->x >= EPSILON || vec->x <= -EPSILON ||
+        vec->y >= EPSILON || vec->y <= -EPSILON ||
+        vec->z >= EPSILON || vec->z <= -EPSILON
     );
 }
