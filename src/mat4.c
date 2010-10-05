@@ -73,3 +73,13 @@ sc_mat4_scalar_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat, float factor)
         mat_out->elms[i] = mat->elms[i] * factor;
     return mat_out;
 }
+
+sc_mat4_t *
+sc_mat4_transpose(sc_mat4_t *mat_out, const sc_mat4_t *mat)
+{
+    int x, y;
+    for (y = 0; y < 4; y++)
+        for (x = 0; x < 4; x++)
+            sc_mat4(mat_out, y, x) = sc_mat4(mat, x, y);
+    return mat_out;
+}
