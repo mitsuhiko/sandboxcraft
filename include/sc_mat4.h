@@ -17,6 +17,13 @@ sc_mat4_t *sc_mat4_set(sc_mat4_t *mat, float a, float b, float c, float d,
                        float j, float k, float l, float m, float n,
                        float o, float p);
 
+/* mulitplies two matrices */
+sc_mat4_t *sc_mat4_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat1,
+                       const sc_mat4_t *mat2);
+
+/* multiplies a matrix with a scalar factor */
+sc_mat4_t *sc_mat4_scalar_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat, float factor);
+
 /* sets the matrix to the identity matrix */
 sc_mat4_t *sc_mat4_set_identity(sc_mat4_t *mat);
 
