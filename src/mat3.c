@@ -31,7 +31,7 @@ sc_mat3_set_identity(sc_mat3_t *mat)
 }
 
 float
-sc_mat3_determinant(sc_mat3_t *mat)
+sc_mat3_determinant(const sc_mat3_t *mat)
 {
     return (mat->elms[0] * mat->elms[4] * mat->elms[8]
           + mat->elms[1] * mat->elms[5] * mat->elms[6]
@@ -39,4 +39,41 @@ sc_mat3_determinant(sc_mat3_t *mat)
          - (mat->elms[2] * mat->elms[4] * mat->elms[6]
           + mat->elms[0] * mat->elms[5] * mat->elms[7]
           + mat->elms[1] * mat->elms[3] * mat->elms[8]);
+}
+
+sc_mat3_t *
+sc_mat3_adjugate(sc_mat3_t *mat_out, const sc_mat3_t *mat)
+{
+    mat_out->elms[0] = mat->elms[4] * mat->elms[8] - mat->elms[5] * mat->elms[7];
+    mat_out->elms[1] = mat->elms[2] * mat->elms[7] - mat->elms[1] * mat->elms[8];
+    mat_out->elms[2] = mat->elms[1] * mat->elms[5] - mat->elms[2] * mat->elms[4];
+    mat_out->elms[3] = mat->elms[5] * mat->elms[6] - mat->elms[3] * mat->elms[8];
+    mat_out->elms[4] = mat->elms[0] * mat->elms[8] - mat->elms[2] * mat->elms[6];
+    mat_out->elms[5] = mat->elms[2] * mat->elms[3] - mat->elms[0] * mat->elms[5];
+    mat_out->elms[6] = mat->elms[3] * mat->elms[7] - mat->elms[4] * mat->elms[6];
+    mat_out->elms[7] = mat->elms[1] * mat->elms[6] - mat->elms[9] * mat->elms[7];
+    mat_out->elms[8] = mat->elms[0] * mat->elms[4] - mat->elms[1] * mat->elms[3];
+    return mat_out;
+}
+
+sc_mat3_t *
+sc_mat3_inverse(sc_mat3_t *mat_out, const sc_mat3_t *mat)
+{
+    float det = sc_mat3_determinant(mat);
+    sc_mat3_t adjugate;
+    if (det == 0.0f)
+        return NULL;
+
+    sc_mat3_adjugate(&adjugate, mat);
+    sc_mat3_scalar_mul(mat_out, &adjugate, 1.0f / det);
+    return mat_out;
+}
+
+sc_mat3_t *
+sc_mat3_scalar_mul(sc_mat3_t *mat_out, const sc_mat3_t *mat, float factor)
+{
+    int i;
+    for (i = 0; i < 9; i++)
+        mat_out->elms[i] = mat->elms[i] * factor;
+    return mat_out;
 }
