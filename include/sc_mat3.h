@@ -21,4 +21,7 @@ sc_mat3_t *sc_mat3_set(sc_mat3_t *mat, float a, float b, float c, float d,
 /* sets the matrix to the identity matrix */
 sc_mat3_t *sc_mat3_set_identity(sc_mat3_t *mat);
 
+/* returns the determinant of the matrix */
+float sc_mat3_determinant(sc_mat3_t *mat);
+
 #endif

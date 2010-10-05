@@ -29,3 +29,14 @@ sc_mat3_set_identity(sc_mat3_t *mat)
     sc_mat3(mat, 2, 2) = 1.0f;
     return mat;
 }
+
+float
+sc_mat3_determinant(sc_mat3_t *mat)
+{
+    return (mat->elms[0] * mat->elms[4] * mat->elms[8]
+          + mat->elms[1] * mat->elms[5] * mat->elms[6]
+          + mat->elms[2] * mat->elms[3] * mat->elms[7])
+         - (mat->elms[2] * mat->elms[4] * mat->elms[6]
+          + mat->elms[0] * mat->elms[5] * mat->elms[7]
+          + mat->elms[1] * mat->elms[3] * mat->elms[8]);
+}
