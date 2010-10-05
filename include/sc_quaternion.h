@@ -45,6 +45,9 @@ sc_quaternion_t *sc_quaternion_mul(sc_quaternion_t *quat_out,
                                    const sc_quaternion_t *quat1,
                                    const sc_quaternion_t *quat2);
 
+/* negate the vector component of the quaternion */
+sc_quaternion_t *sc_quaternion_conjugate(sc_quaternion_t *quat);
+
 /* checks if two quaternions are nearly equal. */
 int sc_quaternion_equal(const sc_quaternion_t *quat1,
                         const sc_quaternion_t *quat2);

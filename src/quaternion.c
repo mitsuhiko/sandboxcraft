@@ -82,6 +82,13 @@ sc_quaternion_mul(sc_quaternion_t *quat_out, const sc_quaternion_t *quat1,
     return quat_out;
 }
 
+sc_quaternion_t *
+sc_quaternion_conjugate(sc_quaternion_t *quat)
+{
+    sc_vec3_neg(&quat->vec);
+    return quat;
+}
+
 int
 sc_quaternion_equal(const sc_quaternion_t *quat1,
                     const sc_quaternion_t *quat2)

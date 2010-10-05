@@ -10,6 +10,8 @@ typedef struct {
     float z;
 } sc_vec3_t;
 
+#define sc_vec3(vec, idx) (*((&(vec)->x) + idx))
+
 /* sets the vector values and returns it */
 sc_vec3_t *sc_vec3_set(sc_vec3_t *vec, float x, float y, float z);
 
