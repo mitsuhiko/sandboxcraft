@@ -20,6 +20,16 @@ sc_mat4_t *sc_mat4_set(sc_mat4_t *mat, float a, float b, float c, float d,
 /* sets the matrix to the identity matrix */
 sc_mat4_t *sc_mat4_set_identity(sc_mat4_t *mat);
 
+/* returns the determinant of the matrix */
+float sc_mat4_determinant(const sc_mat4_t *mat);
+
+/* returns the adjugate matrix */
+sc_mat4_t * sc_mat4_adjugate(sc_mat4_t *mat_out, const sc_mat4_t *mat);
+
+/* calculate the inverse if possible.  NULL is returned if calculation
+   is not possible. */
+sc_mat4_t *sc_mat4_inverse(sc_mat4_t *mat_out, const sc_mat4_t *mat);
+
 /* mulitplies two matrices */
 sc_mat4_t *sc_mat4_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat1,
                        const sc_mat4_t *mat2);
