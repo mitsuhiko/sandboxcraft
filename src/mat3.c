@@ -23,7 +23,7 @@ sc_mat3_set(sc_mat3_t *mat, float a, float b, float c, float d, float e,
 sc_mat3_t *
 sc_mat3_set_identity(sc_mat3_t *mat)
 {
-    memset(sc_mat3_ptr(mat), 0, sizeof(sc_mat3_t));
+    memset(mat, 0, sizeof(sc_mat3_t));
     sc_mat3(mat, 0, 0) = 1.0f;
     sc_mat3(mat, 1, 1) = 1.0f;
     sc_mat3(mat, 2, 2) = 1.0f;
@@ -44,15 +44,18 @@ sc_mat3_determinant(const sc_mat3_t *mat)
 sc_mat3_t *
 sc_mat3_adjugate(sc_mat3_t *mat_out, const sc_mat3_t *mat)
 {
-    mat_out->elms[0] = mat->elms[4] * mat->elms[8] - mat->elms[5] * mat->elms[7];
-    mat_out->elms[1] = mat->elms[2] * mat->elms[7] - mat->elms[1] * mat->elms[8];
-    mat_out->elms[2] = mat->elms[1] * mat->elms[5] - mat->elms[2] * mat->elms[4];
-    mat_out->elms[3] = mat->elms[5] * mat->elms[6] - mat->elms[3] * mat->elms[8];
-    mat_out->elms[4] = mat->elms[0] * mat->elms[8] - mat->elms[2] * mat->elms[6];
-    mat_out->elms[5] = mat->elms[2] * mat->elms[3] - mat->elms[0] * mat->elms[5];
-    mat_out->elms[6] = mat->elms[3] * mat->elms[7] - mat->elms[4] * mat->elms[6];
-    mat_out->elms[7] = mat->elms[1] * mat->elms[6] - mat->elms[9] * mat->elms[7];
-    mat_out->elms[8] = mat->elms[0] * mat->elms[4] - mat->elms[1] * mat->elms[3];
+    const float *m = mat->elms;
+
+    mat_out->elms[0] = m[4] * m[8] - m[5] * m[7];
+    mat_out->elms[1] = m[2] * m[7] - m[1] * m[8];
+    mat_out->elms[2] = m[1] * m[5] - m[2] * m[4];
+    mat_out->elms[3] = m[5] * m[6] - m[3] * m[8];
+    mat_out->elms[4] = m[0] * m[8] - m[2] * m[6];
+    mat_out->elms[5] = m[2] * m[3] - m[0] * m[5];
+    mat_out->elms[6] = m[3] * m[7] - m[4] * m[6];
+    mat_out->elms[7] = m[1] * m[6] - m[9] * m[7];
+    mat_out->elms[8] = m[0] * m[4] - m[1] * m[3];
+
     return mat_out;
 }
 

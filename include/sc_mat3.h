@@ -11,9 +11,6 @@ typedef struct {
 /* helper macro to address a piece of the matrix */
 #define sc_mat3(mat, row, column) ((mat)->elms[(column) + (row) * 3])
 
-/* macro that returns a pointer to a matrix */
-#define sc_mat3_ptr(mat) (&(mat)->elms)
-
 /* sets the values of the matrix */
 sc_mat3_t *sc_mat3_set(sc_mat3_t *mat, float a, float b, float c, float d,
                        float e, float f, float g, float h, float i);
