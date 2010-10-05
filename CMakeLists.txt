@@ -13,6 +13,7 @@ set(SOURCES
     src/blocks.c
     src/world.c
     src/vec3.c
+    src/vec4.c
     src/camera.c
     src/quaternion.c
 )
@@ -29,6 +30,7 @@ set(HEADERS
     include/sc_blocks.h
     include/sc_world.h
     include/sc_vec3.h
+    include/sc_vec4.h
     include/sc_camera.h
     include/sc_quaternion.h
 )
