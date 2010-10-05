@@ -86,6 +86,15 @@ sc_vec3_mul(sc_vec3_t *vec_out, const sc_vec3_t *v, float factor)
     return vec_out;
 }
 
+sc_vec3_t *
+sc_vec3_neg(sc_vec3_t *vec)
+{
+    vec->x = -vec->x;
+    vec->y = -vec->y;
+    vec->z = -vec->z;
+    return vec;
+}
+
 int
 sc_vec3_equal(const sc_vec3_t *v1, const sc_vec3_t *v2)
 {

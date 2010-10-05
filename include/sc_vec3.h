@@ -41,6 +41,9 @@ sc_vec3_t *sc_vec3_sub(sc_vec3_t *vec_out, const sc_vec3_t *v1, const sc_vec3_t 
 /* multipies v by factor, stores result in vec_out which is returned */
 sc_vec3_t *sc_vec3_mul(sc_vec3_t *vec_out, const sc_vec3_t *v, float factor);
 
+/* negates a vector in place and returns it */
+sc_vec3_t *sc_vec3_neg(sc_vec3_t *vec);
+
 /* checks if two vectors are approximately the same */
 int sc_vec3_equal(const sc_vec3_t *v1, const sc_vec3_t *v2);
 

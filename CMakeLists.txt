@@ -14,6 +14,7 @@ set(SOURCES
     src/world.c
     src/vec3.c
     src/camera.c
+    src/quaternion.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -29,6 +30,7 @@ set(HEADERS
     include/sc_world.h
     include/sc_vec3.h
     include/sc_camera.h
+    include/sc_quaternion.h
 )
 
 find_package(SDL 1.2.7 REQUIRED)
