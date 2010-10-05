@@ -12,6 +12,8 @@ set(SOURCES
     src/texture.c
     src/blocks.c
     src/world.c
+    src/vec3.c
+    src/camera.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -25,6 +27,8 @@ set(HEADERS
     include/sc_texture.h
     include/sc_blocks.h
     include/sc_world.h
+    include/sc_vec3.h
+    include/sc_camera.h
 )
 
 find_package(SDL 1.2.7 REQUIRED)
