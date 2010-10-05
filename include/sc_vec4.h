@@ -1,4 +1,4 @@
-/* Simple four dimenstional vector */
+/* Simple four dimensional vector */
 #ifndef _INC_SC_VEC4_H_
 #define _INC_SC_VEC4_H_
 

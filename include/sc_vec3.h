@@ -1,4 +1,4 @@
-/* Simple three dimenstional vector */
+/* Simple three dimensional vector */
 #ifndef _INC_SC_VEC3_H_
 #define _INC_SC_VEC3_H_
 

@@ -2,8 +2,6 @@
 
 #include "sc_mat3.h"
 
-#define EPSILON (1e-6)
-
 sc_mat3_t *
 sc_mat3_set(sc_mat3_t *mat, float a, float b, float c, float d, float e,
             float f, float g, float h, float i)

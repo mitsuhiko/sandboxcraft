@@ -1,4 +1,4 @@
-/* Simple three dimenstional vector */
+/* Simple three dimensional matrix */
 #ifndef _INC_SC_MAT3_H_
 #define _INC_SC_MAT3_H_
 
