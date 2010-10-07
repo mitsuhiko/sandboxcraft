@@ -26,6 +26,7 @@ sc_texture_from_resource(const char *filename, GLint filtering)
     sc_texture_t *rv;
     SDL_Surface *surface = IMG_Load(path);
     if (!surface) {
+        sc_free(path);
         sc_set_error(SC_EGRAPHIC, path, 0, "Unable to load texture");
         return NULL;
     }
@@ -48,8 +49,8 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
     SDL_Surface *stored_img = NULL;
     sc_texture_t *texture = sc_xalloc(sc_texture_t);
 
-    texture->actual_width = img->w;
-    texture->actual_height = img->h;
+    texture->width = img->w;
+    texture->height = img->h;
     texture->stored_width = next_power_of_two(img->w);
     texture->stored_height = next_power_of_two(img->h);
     texture->shared = 0;
@@ -81,8 +82,8 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
 
     /* if stored size differ we have to blit the image to a new surface
        with the requested size before uploading */
-    if (texture->stored_width != texture->actual_width ||
-        texture->stored_height != texture->actual_height) {
+    if (texture->stored_width != texture->width ||
+        texture->stored_height != texture->height) {
         SDL_Rect rect = {0, 0, img->w, img->h};
         stored_img = SDL_CreateRGBSurface(img->flags,
             texture->stored_width, texture->stored_height,
@@ -97,8 +98,8 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
         }
         SDL_BlitSurface(img, &rect, stored_img, &rect);
         data = (Uint8 *)stored_img->pixels;
-        scale[0] = (float)texture->actual_width / texture->stored_width;
-        scale[1] = (float)texture->actual_height / texture->stored_height;
+        scale[0] = (float)texture->width / texture->stored_width;
+        scale[1] = (float)texture->height / texture->stored_height;
     }
 
     /* upload texture to graphics device */

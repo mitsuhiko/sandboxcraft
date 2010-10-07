@@ -71,23 +71,21 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
         return node;
     }
 
-    /* right or down? */
     diffw = node->width - img->w;
     diffh = node->height - img->h;
 
+    /* right */
     if (diffw > diffh) {
-        node->left = make_new_node(node->x, node->y, node->x + img->w - 1,
-                                   node->y + node->width);
+        node->left = make_new_node(node->x, node->y, img->w, node->height);
         node->right = make_new_node(node->x + img->w, node->y,
-                                    node->x + node->width,
-                                    node->y + node->height);
+                                    node->width - img->w,
+                                    node->height);
     }
+    /* down */
     else {
-        node->left = make_new_node(node->x, node->y, node->x + node->width,
-                                   node->y + img->h - 1);
+        node->left = make_new_node(node->x, node->y, node->width, img->h);
         node->right = make_new_node(node->x, node->y + img->h,
-                                    node->x + node->width,
-                                    node->y + node->height);
+                                    node->width, node->height - img->h);
     }
 
     node->left->in_use = 1;
@@ -95,14 +93,20 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
 }
 
 static void
-update_texture_coords(struct atlas_node *rv, sc_atlas_t *atlas)
+update_texture_coords(struct atlas_node *node, sc_atlas_t *atlas)
 {
-    float u1 = rv->x / (float)atlas->payload.surface->w;
-    float v1 = rv->y / (float)atlas->payload.surface->h;
-    float u2 = (rv->x + rv->width) / (float)atlas->payload.surface->w;
-    float v2 = (rv->y + rv->height) / (float)atlas->payload.surface->h;
+    float atlas_width = (float)atlas->payload.surface->w;
+    float atlas_height = (float)atlas->payload.surface->h;
+    float u1 = node->x / atlas_width;
+    float v1 = 1.0f - node->y / atlas_height;
+    float u2 = (node->x + node->texture.width) / atlas_width;
+    float v2 = 1.0f - (node->y + node->texture.height) / atlas_height;
     float new_coords[8] = {u1, v1, u2, v1, u2, v2, u1, v2};
-    *rv->texture.coords = *new_coords;
+    int i;
+    for (i = 0; i < 8; i++)
+        printf(" %.06f", new_coords[i]);
+    printf("\n");
+    memcpy(node->texture.coords, new_coords, sizeof(float) * 8);
 }
 
 static void
@@ -110,8 +114,8 @@ sync_textures_recursive(struct atlas_node *node, const sc_texture_t *texture)
 {
     if (node->in_use) {
         node->texture.id = texture->id;
-        node->texture.actual_width = node->width;
-        node->texture.actual_height = node->height;
+        node->texture.stored_width = texture->stored_width;
+        node->texture.stored_height = texture->stored_height;
     }
     if (node->left)
         sync_textures_recursive(node->left, texture);
@@ -152,6 +156,7 @@ sc_atlas_add_from_resource(sc_atlas_t *atlas, const char *filename)
     path = sc_path_to_resource("textures", filename);
     SDL_Surface *surface = IMG_Load(path);
     if (!surface) {
+        sc_free(path);
         sc_set_error(SC_EGRAPHIC, path, 0, "Unable to load texture.  "
             "Tried to feed texture atlas.");
         return NULL;
@@ -180,13 +185,15 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
 
     dst_rect.x = (Sint16)rv->x;
     dst_rect.y = (Sint16)rv->y;
-    dst_rect.w = (Uint16)rv->width;
-    dst_rect.h = (Uint16)rv->height;
-    SDL_BlitSurface(img, &src_rect, atlas->payload.surface, &dst_rect);
+    dst_rect.w = (Uint16)img->w;
+    dst_rect.h = (Uint16)img->h;
+    if (SDL_BlitSurface(img, &src_rect, atlas->payload.surface, &dst_rect) < 0)
+        sc_critical_error(SC_EGRAPHIC, __FILE__, __LINE__,
+            "Error on blitting: %s", SDL_GetError());
 
     rv->texture.shared = 1;
-    rv->texture.stored_width = img->w;
-    rv->texture.stored_height = img->h;
+    rv->texture.width = img->w;
+    rv->texture.height = img->h;
     update_texture_coords(rv, atlas);
 
     return &rv->texture;

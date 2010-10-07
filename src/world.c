@@ -123,6 +123,8 @@ void
 sc_free_world(sc_world_t *world)
 {
     size_t x, y;
+    if (!world)
+        return;
 
     for (x = 0; x < world->width; x++)
         for (y = 0; y < world->height; y++) {

@@ -45,12 +45,14 @@ void sc_finalize_atlas(sc_atlas_t *atlas);
 void sc_free_atlas(sc_atlas_t *atlas);
 
 /* adds a new texture from a resource to the atlas and returns it.  The
-   returned texture must not be freed as it's part of the atlas. */
+   returned texture must not be freed as it's part of the atlas.
+   This function might fail in which case NULL is returned. */
 sc_texture_t *sc_atlas_add_from_resource(sc_atlas_t *atlas,
                                          const char *filename);
 
 /* adds a new texture from an SDL surface and returns it.  The returned
-   texture must not be freed as it's part of the atlas. */
+   texture must not be freed as it's part of the atlas.
+   This function might fail in which case NULL is returned. */
 sc_texture_t *sc_atlas_add_from_surface(sc_atlas_t *atlas,
                                         SDL_Surface *img);
 

@@ -1,17 +1,19 @@
 #include <assert.h>
 
 #include "sc_blocks.h"
+#include "sc_atlas.h"
 
 #define ADD_BLOCK(btype, filename, bfalls_down, bmovement_factor) do { \
     sc_block_t *block = &blocks[btype]; \
-    block->texture = sc_texture_from_resource(filename, GL_NEAREST); \
+    block->texture = sc_atlas_add_from_resource(block_atlas, filename); \
     if (!block->texture) sc_error_make_critical(); \
     block->type = btype; \
     block->falls_down = bfalls_down; \
     block->movement_factor = bmovement_factor; \
 } while (0)
 
-static sc_block_t* blocks;
+static sc_block_t *blocks;
+static sc_atlas_t *block_atlas;
 
 void
 sc_init_blocks(void)
@@ -19,6 +21,7 @@ sc_init_blocks(void)
     if (blocks)
         return;
     blocks = sc_memassert(sc_xcalloc(SC_BLOCK_SLOTS, sizeof(sc_block_t)));
+    block_atlas = sc_new_atlas(96, 96, GL_NEAREST);
 
     ADD_BLOCK(SC_BLOCK_GRASS, "grass.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_STONE, "stone.png", 0, 0.0f);
@@ -27,6 +30,8 @@ sc_init_blocks(void)
     ADD_BLOCK(SC_BLOCK_GRAVEL, "gravel.png", 1, 0.0f);
     ADD_BLOCK(SC_BLOCK_COBBLESTONE, "cobblestone.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_WATER, "water.png", 0, 0.7f);
+
+    sc_finalize_atlas(block_atlas);
 }
 
 const char *
@@ -47,12 +52,9 @@ sc_get_block_name(sc_blocktype_t type)
 void
 sc_free_blocks(void)
 {
-    int i;
     if (!blocks)
         return;
-    for (i = 0; i < SC_BLOCK_SLOTS; i++)
-        if (blocks[i].texture)
-            sc_free_texture(blocks[i].texture);
+    sc_free(block_atlas);
     sc_free(blocks);
     blocks = 0;
 }

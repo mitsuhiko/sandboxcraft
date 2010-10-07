@@ -22,7 +22,7 @@ typedef struct {
     float movement_factor;
 } sc_block_t;
 
-#define SC_BLOCK_SLOTS 7
+#define SC_BLOCK_SLOTS 64
 
 /* initializes the blocks.  If that does not work, a critical error is
    set and the application aborts. */

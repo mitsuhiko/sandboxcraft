@@ -11,8 +11,8 @@ typedef struct {
     sc_texid_t id;
     size_t stored_width;
     size_t stored_height;
-    size_t actual_width;
-    size_t actual_height;
+    size_t width;
+    size_t height;
     float coords[8];
     int shared;
 } sc_texture_t;
