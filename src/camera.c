@@ -12,7 +12,7 @@ sc_new_camera(void)
     sc_camera_t *rv = sc_xalloc(sc_camera_t);
     sc_vec3_zero(&rv->position);
     sc_vec3_set(&rv->forward, 0.0f, 1.0f, 0.0f);
-    sc_vec3_set(&rv->up, 0.0f, 1.0f, -1.0f);
+    sc_vec3_set(&rv->up, 0.0f, 0.0f, -1.0f);
     rv->fov = 55.0f;
     return rv;
 }
