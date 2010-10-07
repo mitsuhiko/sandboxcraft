@@ -105,6 +105,31 @@ update_texture_coords(struct atlas_node *rv, sc_atlas_t *atlas)
     *rv->texture.coords = *new_coords;
 }
 
+static void
+sync_textures_recursive(struct atlas_node *node, const sc_texture_t *texture)
+{
+    if (node->in_use) {
+        node->texture.id = texture->id;
+        node->texture.actual_width = node->width;
+        node->texture.actual_height = node->height;
+    }
+    if (node->left)
+        sync_textures_recursive(node->left, texture);
+    if (node->right)
+        sync_textures_recursive(node->left, texture);
+}
+
+static void
+free_nodes_recursive(struct atlas_node *node)
+{
+    if (!node)
+        return;
+    free_nodes_recursive(node->left);
+    free_nodes_recursive(node->right);
+    sc_free(node);
+}
+
+
 sc_atlas_t *
 sc_new_atlas(size_t width, size_t height, GLint filtering)
 {
@@ -121,8 +146,10 @@ sc_new_atlas(size_t width, size_t height, GLint filtering)
 sc_texture_t *
 sc_atlas_add_from_resource(sc_atlas_t *atlas, const char *filename)
 {
-    char *path = sc_path_to_resource("textures", filename);
+    assert(!atlas->finalized);
+    char *path;
     sc_texture_t *rv;
+    path = sc_path_to_resource("textures", filename);
     SDL_Surface *surface = IMG_Load(path);
     if (!surface) {
         sc_set_error(SC_EGRAPHIC, path, 0, "Unable to load texture.  "
@@ -165,20 +192,6 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
     return &rv->texture;
 }
 
-static void
-sync_textures_recursive(struct atlas_node *node, const sc_texture_t *texture)
-{
-    if (node->in_use) {
-        node->texture.id = texture->id;
-        node->texture.actual_width = node->width;
-        node->texture.actual_height = node->height;
-    }
-    if (node->left)
-        sync_textures_recursive(node->left, texture);
-    if (node->right)
-        sync_textures_recursive(node->left, texture);
-}
-
 void
 sc_finalize_atlas(sc_atlas_t *atlas)
 {
@@ -189,16 +202,6 @@ sc_finalize_atlas(sc_atlas_t *atlas)
     atlas->payload.texture = texture;
     sync_textures_recursive(atlas->root, texture);
     atlas->finalized = 1;
-}
-
-static void
-free_nodes_recursive(struct atlas_node *node)
-{
-    if (!node)
-        return;
-    free_nodes_recursive(node->left);
-    free_nodes_recursive(node->right);
-    sc_free(node);
 }
 
 void
