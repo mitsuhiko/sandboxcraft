@@ -125,6 +125,9 @@ sc_game_render(void)
         glTranslatef(20.0f, 0.0f, 0.0f);
         glDrawArrays(GL_QUADS, 0, 4);
     glPopMatrix();
+
+    /* teapot for testing purposes */
+    glutWireTeapot(10.0f);
 }
 
 void
@@ -165,8 +168,11 @@ sc_game_late_init(void)
 
     world = sc_new_world();
     cam = sc_new_camera();
+#if 0
     sc_camera_set_position(cam, 0.0f, 100.0f, 100.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
+#endif
+    sc_camera_set_position(cam, 0.0f, 0.0f, 50.0f);
     sc_engine_grab_mouse(1);
 
     printf("(0, 0, 0) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 0)->type));
