@@ -39,7 +39,7 @@ set(HEADERS
 )
 
 find_package(SDL 1.2.7 REQUIRED)
-find_package(SDL_Image 1.2 REQUIRED)
+find_package(SDL_image 1.2 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 

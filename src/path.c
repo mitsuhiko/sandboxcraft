@@ -6,7 +6,7 @@
 #elif SC_PLATFORM == SC_PLATFORM_OSX
 #   include <CoreFoundation/CoreFoundation.h>
 #elif SC_PLATFORM == SC_PLATFORM_LINUX
-#   include "unistd.h"
+#   include <unistd.h>
 #endif
 
 const char *sc_get_resource_path(void)
@@ -34,9 +34,11 @@ const char *sc_get_resource_path(void)
         }
     }
 #elif SC_PLATFORM == SC_PLATFORM_LINUX
-    path = sc_xmalloc(MAXPATHLEN + 30);
-    getcwd(path, MAXPATHLEN);
+    char *dirname = get_current_dir_name();
+    path = sc_xmalloc(strlen(dirname) + 30);
+    strcpy(path, dirname);
     strcat(path, "/resources");
+    free(dirname);
 #elif SC_PLATFORM == SC_PLATFORM_OSX
     path = sc_xmalloc(4096);
     CFBundleRef main_bundle = CFBundleGetMainBundle();

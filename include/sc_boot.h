@@ -20,6 +20,7 @@
 #elif defined(__APPLE__) && defined(__MACH__)
 #  define SC_PLATFORM SC_PLATFORM_OSX
 #elif defined(__linux)
+#  define _GNU_SOURCE
 #  define SC_PLATFORM SC_PLATFORM_LINUX
 #else
 #  error "Unsupported platform"
