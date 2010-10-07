@@ -51,7 +51,7 @@ if (NOT WIN32)
     set(CMAKE_C_FLAGS "-g -Wall")
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${SDL_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${SDL_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${GLUT_INCLUDE_DIR})
 
 add_executable(
 	SandboxCraft
@@ -67,7 +67,7 @@ target_link_libraries(
 	${SDLIMAGE_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${GLU_LIBRARY}
-	${GLUT_LIBRARY}
+	${GLUT_glut_LIBRARY}
 )
 
 if (WIN32)

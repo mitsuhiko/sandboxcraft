@@ -37,7 +37,7 @@
 #if SC_PLATFORM == SC_PLATFORM_OSX
 #  include <GLUT/glut.h>
 #else
-#  include <glut.h>
+#  include <GL/glut.h>
 #endif
 
 /* do not use the main macro.  We take care of that ourselves */
