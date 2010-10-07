@@ -5,8 +5,7 @@
 #include "sc_boot.h"
 #include "sc_vec3.h"
 
-struct _sc_quaternion;
-typedef struct _sc_mat4 {
+typedef struct {
     float elms[16];
 } sc_mat4_t;
 

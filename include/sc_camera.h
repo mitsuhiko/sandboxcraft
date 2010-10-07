@@ -4,7 +4,6 @@
 
 #include "sc_boot.h"
 #include "sc_vec3.h"
-#include "sc_quaternion.h"
 
 typedef struct {
     sc_vec3_t position;

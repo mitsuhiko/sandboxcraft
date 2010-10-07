@@ -17,7 +17,6 @@ set(SOURCES
     src/mat3.c
     src/mat4.c
     src/camera.c
-    src/quaternion.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -36,7 +35,6 @@ set(HEADERS
     include/sc_mat3.h
     include/sc_mat4.h
     include/sc_camera.h
-    include/sc_quaternion.h
     include/sc_math.h
 )
 

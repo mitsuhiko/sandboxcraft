@@ -1,5 +1,4 @@
 #include "sc_mat4.h"
-#include "sc_quaternion.h"
 #include "sc_math.h"
 
 sc_mat4_t *
