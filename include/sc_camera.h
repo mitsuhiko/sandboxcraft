@@ -17,6 +17,8 @@ void sc_free_camera(sc_camera_t *cam);
 
 /* camera manipulation */
 void sc_camera_set_position(sc_camera_t *cam, float x, float y, float z);
+void sc_camera_look_at(sc_camera_t *cam, float x, float y, float z);
+void sc_camera_look_at_vector(sc_camera_t *cam, const sc_vec3_t *vec);
 void sc_camera_rotate_screen(sc_camera_t *cam, float relx, float rely);
 void sc_camera_move_forward(sc_camera_t *cam, float delta);
 void sc_camera_move_backward(sc_camera_t *cam, float delta);

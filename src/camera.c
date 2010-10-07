@@ -11,8 +11,8 @@ sc_new_camera(void)
 {
     sc_camera_t *rv = sc_xalloc(sc_camera_t);
     sc_vec3_zero(&rv->position);
-    sc_vec3_set(&rv->forward, 0.0f, 1.0f, 0.0f);
-    sc_vec3_set(&rv->up, 0.0f, 0.0f, -1.0f);
+    sc_vec3_set(&rv->forward, 0.0f, 0.0f, -1.0f);
+    sc_vec3_set(&rv->up, 0.0f, 1.0f, 0.0f);
     rv->fov = 55.0f;
     return rv;
 }
@@ -31,6 +31,22 @@ sc_camera_set_position(sc_camera_t *cam, float x, float y, float z)
     cam->position.x = x;
     cam->position.y = y;
     cam->position.z = z;
+}
+
+void
+sc_camera_look_at(sc_camera_t *cam, float x, float y, float z)
+{
+    sc_vec3_t vec;
+    vec.x = x;
+    vec.y = y;
+    vec.z = z;
+    sc_camera_look_at_vector(cam, &vec);
+}
+
+void
+sc_camera_look_at_vector(sc_camera_t *cam, const sc_vec3_t *vec)
+{
+    /* TODO: implement */
 }
 
 static void
