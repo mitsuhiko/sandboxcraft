@@ -2,12 +2,14 @@
 #include "sc_texture.h"
 #include "sc_blocks.h"
 #include "sc_world.h"
+#include "sc_camera.h"
 
 static int running;
 static int late_initialized;
 
 
 static sc_world_t *world;
+static sc_camera_t *cam;
 
 
 static void
@@ -22,6 +24,9 @@ perform_late_init(void)
     };
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45, sc_engine_get_aspect(), 1.0f, 200.0f);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
         glLoadIdentity();
@@ -38,6 +43,19 @@ perform_late_init(void)
     sc_free_texture(loading);
 }
 
+static void
+update_camera(void)
+{
+    int dx, dy;
+
+    SDL_GetRelativeMouseState(&dx, &dy);
+    /* yeah - no movement... */
+    if (!(dx || dy))
+        return;
+
+    sc_camera_rotate_screen(cam, dx * 0.05, dy * 0.05);
+}
+
 void
 sc_game_handle_events(void)
 {
@@ -45,6 +63,8 @@ sc_game_handle_events(void)
     while (SDL_PollEvent(&evt)) {
         if (evt.type == SDL_QUIT)
             sc_game_stop();
+        else if (evt.type == SDL_MOUSEMOTION)
+            update_camera();
         else
             sc_game_handle_event(&evt);
     }
@@ -73,15 +93,9 @@ sc_game_render(void)
         -10.0f, -10.0f, -10.0f
     };
 
-    /* clear display first and load identity matrix into model view */
+    /* clear display first and apply camera transformation */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    /* rotate and translate camera */
-    glTranslatef(0.0f, 0.0f, -100.0f);
-    glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
-    glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+    sc_camera_apply(cam);
 
     /* draw a tile */
     sc_bind_texture(sc_get_block_texture(SC_BLOCK_PLANKS));
@@ -131,6 +145,10 @@ sc_game_late_init(void)
     sc_init_blocks();
 
     world = sc_new_world();
+    cam = sc_new_camera();
+    sc_camera_set_position(cam, 0, -40, 0);
+    sc_engine_grab_mouse(1);
+
     printf("(0, 0, 0) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 0)->type));
     printf("(0, 0, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 1)->type));
     printf("(5, 3, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 5, 3, 1)->type));
@@ -148,6 +166,8 @@ sc_game_late_init(void)
 void
 sc_game_shutdown(void)
 {
+    sc_engine_grab_mouse(0);
+    sc_free_camera(cam);
     sc_free_world(world);
     sc_free_blocks();
 }

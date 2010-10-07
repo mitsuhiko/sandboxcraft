@@ -1,7 +1,7 @@
-#include <math.h>
-
 #include "sc_quaternion.h"
 #include "sc_mat4.h"
+#include "sc_math.h"
+
 
 #define EPSILON (1e-6)
 

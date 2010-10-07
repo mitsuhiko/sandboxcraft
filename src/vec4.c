@@ -1,6 +1,5 @@
-#include <math.h>
-
 #include "sc_vec4.h"
+#include "sc_math.h"
 
 #define EPSILON (1e-6)
 
@@ -40,7 +39,10 @@ sc_vec4_length2(const sc_vec4_t *vec)
 sc_vec4_t *
 sc_vec4_normalize(sc_vec4_t *vec)
 {
-    float factor = 1.0f / sc_vec4_length(vec);
+    float factor, length = sc_vec4_length(vec);
+    if (length == 0) /* assertions might cause troubles */
+        return vec;
+    factor = 1.0f / length;
     vec->x = vec->x * factor;
     vec->y = vec->y * factor;
     vec->z = vec->z * factor;

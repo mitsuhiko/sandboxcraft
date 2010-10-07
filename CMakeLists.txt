@@ -37,6 +37,7 @@ set(HEADERS
     include/sc_mat4.h
     include/sc_camera.h
     include/sc_quaternion.h
+    include/sc_math.h
 )
 
 find_package(SDL 1.2.7 REQUIRED)

@@ -11,6 +11,13 @@ typedef struct {
     float w;
 } sc_vec4_t;
 
+/* returns a vector component by index */
+#define sc_vec4(vec, idx) (*((&(vec)->x) + idx))
+
+/* is the vector empty? */
+#define sc_vec4_is_zero(vec) ((vec)->x == 0.0f && (vec)->y == 0.0f && \
+                              (vec)->z == 0.0f && (vec)->z == 0.0f)
+
 /* sets the vector values and returns it */
 sc_vec4_t *sc_vec4_set(sc_vec4_t *vec, float x, float y, float z, float w);
 

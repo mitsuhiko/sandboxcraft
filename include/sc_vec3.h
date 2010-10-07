@@ -10,7 +10,12 @@ typedef struct {
     float z;
 } sc_vec3_t;
 
+/* returns a vector component by index */
 #define sc_vec3(vec, idx) (*((&(vec)->x) + idx))
+
+/* is the vector empty? */
+#define sc_vec3_is_zero(vec) ((vec)->x == 0.0f && (vec)->y == 0.0f && \
+                              (vec)->z == 0.0f)
 
 /* sets the vector values and returns it */
 sc_vec3_t *sc_vec3_set(sc_vec3_t *vec, float x, float y, float z);

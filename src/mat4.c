@@ -1,7 +1,6 @@
-#include <math.h>
-
 #include "sc_mat4.h"
 #include "sc_quaternion.h"
+#include "sc_math.h"
 
 sc_mat4_t *
 sc_mat4_set(sc_mat4_t *mat, float a, float b, float c, float d, float e,
@@ -35,6 +34,37 @@ sc_mat4_set_identity(sc_mat4_t *mat)
     sc_mat4(mat, 1, 1) = 1.0f;
     sc_mat4(mat, 2, 2) = 1.0f;
     sc_mat4(mat, 3, 3) = 1.0f;
+    return mat;
+}
+
+sc_mat4_t *
+sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle, const sc_vec3_t *axis)
+{
+    float c = cosf(sc_deg2rad(angle));
+    float s = sinf(sc_deg2rad(angle));
+    sc_vec3_t vec = *axis;
+    sc_vec3_normalize(&vec);
+
+    mat->elms[0]  = c + vec.x * vec.x * (1 - c);
+    mat->elms[1]  = vec.z * s + vec.y * vec.x * (1 - c);
+    mat->elms[2]  = -vec.y * s + vec.z * vec.x * (1 - c);
+    mat->elms[3]  = 0.0f;
+
+    mat->elms[4]  = -vec.z * s + vec.x * vec.y * (1 - c);
+    mat->elms[5]  = c + vec.y * vec.y * (1 - c);
+    mat->elms[6]  = vec.x * s + vec.z * vec.y * (1 - c);
+    mat->elms[7]  = 0.0f;
+
+    mat->elms[8]  = vec.y * s + vec.x * vec.z * (1 - c);
+    mat->elms[9]  = -vec.x * s + vec.y * vec.z * (1 - c);
+    mat->elms[10] = c + vec.z * vec.z * (1 - c);
+    mat->elms[11] = 0.0f;
+
+    mat->elms[12] = 0.0f;
+    mat->elms[13] = 0.0f;
+    mat->elms[14] = 0.0f;
+    mat->elms[15] = 1.0f;
+
     return mat;
 }
 

@@ -7,10 +7,10 @@
 #define WIDTH 800
 #define HEIGHT 600
 #define FULLSCREEN 0
-#define FOV 55
 #define FPS_LIMIT 60
 
 sc_gametime_t sc_gametime;
+static int mouse_grabbed;
 
 static void
 resize_viewport(void)
@@ -28,15 +28,8 @@ resize_viewport(void)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    /* setup projection */
+    /* setup viewport */
     glViewport(0, 0, WIDTH, HEIGHT);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(FOV, (GLfloat)WIDTH / HEIGHT, 1.0, 1000.0);
-
-    /* setup modelview */
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 }
 
 static void
@@ -71,6 +64,41 @@ void
 sc_engine_shutdown(void)
 {
     SDL_Quit();
+}
+
+void
+sc_engine_get_dimensions(float *width, float *height)
+{
+    *width = WIDTH;
+    *height = HEIGHT;
+}
+
+float
+sc_engine_get_aspect(void)
+{
+    return (float)WIDTH / HEIGHT;
+}
+
+void
+sc_engine_grab_mouse(int value)
+{
+    if (value) {
+        SDL_WM_GrabInput(SDL_GRAB_ON);
+        SDL_GetRelativeMouseState(NULL, NULL);
+        SDL_ShowCursor(0);
+        mouse_grabbed = 1;
+    }
+    else {
+        SDL_WM_GrabInput(SDL_GRAB_OFF);
+        SDL_ShowCursor(1);
+        mouse_grabbed = 0;
+    }
+}
+
+int
+sc_engine_mouse_grabbed(void)
+{
+    return mouse_grabbed;
 }
 
 void

@@ -25,6 +25,18 @@ extern sc_gametime_t sc_gametime;
 void sc_engine_init(void);
 void sc_engine_shutdown(void);
 
+/* returns the current dimensions of the viewport */
+void sc_engine_get_dimensions(float *width, float *height);
+
+/* returns the current view aspect */
+float sc_engine_get_aspect(void);
+
+/* enables/disables mouse grabbing */
+void sc_engine_grab_mouse(int value);
+
+/* is the mouse grabbed? */
+int sc_engine_mouse_grabbed(void);
+
 /* callback for begin/end of frame handling */
 void sc_engine_begin_frame(void);
 void sc_engine_end_frame(void);

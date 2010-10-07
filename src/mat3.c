@@ -1,6 +1,5 @@
-#include <math.h>
-
 #include "sc_mat3.h"
+#include "sc_math.h"
 
 sc_mat3_t *
 sc_mat3_set(sc_mat3_t *mat, float a, float b, float c, float d, float e,
