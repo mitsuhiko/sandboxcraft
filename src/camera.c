@@ -60,7 +60,6 @@ rotate_screen_x(sc_camera_t *cam, float angle)
     sc_mat4_t rotmat;
     sc_mat4_from_axis_rotation(&rotmat, -angle, &cam->up);
     sc_vec3_transform(&cam->forward, &cam->forward, &rotmat);
-    sc_vec3_normalize(&cam->forward);
 }
 
 static void
@@ -71,9 +70,6 @@ rotate_screen_y(sc_camera_t *cam, float angle)
     sc_vec3_cross(&cross, &cam->up, &cam->forward);
     sc_mat4_from_axis_rotation(&rotmat, angle, &cross);
     sc_vec3_transform(&cam->forward, &cam->forward, &rotmat);
-    sc_vec3_normalize(&cam->forward);
-    sc_vec3_transform(&cam->up, &cam->up, &rotmat);
-    sc_vec3_normalize(&cam->up);
 }
 
 void

@@ -88,8 +88,9 @@ sc_engine_grab_mouse(int value)
 {
     if (value) {
         SDL_WM_GrabInput(SDL_GRAB_ON);
-        SDL_GetRelativeMouseState(NULL, NULL);
         SDL_ShowCursor(0);
+        SDL_WarpMouse(0, 0);
+        SDL_GetRelativeMouseState(NULL, NULL);
         mouse_grabbed = 1;
     }
     else {
