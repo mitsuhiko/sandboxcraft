@@ -114,14 +114,14 @@ sc_engine_begin_frame(void)
 void
 sc_engine_end_frame(void)
 {
-    sc_gametime.end = sc_engine_get_ticks();
-    sc_gametime.delta = sc_gametime.end - sc_gametime.start;
-
 #ifdef FPS_LIMIT
     if (sc_gametime.delta < (1000.0f / FPS_LIMIT))
         sc_engine_delay((sc_ticks_t)((1000.0f / FPS_LIMIT) -
                                      sc_gametime.delta));
 #endif
+
+    sc_gametime.end = sc_engine_get_ticks();
+    sc_gametime.delta = sc_gametime.end - sc_gametime.start;
 
     sc_engine_swap_buffers();
 }

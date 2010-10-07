@@ -1,4 +1,5 @@
 #include "sc_vec3.h"
+#include "sc_mat4.h"
 #include "sc_math.h"
 
 #define EPSILON (1e-6)
@@ -95,6 +96,19 @@ sc_vec3_neg(sc_vec3_t *vec)
     vec->y = -vec->y;
     vec->z = -vec->z;
     return vec;
+}
+
+sc_vec3_t *
+sc_vec3_transform(sc_vec3_t *vec_out, const sc_vec3_t *vec,
+                  const sc_mat4_t *mat)
+{
+    sc_vec3_t tmp;
+    const float *m = mat->elms;
+    tmp.x = vec->x * m[0] + vec->y * m[4] + vec->z * m[8] + m[12];
+    tmp.y = vec->x * m[1] + vec->y * m[5] + vec->z * m[9] + m[13];
+    tmp.z = vec->x * m[2] + vec->y * m[6] + vec->z * m[10] + m[14];
+    *vec_out = tmp;
+    return vec_out;
 }
 
 int

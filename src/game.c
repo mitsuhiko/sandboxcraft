@@ -10,6 +10,12 @@ static int late_initialized;
 
 static sc_world_t *world;
 static sc_camera_t *cam;
+struct {
+    int w;
+    int a;
+    int s;
+    int d;
+} keysdown;
 
 
 static void
@@ -43,19 +49,6 @@ perform_late_init(void)
     sc_free_texture(loading);
 }
 
-static void
-update_camera(void)
-{
-    int dx, dy;
-
-    SDL_GetRelativeMouseState(&dx, &dy);
-    /* yeah - no movement... */
-    if (!(dx || dy))
-        return;
-
-    sc_camera_rotate_screen(cam, dx * 0.05, dy * 0.05);
-}
-
 void
 sc_game_handle_events(void)
 {
@@ -63,8 +56,6 @@ sc_game_handle_events(void)
     while (SDL_PollEvent(&evt)) {
         if (evt.type == SDL_QUIT)
             sc_game_stop();
-        else if (evt.type == SDL_MOUSEMOTION)
-            update_camera();
         else
             sc_game_handle_event(&evt);
     }
@@ -73,14 +64,42 @@ sc_game_handle_events(void)
 void
 sc_game_handle_event(SDL_Event *evt)
 {
-    if (evt->type == SDL_KEYDOWN &&
-        evt->key.keysym.sym == SDLK_ESCAPE)
-        sc_game_stop();
+    if (evt->type == SDL_KEYDOWN)
+        switch (evt->key.keysym.sym) {
+        case SDLK_ESCAPE: sc_game_stop(); break;
+        case SDLK_w: keysdown.w = 1; break;
+        case SDLK_a: keysdown.a = 1; break;
+        case SDLK_s: keysdown.s = 1; break;
+        case SDLK_d: keysdown.d = 1; break;
+        default:;
+        }
+    else if (evt->type == SDL_KEYUP)
+        switch (evt->key.keysym.sym) {
+        case SDLK_w: keysdown.w = 0; break;
+        case SDLK_a: keysdown.a = 0; break;
+        case SDLK_s: keysdown.s = 0; break;
+        case SDLK_d: keysdown.d = 0; break;
+        default:;
+        }
+    else if (evt->type == SDL_MOUSEMOTION) {
+        int dx, dy;
+        SDL_GetRelativeMouseState(&dx, &dy);
+        sc_camera_rotate_screen(cam, dx * 0.1f, dy * 0.1f);
+    }
 }
 
 void
 sc_game_update(void)
 {
+    float move_factor = sc_gametime.delta * 0.01f;
+    if (keysdown.w)
+        sc_camera_move_forward(cam, move_factor);
+    if (keysdown.a)
+        sc_camera_strafe_left(cam, move_factor);
+    if (keysdown.s)
+        sc_camera_move_backward(cam, move_factor);
+    if (keysdown.d)
+        sc_camera_strafe_right(cam, move_factor);
 }
 
 void
