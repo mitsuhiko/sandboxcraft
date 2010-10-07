@@ -46,12 +46,8 @@ sc_camera_look_at(sc_camera_t *cam, float x, float y, float z)
 void
 sc_camera_look_at_vector(sc_camera_t *cam, const sc_vec3_t *vec)
 {
-    sc_vec3_t diff, cross;
-    sc_vec3_cross(&cross, &cam->forward, &cam->up);
-    sc_vec3_sub(&diff, &cam->position, vec);
-    sc_vec3_normalize(&diff);
-    cam->forward = diff;
-    sc_vec3_cross(&cam->up, &cross, &cam->forward);
+    sc_vec3_sub(&cam->forward, vec, &cam->position);
+    sc_vec3_normalize(&cam->forward);
 }
 
 static void
