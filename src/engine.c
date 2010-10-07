@@ -54,12 +54,26 @@ init_graphics(void)
     resize_viewport();
 }
 
+static void
+init_glut(void)
+{
+#if SC_PLATFORM != SC_PLATFORM_OSX
+    int argc = 0;
+    char **argv = NULL;
+    glutInit(&argc, argv);
+#endif
+}
+
 void
 sc_engine_init(void)
 {
     Uint32 sdl_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO;
     if (SDL_Init(sdl_flags) < 0)
         sc_critical_error(SC_ESDL, __FILE__, __LINE__, "%s", SDL_GetError());
+
+    /* init glut too for the time being because it's helpful during
+       development. */
+    init_glut();
 
     init_graphics();
 }
