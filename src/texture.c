@@ -1,3 +1,5 @@
+#include "assert.h"
+
 #include "sc_texture.h"
 #include "sc_path.h"
 #include "sc_error.h"
@@ -50,6 +52,7 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
     texture->actual_height = img->h;
     texture->stored_width = next_power_of_two(img->w);
     texture->stored_height = next_power_of_two(img->h);
+    texture->shared = 0;
 
     /* figure out format */
     switch (img->format->BytesPerPixel) {
@@ -125,6 +128,7 @@ sc_free_texture(sc_texture_t *texture)
 {
     if (!texture)
         return;
+    assert(!texture->shared);
     if (texture->id)
         glDeleteTextures(1, &texture->id);
     sc_free(texture);

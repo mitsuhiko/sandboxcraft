@@ -14,6 +14,7 @@ typedef struct {
     size_t actual_width;
     size_t actual_height;
     float coords[8];
+    int shared;
 } sc_texture_t;
 
 /* loads a texture from a resource.  This might fail */

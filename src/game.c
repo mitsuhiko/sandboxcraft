@@ -82,17 +82,15 @@ sc_game_handle_event(SDL_Event *evt)
         case SDLK_d: keysdown.d = 0; break;
         default:;
         }
-    else if (evt->type == SDL_MOUSEMOTION) {
-        int dx, dy;
-        SDL_GetRelativeMouseState(&dx, &dy);
-        sc_camera_rotate_screen(cam, dx * 0.1f, dy * 0.1f);
-    }
+    else if (evt->type == SDL_MOUSEMOTION)
+        sc_camera_rotate_screen(cam, evt->motion.xrel * 0.25f,
+                                evt->motion.yrel * 0.25f);
 }
 
 void
 sc_game_update(void)
 {
-    float move_factor = sc_gametime.delta * 0.01f;
+    float move_factor = sc_gametime.delta * 0.05f;
     if (keysdown.w)
         sc_camera_move_forward(cam, move_factor);
     if (keysdown.a)

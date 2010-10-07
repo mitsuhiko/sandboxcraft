@@ -28,18 +28,14 @@ sc_free_camera(sc_camera_t *cam)
 void
 sc_camera_set_position(sc_camera_t *cam, float x, float y, float z)
 {
-    cam->position.x = x;
-    cam->position.y = y;
-    cam->position.z = z;
+    sc_vec3_set(&cam->position, x, y, z);
 }
 
 void
 sc_camera_look_at(sc_camera_t *cam, float x, float y, float z)
 {
     sc_vec3_t vec;
-    vec.x = x;
-    vec.y = y;
-    vec.z = z;
+    sc_vec3_set(&vec, x, y, z);
     sc_camera_look_at_vector(cam, &vec);
 }
 
