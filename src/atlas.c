@@ -68,15 +68,15 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
     dh = node->height - img->h;
 
     if (dw > dh) {
-        node->left = make_new_node(node->x, node->y, img->w, node->height);
-        node->right = make_new_node(node->x + img->w, node->y,
-                                    node->width - img->w,
+        node->left = make_new_node(node->x, node->y, img->w + 1, node->height);
+        node->right = make_new_node(node->x + img->w + 1, node->y,
+                                    node->width - img->w - 1,
                                     node->height);
     }
     else {
-        node->left = make_new_node(node->x, node->y, node->width, img->h);
-        node->right = make_new_node(node->x, node->y + img->h,
-                                    node->width, node->height - img->h);
+        node->left = make_new_node(node->x, node->y, node->width, img->h + 1);
+        node->right = make_new_node(node->x, node->y + img->h + 1,
+                                    node->width, node->height - img->h - 1);
     }
 
     node->left->in_use = 1;
