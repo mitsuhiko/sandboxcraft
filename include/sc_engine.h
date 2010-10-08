@@ -3,6 +3,7 @@
 #define _INC_SC_ENGINE_H_
 
 #include "sc_boot.h"
+#include "sc_color.h"
 
 /* abstract the sdl tick interface */
 #define sc_engine_get_ticks SDL_GetTicks
@@ -36,6 +37,9 @@ void sc_engine_grab_mouse(int value);
 
 /* is the mouse grabbed? */
 int sc_engine_mouse_grabbed(void);
+
+/* clears the screen.  This clears depth buffer and color. */
+void sc_engine_clear(sc_color_t color);
 
 /* callback for begin/end of frame handling */
 void sc_engine_begin_frame(void);

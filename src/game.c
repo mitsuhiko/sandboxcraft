@@ -29,7 +29,6 @@ perform_late_init(void)
         -10.0f, -10.0f, -10.0f
     };
 
-    glClearColor(0.11f, 0.33f, 0.44f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -112,7 +111,7 @@ sc_game_render(void)
     };
 
     /* clear display first and apply camera transformation */
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    sc_engine_clear(sc_color(0x336699ff));
     sc_camera_apply(cam);
 
     /* draw a tile */
@@ -122,6 +121,11 @@ sc_game_render(void)
     glPushMatrix();
         sc_bind_texture(sc_get_block_texture(SC_BLOCK_COBBLESTONE));
         glTranslatef(20.0f, 0.0f, 0.0f);
+        glDrawArrays(GL_QUADS, 0, 4);
+    glPopMatrix();
+    glPushMatrix();
+        sc_bind_texture(sc_get_block_texture(SC_BLOCK_WATER));
+        glTranslatef(20.0f, 0.0f, 20.0f);
         glDrawArrays(GL_QUADS, 0, 4);
     glPopMatrix();
 

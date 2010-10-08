@@ -19,6 +19,7 @@ set(SOURCES
     src/mat4.c
     src/camera.c
     src/math.c
+    src/color.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -39,6 +40,7 @@ set(HEADERS
     include/sc_mat4.h
     include/sc_camera.h
     include/sc_math.h
+    include/sc_color.h
 )
 
 find_package(SDL 1.2.7 REQUIRED)

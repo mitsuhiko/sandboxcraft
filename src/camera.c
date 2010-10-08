@@ -110,6 +110,10 @@ sc_camera_strafe_right(sc_camera_t *cam, float delta)
 void
 sc_camera_apply(const sc_camera_t *cam)
 {
+    /* this currentl uses the opengl matrix functions.  I don't see a point
+       in dropping that because it works, especially on older cards and
+       one some drivers this actually is caluclated on the GPU, so that is
+       actually quite cool.  Deprecated functionality though. */
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(cam->fov, sc_engine_get_aspect(), NEAR_PLANE, FAR_PLANE);

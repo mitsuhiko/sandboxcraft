@@ -122,6 +122,15 @@ sc_engine_mouse_grabbed(void)
 }
 
 void
+sc_engine_clear(sc_color_t color)
+{
+    float r, g, b, a;
+    sc_color_to_float(color, &r, &g, &b, &a);
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void
 sc_engine_begin_frame(void)
 {
     sc_gametime.start = sc_engine_get_ticks();
