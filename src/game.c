@@ -128,6 +128,11 @@ sc_game_render(void)
         glTranslatef(20.0f, 0.0f, 20.0f);
         glDrawArrays(GL_QUADS, 0, 4);
     glPopMatrix();
+    glPushMatrix();
+        sc_bind_texture(sc_get_block_texture(SC_BLOCK_GRASS));
+        glTranslatef(0.0f, 0.0f, 20.0f);
+        glDrawArrays(GL_QUADS, 0, 4);
+    glPopMatrix();
 
     /* teapot for testing purposes */
     glBindTexture(GL_TEXTURE_2D, 0);
