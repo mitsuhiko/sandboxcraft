@@ -63,6 +63,9 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
         return node;
     }
 
+    /* figure out where to go, right or top (down).  Two pixels offset are
+       required so that we have space to work around rounding errors caused
+       by floating point texture coordinates */
     if (node->width - img->w > node->height - img->h) {
         node->left = new_node(node->x, node->y, img->w + 2, node->height);
         node->right = new_node(node->x + img->w + 2, node->y,
@@ -88,6 +91,7 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
 static void
 update_texture_coords(struct atlas_node *node, sc_atlas_t *atlas)
 {
+    /* the +1 is required to offset the left edge fix */
     float atlas_width = (float)atlas->surface->w;
     float atlas_height = (float)atlas->surface->h;
     float u1 = (node->x + 1) / atlas_width;
