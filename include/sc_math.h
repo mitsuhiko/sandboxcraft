@@ -9,4 +9,6 @@
 #define sc_deg2rad(deg) ((deg) * M_PI / 180.0f)
 #define sc_rad2deg(rad) ((rad) * 180.0f / M_PI)
 
+size_t sc_next_power_of_two(size_t value);
+
 #endif

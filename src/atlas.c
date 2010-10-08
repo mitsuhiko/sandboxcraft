@@ -3,6 +3,7 @@
 #include "sc_boot.h"
 #include "sc_texture.h"
 #include "sc_path.h"
+#include "sc_math.h"
 
 struct atlas_node;
 struct atlas_node {
@@ -68,14 +69,14 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
 
     if (dw > dh) {
         node->left = make_new_node(node->x, node->y, img->w, node->height);
-        node->right = make_new_node(node->x + img->w + 1, node->y,
-                                    node->width - img->w - 1,
+        node->right = make_new_node(node->x + img->w, node->y,
+                                    node->width - img->w,
                                     node->height);
     }
     else {
         node->left = make_new_node(node->x, node->y, node->width, img->h);
-        node->right = make_new_node(node->x, node->y + img->h + 1,
-                                    node->width, node->height - img->h - 1);
+        node->right = make_new_node(node->x, node->y + img->h,
+                                    node->width, node->height - img->h);
     }
 
     node->left->in_use = 1;
@@ -92,7 +93,6 @@ update_texture_coords(struct atlas_node *node, sc_atlas_t *atlas)
     float u2 = (node->x + node->texture.width) / atlas_width;
     float v2 = (node->y + node->texture.height) / atlas_height;
     float new_coords[8] = {u1, v1, u2, v1, u2, v2, u1, v2};
-    //float new_coords[8] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
     memcpy(node->texture.coords, new_coords, sizeof(float) * 8);
 }
 
@@ -126,6 +126,8 @@ sc_atlas_t *
 sc_new_atlas(size_t width, size_t height, GLint filtering)
 {
     sc_atlas_t *atlas = sc_xalloc(sc_atlas_t);
+    width = sc_next_power_of_two(width);
+    height = sc_next_power_of_two(height);
     atlas->surface = sc_memassert(SDL_CreateRGBSurface(
         SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0));
     atlas->filtering = filtering;
@@ -171,7 +173,7 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
     }
 
     dst_rect.x = (Sint16)rv->x;
-    dst_rect.y = (Sint16)rv->y;
+    dst_rect.y = atlas->surface->h - rv->y - img->h;
     dst_rect.w = (Uint16)img->w;
     dst_rect.h = (Uint16)img->h;
     if (SDL_BlitSurface(img, &src_rect, atlas->surface, &dst_rect) < 0)

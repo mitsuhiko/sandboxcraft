@@ -18,6 +18,7 @@ set(SOURCES
     src/mat3.c
     src/mat4.c
     src/camera.c
+    src/math.c
 )
 set(HEADERS
 	include/sc_boot.h

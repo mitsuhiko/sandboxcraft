@@ -7,18 +7,6 @@
 static float default_texture_coordinates[8] =
     {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
 
-static size_t
-next_power_of_two(size_t value)
-{
-    value -= 1;
-    value |= value >> 1;
-    value |= value >> 2;
-    value |= value >> 4;
-    value |= value >> 8;
-    value |= value >> 16;
-    return value + 1;
-}
-
 sc_texture_t *
 sc_texture_from_resource(const char *filename, GLint filtering)
 {
@@ -51,8 +39,8 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
 
     texture->width = img->w;
     texture->height = img->h;
-    texture->stored_width = next_power_of_two(img->w);
-    texture->stored_height = next_power_of_two(img->h);
+    texture->stored_width = sc_next_power_of_two(img->w);
+    texture->stored_height = sc_next_power_of_two(img->h);
     texture->shared = 0;
 
     /* figure out format */

@@ -25,6 +25,7 @@ resize_viewport(void)
 
     /* activate opengl features */
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
 
