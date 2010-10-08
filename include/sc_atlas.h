@@ -18,7 +18,17 @@
    dynamically but part of the internal atlas memory.
    
    The atlas has to be finalized before any texture is used because only
-   on finalize the combined texture is uploaded to the graphics device. */
+   on finalize the combined texture is uploaded to the graphics device.
+   
+   Something else important about the implementation is how it deals with
+   texture bleeding.  Because a texture atlas works so that you will have
+   to use fractions for addressing parts of the texture, you will always
+   end up with rounding errors that cause visible artifacts.  This atlas
+   counters these problems by cloning the edge pixels.  This means that
+   per texture on the atlas, you will lose two rows and two columns (in
+   pixels).
+
+   */
 #ifndef _INC_SC_ATLAS_H_
 #define _INC_SC_ATLAS_H_
 
@@ -33,8 +43,7 @@ typedef struct {} sc_atlas_t;
 #endif
 
 /* creates a new atlas from a given size and filtering.  The size should
-   be a power of two because otherwise the texture subsystem rounds it up
-   but too late to take advantage of the extra size. */
+   be a power of two, if not this will round up. */
 sc_atlas_t *sc_new_atlas(size_t width, size_t height, GLint filtering);
 
 /* finalizes the atlas and uploads the texture into vram.  This also
