@@ -21,7 +21,7 @@ sc_init_blocks(void)
     if (blocks)
         return;
     blocks = sc_memassert(sc_xcalloc(SC_BLOCK_SLOTS, sizeof(sc_block_t)));
-    block_atlas = sc_new_atlas(96, 96, GL_NEAREST);
+    block_atlas = sc_new_atlas(64, 64, GL_NEAREST);
 
     ADD_BLOCK(SC_BLOCK_GRASS, "grass.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_STONE, "stone.png", 0, 0.0f);

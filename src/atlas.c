@@ -47,9 +47,9 @@ static struct atlas_node *
 insert_child_node(struct atlas_node *node, SDL_Surface *img)
 {
     int dw, dh;
+    struct atlas_node *rv;
 
     if (node->left /* || right */) {
-        struct atlas_node *rv;
         rv = insert_child_node(node->left, img);
         if (!rv)
             rv = insert_child_node(node->right, img);
@@ -68,19 +68,23 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
     dh = node->height - img->h;
 
     if (dw > dh) {
-        node->left = make_new_node(node->x, node->y, img->w + 1, node->height);
+        rv = node->left = make_new_node(node->x, node->y, img->w + 1, node->height);
         node->right = make_new_node(node->x + img->w + 1, node->y,
                                     node->width - img->w - 1,
                                     node->height);
+        rv->left = make_new_node(node->x, node->y, img->w + 1, img->h + 1);
+        rv->right = make_new_node(node->x, node->y + img->w + 1, img->w + 1, node->height - img->h - 1);
     }
     else {
-        node->left = make_new_node(node->x, node->y, node->width, img->h + 1);
+        rv = node->left = make_new_node(node->x, node->y, node->width, img->h + 1);
         node->right = make_new_node(node->x, node->y + img->h + 1,
                                     node->width, node->height - img->h - 1);
+        rv->left = make_new_node(node->x, node->y, img->w + 1, img->h + 1);
+        rv->right = make_new_node(node->x + img->w + 1, node->y, node->width - img->w - 1, img->h + 1);
     }
 
-    node->left->in_use = 1;
-    return node->left;
+    rv->left->in_use = 1;
+    return rv->left;
 }
 
 static void
@@ -196,7 +200,6 @@ sc_finalize_atlas(sc_atlas_t *atlas)
     texture = sc_texture_from_surface(atlas->surface, atlas->filtering);
     if (!texture)
         return 0;
-    SDL_SaveBMP(atlas->surface, "/tmp/atlas-debug.bmp");
     atlas->texture = texture;
     sync_textures_recursive(atlas->root, atlas);
     SDL_FreeSurface(atlas->surface);
