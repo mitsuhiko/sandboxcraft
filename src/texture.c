@@ -3,6 +3,7 @@
 #include "sc_texture.h"
 #include "sc_path.h"
 #include "sc_error.h"
+#include "sc_math.h"
 
 static float default_texture_coordinates[8] =
     {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};

@@ -64,21 +64,21 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
     }
 
     if (node->width - img->w > node->height - img->h) {
-        node->left = new_node(node->x, node->y, img->w + 1, node->height);
-        node->right = new_node(node->x + img->w + 1, node->y,
-                               node->width - img->w - 1,
+        node->left = new_node(node->x, node->y, img->w + 2, node->height);
+        node->right = new_node(node->x + img->w + 2, node->y,
+                               node->width - img->w - 2,
                                node->height);
-        node->left->left = new_node(node->x, node->y, img->w + 1, img->h + 1);
-        node->left->right = new_node(node->x, node->y + img->w + 1,
-                                     img->w + 1, node->height - img->h - 1);
+        node->left->left = new_node(node->x, node->y, img->w + 2, img->h + 2);
+        node->left->right = new_node(node->x, node->y + img->w + 2,
+                                     img->w + 2, node->height - img->h - 2);
     }
     else {
-        node->left = new_node(node->x, node->y, node->width, img->h + 1);
-        node->right = new_node(node->x, node->y + img->h + 1,
-                               node->width, node->height - img->h - 1);
-        node->left->left = new_node(node->x, node->y, img->w + 1, img->h + 1);
-        node->left->right = new_node(node->x + img->w + 1, node->y,
-                                     node->width - img->w - 1, img->h + 1);
+        node->left = new_node(node->x, node->y, node->width, img->h + 2);
+        node->right = new_node(node->x, node->y + img->h + 2,
+                               node->width, node->height - img->h - 2);
+        node->left->left = new_node(node->x, node->y, img->w + 2, img->h + 2);
+        node->left->right = new_node(node->x + img->w + 2, node->y,
+                                     node->width - img->w - 2, img->h + 2);
     }
 
     node->left->left->in_use = 1;
@@ -90,10 +90,10 @@ update_texture_coords(struct atlas_node *node, sc_atlas_t *atlas)
 {
     float atlas_width = (float)atlas->surface->w;
     float atlas_height = (float)atlas->surface->h;
-    float u1 = node->x / atlas_width;
-    float v1 = node->y / atlas_height;
-    float u2 = (node->x + node->texture.width) / atlas_width;
-    float v2 = (node->y + node->texture.height) / atlas_height;
+    float u1 = (node->x + 1) / atlas_width;
+    float v1 = (node->y + 1) / atlas_height;
+    float u2 = (node->x + node->texture.width + 1) / atlas_width;
+    float v2 = (node->y + node->texture.height + 1) / atlas_height;
     float new_coords[8] = {u1, v1, u2, v1, u2, v2, u1, v2};
     memcpy(node->texture.coords, new_coords, sizeof(float) * 8);
 }
@@ -163,9 +163,9 @@ sc_atlas_add_from_resource(sc_atlas_t *atlas, const char *filename)
 sc_texture_t *
 sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
 {
-    SDL_Rect src_rect = {0, 0, img->w, img->h};
-    SDL_Rect dst_rect;
+    SDL_Rect src_rect, dst_rect;
     struct atlas_node *rv;
+    int i;
     assert(!atlas->finalized);
     
     if (!(rv = insert_child_node(atlas->root, img))) {
@@ -176,17 +176,38 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
 
     /* blit flipped on the "wrong side" because we flip the whole thing
        over when we pass this over to opengl due to the mirrored coordinate
-       system compared to a 2D image */
-    dst_rect.x = (Sint16)rv->x;
-    dst_rect.y = atlas->surface->h - rv->y - img->h;
-    dst_rect.w = (Uint16)img->w;
-    dst_rect.h = (Uint16)img->h;
+       system compared to a 2D image
+       
+       The blitting works in 5 parts:
+       
+       - First we blit the actual image to the center of our reserved block.
+       - Then on each edge we blit the next best pixel row/column to the
+         padding space.
 
-    /* this error is critical because we really can't rollback the changes
-       of the splitting algorithm easily */
-    if (SDL_BlitSurface(img, &src_rect, atlas->surface, &dst_rect) < 0)
-        sc_critical_error(SC_EGRAPHIC, __FILE__, __LINE__,
-            "Error on blitting: %s", SDL_GetError());
+       This is done to reduce artifacts caused by rounding errors.  If errors
+       happen on blitting these are critical because we can't properly roll
+       them back.
+       */
+#define TRY_BLIT(x1, y1, x2, y2, W, H) do { \
+    src_rect.x = x1; src_rect.y = y1; \
+    src_rect.w = W; src_rect.h = H; \
+    dst_rect.x = x2; dst_rect.y = atlas->surface->h - img->h - (y2); \
+    dst_rect.w = W; dst_rect.h = H; \
+    if (SDL_BlitSurface(img, &src_rect, atlas->surface, &dst_rect) < 0) \
+        sc_critical_error(SC_EGRAPHIC, __FILE__, __LINE__, \
+            "Error on blitting: %s", SDL_GetError()); \
+} while (0)
+
+    /* actual texture */
+    TRY_BLIT(0, 0, rv->x + 1, rv->y + 1, img->w, img->h);
+    /* left edge */
+    TRY_BLIT(0, 0, rv->x, rv->y + 1, 1, img->h);
+    /* right edge */
+    TRY_BLIT(img->w - 1, 0, rv->x + img->w + 1, rv->y + 1, 1, img->h);
+    /* top edge */
+    TRY_BLIT(0, img->h - 1, rv->x + 1, rv->y - img->h + 1, img->w, 1);
+    /* bottom edge */
+    TRY_BLIT(0, 0, rv->x + 1, rv->y + 2, img->w, 1);
 
     rv->texture.id = 0;
     rv->texture.shared = 1;
