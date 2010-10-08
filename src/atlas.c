@@ -30,7 +30,7 @@ typedef struct {
 #include "sc_atlas.h"
 
 static struct atlas_node *
-make_new_node(size_t x, size_t y, size_t width, size_t height)
+new_node(size_t x, size_t y, size_t width, size_t height)
 {
     struct atlas_node *rv = sc_xalloc(struct atlas_node);
     rv->left = NULL;
@@ -46,10 +46,9 @@ make_new_node(size_t x, size_t y, size_t width, size_t height)
 static struct atlas_node *
 insert_child_node(struct atlas_node *node, SDL_Surface *img)
 {
-    int dw, dh;
-    struct atlas_node *rv;
-
-    if (node->left /* || right */) {
+    if (node->left) {
+        struct atlas_node *rv;
+        assert(node->right);
         rv = insert_child_node(node->left, img);
         if (!rv)
             rv = insert_child_node(node->right, img);
@@ -64,27 +63,26 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
         return node;
     }
 
-    dw = node->width - img->w;
-    dh = node->height - img->h;
-
-    if (dw > dh) {
-        rv = node->left = make_new_node(node->x, node->y, img->w + 1, node->height);
-        node->right = make_new_node(node->x + img->w + 1, node->y,
-                                    node->width - img->w - 1,
-                                    node->height);
-        rv->left = make_new_node(node->x, node->y, img->w + 1, img->h + 1);
-        rv->right = make_new_node(node->x, node->y + img->w + 1, img->w + 1, node->height - img->h - 1);
+    if (node->width - img->w > node->height - img->h) {
+        node->left = new_node(node->x, node->y, img->w + 1, node->height);
+        node->right = new_node(node->x + img->w + 1, node->y,
+                               node->width - img->w - 1,
+                               node->height);
+        node->left->left = new_node(node->x, node->y, img->w + 1, img->h + 1);
+        node->left->right = new_node(node->x, node->y + img->w + 1,
+                                     img->w + 1, node->height - img->h - 1);
     }
     else {
-        rv = node->left = make_new_node(node->x, node->y, node->width, img->h + 1);
-        node->right = make_new_node(node->x, node->y + img->h + 1,
-                                    node->width, node->height - img->h - 1);
-        rv->left = make_new_node(node->x, node->y, img->w + 1, img->h + 1);
-        rv->right = make_new_node(node->x + img->w + 1, node->y, node->width - img->w - 1, img->h + 1);
+        node->left = new_node(node->x, node->y, node->width, img->h + 1);
+        node->right = new_node(node->x, node->y + img->h + 1,
+                               node->width, node->height - img->h - 1);
+        node->left->left = new_node(node->x, node->y, img->w + 1, img->h + 1);
+        node->left->right = new_node(node->x + img->w + 1, node->y,
+                                     node->width - img->w - 1, img->h + 1);
     }
 
-    rv->left->in_use = 1;
-    return rv->left;
+    node->left->left->in_use = 1;
+    return node->left->left;
 }
 
 static void
@@ -135,7 +133,7 @@ sc_new_atlas(size_t width, size_t height, GLint filtering)
     atlas->surface = sc_memassert(SDL_CreateRGBSurface(
         SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0));
     atlas->filtering = filtering;
-    atlas->root = make_new_node(0, 0, width, height);
+    atlas->root = new_node(0, 0, width, height);
     atlas->finalized = 0;
     return atlas;
 }
