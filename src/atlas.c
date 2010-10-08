@@ -169,7 +169,6 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
 {
     SDL_Rect src_rect, dst_rect;
     struct atlas_node *rv;
-    int i;
     assert(!atlas->finalized);
     
     if (!(rv = insert_child_node(atlas->root, img))) {
