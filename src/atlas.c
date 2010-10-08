@@ -174,10 +174,16 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
         return NULL;
     }
 
+    /* blit flipped on the "wrong side" because we flip the whole thing
+       over when we pass this over to opengl due to the mirrored coordinate
+       system compared to a 2D image */
     dst_rect.x = (Sint16)rv->x;
     dst_rect.y = atlas->surface->h - rv->y - img->h;
     dst_rect.w = (Uint16)img->w;
     dst_rect.h = (Uint16)img->h;
+
+    /* this error is critical because we really can't rollback the changes
+       of the splitting algorithm easily */
     if (SDL_BlitSurface(img, &src_rect, atlas->surface, &dst_rect) < 0)
         sc_critical_error(SC_EGRAPHIC, __FILE__, __LINE__,
             "Error on blitting: %s", SDL_GetError());
