@@ -87,27 +87,28 @@ update_texture_coords(struct atlas_node *node, sc_atlas_t *atlas)
 {
     float atlas_width = (float)atlas->surface->w;
     float atlas_height = (float)atlas->surface->h;
-    //float u1 = node->x / atlas_width;
-    //float v1 = 1.0f - node->y / atlas_height;
-    //float u2 = (node->x + node->texture.width) / atlas_width;
-    //float v2 = 1.0f - (node->y + node->texture.height) / atlas_height;
-    //float new_coords[8] = {u1, v1, u2, v1, u2, v2, u1, v2};
-    float new_coords[8] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
+    float u1 = node->x / atlas_width;
+    float v1 = node->y / atlas_height;
+    float u2 = (node->x + node->texture.width) / atlas_width;
+    float v2 = (node->y + node->texture.height) / atlas_height;
+    float new_coords[8] = {u1, v1, u2, v1, u2, v2, u1, v2};
+    //float new_coords[8] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
     memcpy(node->texture.coords, new_coords, sizeof(float) * 8);
 }
 
 static void
 sync_textures_recursive(struct atlas_node *node, sc_atlas_t *atlas)
 {
-    node->texture.id = atlas->texture->id;
-    node->texture.stored_width = atlas->texture->stored_width;
-    node->texture.stored_height = atlas->texture->stored_height;
-    update_texture_coords(node, atlas);
+    if (node->in_use) {
+        node->texture.id = atlas->texture->id;
+        node->texture.stored_width = atlas->texture->stored_width;
+        node->texture.stored_height = atlas->texture->stored_height;
+        update_texture_coords(node, atlas);
+    }
     if (node->left)
         sync_textures_recursive(node->left, atlas);
     if (node->right)
-        sync_textures_recursive(node->left, atlas);
-    printf("%d\n", node->texture.id);
+        sync_textures_recursive(node->right, atlas);
 }
 
 static void
@@ -124,10 +125,9 @@ free_nodes_recursive(struct atlas_node *node)
 sc_atlas_t *
 sc_new_atlas(size_t width, size_t height, GLint filtering)
 {
-    SDL_Surface *surface = sc_memassert(SDL_CreateRGBSurface(
-        SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0));
     sc_atlas_t *atlas = sc_xalloc(sc_atlas_t);
-    atlas->surface = surface;
+    atlas->surface = sc_memassert(SDL_CreateRGBSurface(
+        SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0));
     atlas->filtering = filtering;
     atlas->root = make_new_node(0, 0, width, height);
     atlas->finalized = 0;
@@ -178,6 +178,7 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
         sc_critical_error(SC_EGRAPHIC, __FILE__, __LINE__,
             "Error on blitting: %s", SDL_GetError());
 
+    rv->texture.id = 0;
     rv->texture.shared = 1;
     rv->texture.width = img->w;
     rv->texture.height = img->h;

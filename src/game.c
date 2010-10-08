@@ -116,19 +116,16 @@ sc_game_render(void)
     sc_camera_apply(cam);
 
     /* draw a tile */
-    printf("Binding Grass: %d\n", sc_get_block_texture(SC_BLOCK_GRASS)->id);
     sc_bind_texture(sc_get_block_texture(SC_BLOCK_GRASS));
     glVertexPointer(3, GL_FLOAT, 0, vertices);
     glDrawArrays(GL_QUADS, 0, 4);
     glPushMatrix();
-        printf("Binding Stone: %d\n", sc_get_block_texture(SC_BLOCK_STONE)->id);
         sc_bind_texture(sc_get_block_texture(SC_BLOCK_STONE));
         glTranslatef(20.0f, 0.0f, 0.0f);
         glDrawArrays(GL_QUADS, 0, 4);
     glPopMatrix();
 
     /* teapot for testing purposes */
-    printf("Binding Water: %d\n", sc_get_block_texture(SC_BLOCK_WATER)->id);
     sc_bind_texture(sc_get_block_texture(SC_BLOCK_WATER));
     glutWireTeapot(10.0f);
 }
