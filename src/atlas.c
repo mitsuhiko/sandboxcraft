@@ -18,10 +18,8 @@ struct atlas_node {
 
 typedef struct {
     struct atlas_node *root;
-    union {
-        SDL_Surface *surface;
-        sc_texture_t *texture;
-    } payload;
+    SDL_Surface *surface;
+    sc_texture_t *texture;
     GLint filtering;
     int finalized;
 } sc_atlas_t;
@@ -47,7 +45,7 @@ make_new_node(size_t x, size_t y, size_t width, size_t height)
 static struct atlas_node *
 insert_child_node(struct atlas_node *node, SDL_Surface *img)
 {
-    size_t diffw, diffh;
+    int dw, dh;
 
     if (node->left /* || right */) {
         struct atlas_node *rv;
@@ -57,35 +55,27 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
         return rv;
     }
 
-    /* oh well, that node is used up */
-    if (node->in_use)
+    if (node->in_use || img->w > node->width || img->h > node->height)
         return NULL;
 
-    /* but it might also just not fit the space */
-    if (img->w > node->width || img->h > node->height)
-        return NULL;
-
-    /* perfect match */
     if (img->w == node->width && img->h == node->height) {
         node->in_use = 1;
         return node;
     }
 
-    diffw = node->width - img->w;
-    diffh = node->height - img->h;
+    dw = node->width - img->w;
+    dh = node->height - img->h;
 
-    /* right */
-    if (diffw > diffh) {
+    if (dw > dh) {
         node->left = make_new_node(node->x, node->y, img->w, node->height);
-        node->right = make_new_node(node->x + img->w, node->y,
-                                    node->width - img->w,
+        node->right = make_new_node(node->x + img->w + 1, node->y,
+                                    node->width - img->w - 1,
                                     node->height);
     }
-    /* down */
     else {
         node->left = make_new_node(node->x, node->y, node->width, img->h);
-        node->right = make_new_node(node->x, node->y + img->h,
-                                    node->width, node->height - img->h);
+        node->right = make_new_node(node->x, node->y + img->h + 1,
+                                    node->width, node->height - img->h - 1);
     }
 
     node->left->in_use = 1;
@@ -95,32 +85,29 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
 static void
 update_texture_coords(struct atlas_node *node, sc_atlas_t *atlas)
 {
-    float atlas_width = (float)atlas->payload.surface->w;
-    float atlas_height = (float)atlas->payload.surface->h;
-    float u1 = node->x / atlas_width;
-    float v1 = 1.0f - node->y / atlas_height;
-    float u2 = (node->x + node->texture.width) / atlas_width;
-    float v2 = 1.0f - (node->y + node->texture.height) / atlas_height;
-    float new_coords[8] = {u1, v1, u2, v1, u2, v2, u1, v2};
-    int i;
-    for (i = 0; i < 8; i++)
-        printf(" %.06f", new_coords[i]);
-    printf("\n");
+    float atlas_width = (float)atlas->surface->w;
+    float atlas_height = (float)atlas->surface->h;
+    //float u1 = node->x / atlas_width;
+    //float v1 = 1.0f - node->y / atlas_height;
+    //float u2 = (node->x + node->texture.width) / atlas_width;
+    //float v2 = 1.0f - (node->y + node->texture.height) / atlas_height;
+    //float new_coords[8] = {u1, v1, u2, v1, u2, v2, u1, v2};
+    float new_coords[8] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
     memcpy(node->texture.coords, new_coords, sizeof(float) * 8);
 }
 
 static void
-sync_textures_recursive(struct atlas_node *node, const sc_texture_t *texture)
+sync_textures_recursive(struct atlas_node *node, sc_atlas_t *atlas)
 {
-    if (node->in_use) {
-        node->texture.id = texture->id;
-        node->texture.stored_width = texture->stored_width;
-        node->texture.stored_height = texture->stored_height;
-    }
+    node->texture.id = atlas->texture->id;
+    node->texture.stored_width = atlas->texture->stored_width;
+    node->texture.stored_height = atlas->texture->stored_height;
+    update_texture_coords(node, atlas);
     if (node->left)
-        sync_textures_recursive(node->left, texture);
+        sync_textures_recursive(node->left, atlas);
     if (node->right)
-        sync_textures_recursive(node->left, texture);
+        sync_textures_recursive(node->left, atlas);
+    printf("%d\n", node->texture.id);
 }
 
 static void
@@ -140,7 +127,7 @@ sc_new_atlas(size_t width, size_t height, GLint filtering)
     SDL_Surface *surface = sc_memassert(SDL_CreateRGBSurface(
         SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0));
     sc_atlas_t *atlas = sc_xalloc(sc_atlas_t);
-    atlas->payload.surface = surface;
+    atlas->surface = surface;
     atlas->filtering = filtering;
     atlas->root = make_new_node(0, 0, width, height);
     atlas->finalized = 0;
@@ -187,28 +174,32 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
     dst_rect.y = (Sint16)rv->y;
     dst_rect.w = (Uint16)img->w;
     dst_rect.h = (Uint16)img->h;
-    if (SDL_BlitSurface(img, &src_rect, atlas->payload.surface, &dst_rect) < 0)
+    if (SDL_BlitSurface(img, &src_rect, atlas->surface, &dst_rect) < 0)
         sc_critical_error(SC_EGRAPHIC, __FILE__, __LINE__,
             "Error on blitting: %s", SDL_GetError());
 
     rv->texture.shared = 1;
     rv->texture.width = img->w;
     rv->texture.height = img->h;
-    update_texture_coords(rv, atlas);
 
     return &rv->texture;
 }
 
-void
+int
 sc_finalize_atlas(sc_atlas_t *atlas)
 {
     sc_texture_t *texture;
     assert(!atlas->finalized);
-    texture = sc_texture_from_surface(atlas->payload.surface, atlas->filtering);
-    SDL_FreeSurface(atlas->payload.surface);
-    atlas->payload.texture = texture;
-    sync_textures_recursive(atlas->root, texture);
+    texture = sc_texture_from_surface(atlas->surface, atlas->filtering);
+    if (!texture)
+        return 0;
+    SDL_SaveBMP(atlas->surface, "/tmp/atlas-debug.bmp");
+    atlas->texture = texture;
+    sync_textures_recursive(atlas->root, atlas);
+    SDL_FreeSurface(atlas->surface);
+    atlas->surface = NULL;
     atlas->finalized = 1;
+    return 1;
 }
 
 void
@@ -216,10 +207,8 @@ sc_free_atlas(sc_atlas_t *atlas)
 {
     if (!atlas)
         return;
-    if (atlas->finalized)
-        sc_free_texture(atlas->payload.texture);
-    else
-        SDL_FreeSurface(atlas->payload.surface);
+    sc_free_texture(atlas->texture);
+    SDL_FreeSurface(atlas->surface);
     free_nodes_recursive(atlas->root);
     sc_free(atlas);
 }

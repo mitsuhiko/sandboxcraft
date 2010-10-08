@@ -31,7 +31,8 @@ sc_init_blocks(void)
     ADD_BLOCK(SC_BLOCK_COBBLESTONE, "cobblestone.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_WATER, "water.png", 0, 0.7f);
 
-    sc_finalize_atlas(block_atlas);
+    if (!sc_finalize_atlas(block_atlas))
+        sc_error_make_critical();
 }
 
 const char *
