@@ -103,6 +103,12 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
+#if 1
+    sc_engine_clear(sc_color(0x336699ff));
+    sc_camera_apply(cam);
+    sc_world_draw(world, cam);
+#endif
+#if 0
     GLfloat vertices[16] = {
         -10.0f, -10.0f,  10.0f,
          10.0f, -10.0f,  10.0f,
@@ -137,6 +143,7 @@ sc_game_render(void)
     /* teapot for testing purposes */
     sc_unbind_texture();
     glutWireTeapot(10.0f);
+#endif
 }
 
 void
@@ -171,6 +178,7 @@ sc_game_early_init(void)
 void
 sc_game_late_init(void)
 {
+    int x, y;
     if (late_initialized)
         return;
     sc_init_blocks();
@@ -181,16 +189,13 @@ sc_game_late_init(void)
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
     sc_engine_grab_mouse(1);
 
-    printf("(0, 0, 0) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 0)->type));
-    printf("(0, 0, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 1)->type));
-    printf("(5, 3, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 5, 3, 1)->type));
-    printf("(0, 0, 1) <- Grass\n");
-    sc_world_set_block(world, 0, 0, 1, sc_get_block(SC_BLOCK_GRASS));
-    printf("(5, 3, 1) <- Planks\n");
-    sc_world_set_block(world, 5, 3, 1, sc_get_block(SC_BLOCK_PLANKS));
-    printf("(0, 0, 0) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 0)->type));
-    printf("(0, 0, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 0, 0, 1)->type));
-    printf("(5, 3, 1) -> %s\n", sc_get_block_name(sc_world_get_block(world, 5, 3, 1)->type));
+    for (y = 0; y < 128; y++)
+        for (x = 0; x < 128; x++)
+            sc_world_set_block(world, x, y, 0, sc_get_block(SC_BLOCK_GRASS));
+    sc_world_set_block(world, 5, 3, 0, sc_get_block(SC_BLOCK_PLANKS));
+    sc_world_set_block(world, 6, 3, 0, sc_get_block(SC_BLOCK_PLANKS));
+    sc_world_set_block(world, 6, 4, 0, sc_get_block(SC_BLOCK_PLANKS));
+    sc_world_set_block(world, 5, 4, 0, sc_get_block(SC_BLOCK_PLANKS));
 
     late_initialized = 1;
 }

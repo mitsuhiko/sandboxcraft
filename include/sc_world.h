@@ -19,6 +19,7 @@
 
 #include "sc_boot.h"
 #include "sc_blocks.h"
+#include "sc_camera.h"
 
 #define SC_CHUNK_RESOLUTION     128
 #define SC_CHUNK_LIMIT          1024
@@ -33,6 +34,9 @@ typedef struct {
     sc_chunk_node_t *root;
     int x;
     int y;
+    int version;                        /* incremented whenever a block in
+                                           the chunk is modified.  Overflows
+                                           are fine */
 } sc_chunk_t;
 
 typedef struct {
@@ -64,8 +68,18 @@ sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
    is referenced, 0 is returned, 1 otherwise. */
 int sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block);
 
+/* draws the world as it would be visible for the camera.  The transformations
+   for the camera themselves are however not applied:
 
+       sc_camera_apply(cam);
+       sc_world_draw(world, cam);
+   */
+void sc_world_draw(sc_world_t *world, sc_camera_t *cam);
+
+/* semi-internal function to create a new chunk. */
 sc_chunk_node_t *sc_new_chunk_node(void);
+
+/* semi-internal function to free a chunk. */
 void sc_free_chunk_node(sc_chunk_node_t *node);
 
 

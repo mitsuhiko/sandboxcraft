@@ -3,8 +3,6 @@
 
 #include "sc_world.h"
 
-#define DEFAULT_BLOCK SC_BLOCK_STONE
-
 
 /* helper that discovers a single chunk. x/y are world coords */
 static void
@@ -13,6 +11,7 @@ discover_chunk(sc_world_t *world, sc_chunk_t *chunk, int x, int y)
     chunk->root = sc_new_chunk_node();
     chunk->x = x;
     chunk->y = y;
+    chunk->version = 0;
     /* TODO: use a perlin noise function here to generate a map */
 }
 
@@ -195,7 +194,33 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
     }
 
     node->block = block;
+    chunk->version++;
     return 1;
+}
+
+void
+sc_world_draw(sc_world_t *world, sc_camera_t *cam)
+{
+    int x, y;
+    GLfloat vertices[16] = {
+        -10.0f, -10.0f,  10.0f,
+         10.0f, -10.0f,  10.0f,
+         10.0f, -10.0f, -10.0f,
+        -10.0f, -10.0f, -10.0f
+    };
+    glVertexPointer(3, GL_FLOAT, 0, vertices);
+
+    for (y = 0; y < 128; y++)
+        for (x = 0; x < 128; x++) {
+            sc_block_t *block = sc_world_get_block(world, x, y, 0);
+            if (!block)
+                continue;
+            glPushMatrix();
+            sc_bind_texture(block->texture);
+            glTranslatef(20.0f * x, 0.0f, 20.0f * y);
+            glDrawArrays(GL_QUADS, 0, 4);
+            glPopMatrix();
+        }
 }
 
 sc_chunk_node_t *
@@ -203,7 +228,7 @@ sc_new_chunk_node(void)
 {
     sc_chunk_node_t *node = sc_xalloc(sc_chunk_node_t);
     memset(node->children, 0, sizeof(node->children));
-    node->block = sc_get_block(DEFAULT_BLOCK);
+    node->block = NULL;
     return node;
 }
 
