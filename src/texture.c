@@ -5,6 +5,7 @@
 #include "sc_error.h"
 #include "sc_math.h"
 
+static sc_texid_t last_bound_texture;
 static float default_texture_coordinates[8] =
     {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
 
@@ -119,14 +120,33 @@ sc_free_texture(sc_texture_t *texture)
     if (!texture)
         return;
     assert(!texture->shared);
-    if (texture->id)
+    if (texture->id) {
+        if (last_bound_texture == texture->id)
+            sc_unbind_texture();
         glDeleteTextures(1, &texture->id);
+    }
     sc_free(texture);
 }
 
 void
-sc_bind_texture(sc_texture_t *texture)
+sc_bind_texture(const sc_texture_t *texture)
 {
-    glBindTexture(GL_TEXTURE_2D, texture->id);
+    if (last_bound_texture != texture->id) {
+        glBindTexture(GL_TEXTURE_2D, texture->id);
+        last_bound_texture = texture->id;
+    }
+    sc_send_texture_coordinates(texture);
+}
+
+void
+sc_unbind_texture(void)
+{
+    last_bound_texture = 0;
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void
+sc_send_texture_coordinates(const sc_texture_t *texture)
+{
     glTexCoordPointer(2, GL_FLOAT, 0, texture->coords);
 }

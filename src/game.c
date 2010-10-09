@@ -135,7 +135,7 @@ sc_game_render(void)
     glPopMatrix();
 
     /* teapot for testing purposes */
-    glBindTexture(GL_TEXTURE_2D, 0);
+    sc_unbind_texture();
     glutWireTeapot(10.0f);
 }
 
