@@ -29,6 +29,9 @@
 /* handy little helper to trigger a segfault */
 #define SC_SEGFAULT { int *x = 0; *x = 42; }
 
+/* GLee */
+#include "GLee.h"
+
 /* SDL includes */
 #include "SDL.h"
 #include "SDL_opengl.h"

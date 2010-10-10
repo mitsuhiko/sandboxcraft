@@ -23,6 +23,8 @@ set(SOURCES
     src/color.c
     src/frustum.c
     src/vbo.c
+
+    deps/GLee/GLee.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -47,6 +49,8 @@ set(HEADERS
     include/sc_color.h
     include/sc_frustum.h
     include/sc_vbo.h
+
+    deps/GLee/GLee.h
 )
 
 find_package(SDL 1.2.7 REQUIRED)
@@ -62,7 +66,13 @@ if (NOT WIN32)
     set(CMAKE_C_FLAGS "-g -Wall")
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${SDL_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${GLUT_INCLUDE_DIR})
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${SDL_INCLUDE_DIR}
+    ${SDLIMAGE_INCLUDE_DIR}
+    ${GLUT_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps/GLee
+)
 
 add_executable(
 	SandboxCraft
