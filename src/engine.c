@@ -92,9 +92,10 @@ sc_engine_shutdown(void)
 void
 sc_engine_dump_info(void)
 {
-    fprintf(stderr, "Running SDL %d.%d.%d\n",
+    fprintf(stderr, "SDL Version:               %d.%d.%d\n",
             SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL);
-    fprintf(stderr, "Using OpenGL %s\n", sc_engine_get_opengl_version());
+    fprintf(stderr, "OpenGL Version:            %s\n",
+            sc_engine_get_opengl_version());
     fprintf(stderr, "Vertex buffer support:     %s\n",
             GLEE_ARB_vertex_buffer_object ? "yes" : "no");
     fprintf(stderr, "Textures non power of two: %s\n",
