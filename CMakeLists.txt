@@ -13,6 +13,7 @@ set(SOURCES
     src/atlas.c
     src/blocks.c
     src/world.c
+    src/vec2.c
     src/vec3.c
     src/vec4.c
     src/mat3.c
@@ -21,6 +22,7 @@ set(SOURCES
     src/math.c
     src/color.c
     src/frustum.c
+    src/vbo.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -35,6 +37,7 @@ set(HEADERS
     include/sc_atlas.h
     include/sc_blocks.h
     include/sc_world.h
+    include/sc_vec2.h
     include/sc_vec3.h
     include/sc_vec4.h
     include/sc_mat3.h
@@ -43,6 +46,7 @@ set(HEADERS
     include/sc_math.h
     include/sc_color.h
     include/sc_frustum.h
+    include/sc_vbo.h
 )
 
 find_package(SDL 1.2.7 REQUIRED)

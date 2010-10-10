@@ -14,7 +14,7 @@
 #define SC_FAR_FRUSTUM_PLANE        5
 
 typedef struct {
-    sc_mat4_t planes[6];
+    sc_vec4_t planes[6];
 } sc_frustum_t;
 
 typedef struct {

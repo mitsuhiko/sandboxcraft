@@ -12,50 +12,50 @@ sc_get_current_frustum(sc_frustum_t *frustum_out)
 
     /* left plane */
     vec = &frustum_out->planes[SC_LEFT_FRUSTUM_PLANE];
-    vec[0] = mvp.elms[3] + mvp.elms[0];
-    vec[1] = mvp.elms[7] + mvp.elms[4];
-    vec[2] = mvp.elms[11] + mvp.elms[8];
-    vec[3] = mvp.elms[15] + mvp.elms[12];
+    vec->x = mvp.elms[3] + mvp.elms[0];
+    vec->y = mvp.elms[7] + mvp.elms[4];
+    vec->z = mvp.elms[11] + mvp.elms[8];
+    vec->w = mvp.elms[15] + mvp.elms[12];
     sc_vec4_normalize(vec);
 
     /* right plane */
     vec = &frustum_out->planes[SC_RIGHT_FRUSTUM_PLANE];
-    vec[0] = mvp.elms[3] - mvp.elms[0];
-    vec[1] = mvp.elms[7] - mvp.elms[4];
-    vec[2] = mvp.elms[11] - mvp.elms[8];
-    vec[3] = mvp.elms[15] - mvp.elms[12];
+    vec->x = mvp.elms[3] - mvp.elms[0];
+    vec->y = mvp.elms[7] - mvp.elms[4];
+    vec->z = mvp.elms[11] - mvp.elms[8];
+    vec->w = mvp.elms[15] - mvp.elms[12];
     sc_vec4_normalize(vec);
 
     /* bottom plane */
     vec = &frustum_out->planes[SC_BOTTOM_FRUSTUM_PLANE];
-    vec[0] = mvp.elms[3] + mvp.elms[1];
-    vec[1] = mvp.elms[7] + mvp.elms[5];
-    vec[2] = mvp.elms[11] + mvp.elms[9];
-    vec[3] = mvp.elms[15] + mvp.elms[13];
+    vec->x = mvp.elms[3] + mvp.elms[1];
+    vec->y = mvp.elms[7] + mvp.elms[5];
+    vec->z = mvp.elms[11] + mvp.elms[9];
+    vec->w = mvp.elms[15] + mvp.elms[13];
     sc_vec4_normalize(vec);
 
     /* top plane */
     vec = &frustum_out->planes[SC_TOP_FRUSTUM_PLANE];
-    vec[0] = mvp.elms[3] - mvp.elms[1];
-    vec[1] = mvp.elms[7] - mvp.elms[5];
-    vec[2] = mvp.elms[11] - mvp.elms[9];
-    vec[3] = mvp.elms[15] - mvp.elms[13];
+    vec->x = mvp.elms[3] - mvp.elms[1];
+    vec->y = mvp.elms[7] - mvp.elms[5];
+    vec->z = mvp.elms[11] - mvp.elms[9];
+    vec->w = mvp.elms[15] - mvp.elms[13];
     sc_vec4_normalize(vec);
 
     /* near plane */
     vec = &frustum_out->planes[SC_NEAR_FRUSTUM_PLANE];
-    vec[0] = mvp.elms[3] + mvp.elms[2];
-    vec[1] = mvp.elms[7] + mvp.elms[6];
-    vec[2] = mvp.elms[11] + mvp.elms[10];
-    vec[3] = mvp.elms[15] + mvp.elms[14];
+    vec->x = mvp.elms[3] + mvp.elms[2];
+    vec->y = mvp.elms[7] + mvp.elms[6];
+    vec->z = mvp.elms[11] + mvp.elms[10];
+    vec->w = mvp.elms[15] + mvp.elms[14];
     sc_vec4_normalize(vec);
 
     /* far plane */
     vec = &frustum_out->planes[SC_FAR_FRUSTUM_PLANE];
-    vec[0] = mvp.elms[3] - mvp.elms[2];
-    vec[1] = mvp.elms[7] - mvp.elms[6];
-    vec[2] = mvp.elms[11] - mvp.elms[10];
-    vec[3] = mvp.elms[15] - mvp.elms[14];
+    vec->x = mvp.elms[3] - mvp.elms[2];
+    vec->y = mvp.elms[7] - mvp.elms[6];
+    vec->z = mvp.elms[11] - mvp.elms[10];
+    vec->w = mvp.elms[15] - mvp.elms[14];
     sc_vec4_normalize(vec);
 
     return frustum_out;
@@ -64,22 +64,22 @@ sc_get_current_frustum(sc_frustum_t *frustum_out)
 static int
 plane_test(const sc_vec4_t *plane, const sc_bounding_box_t *box)
 {
-    float p1 = box->position.x * plane.x;
-    float p2 = box->position.y * plane.y;
-    float p3 = box->position.z * plane.z;
-    float d1 = box->dimension.x * plane.x;
-    float d2 = box->dimension.y * plane.y;
-    float d3 = box->dimension.z * plane.z;
+    float p1 = box->position.x * plane->x;
+    float p2 = box->position.y * plane->y;
+    float p3 = box->position.z * plane->z;
+    float d1 = box->dimensions.x * plane->x;
+    float d2 = box->dimensions.y * plane->y;
+    float d3 = box->dimensions.z * plane->z;
     int points = 0;
 
-    if (p1 + p2 + p3 + plane.w > 0) points++;
-    if (p1 + p2 + d3 + plane.w > 0) points++;
-    if (p1 + d2 + p3 + plane.w > 0) points++;
-    if (p1 + d2 + d3 + plane.w > 0) points++;
-    if (d1 + p2 + p3 + plane.w > 0) points++;
-    if (d1 + p2 + d3 + plane.w > 0) points++;
-    if (d1 + d2 + p3 + plane.w > 0) points++;
-    if (d1 + d2 + d3 + plane.w > 0) points++;
+    if (p1 + p2 + p3 + plane->w > 0) points++;
+    if (p1 + p2 + d3 + plane->w > 0) points++;
+    if (p1 + d2 + p3 + plane->w > 0) points++;
+    if (p1 + d2 + d3 + plane->w > 0) points++;
+    if (d1 + p2 + p3 + plane->w > 0) points++;
+    if (d1 + p2 + d3 + plane->w > 0) points++;
+    if (d1 + d2 + p3 + plane->w > 0) points++;
+    if (d1 + d2 + d3 + plane->w > 0) points++;
 
     return points;
 }

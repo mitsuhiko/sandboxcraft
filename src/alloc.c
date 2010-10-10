@@ -10,15 +10,3 @@ sc_memassert(void *p)
     }
     return p;
 }
-
-void *
-sc_xmalloc(size_t size)
-{
-    return sc_memassert(sc_malloc(size));
-}
-
-void *
-sc_xcalloc(size_t count, size_t size)
-{
-    return sc_memassert(sc_calloc(count, size));
-}
