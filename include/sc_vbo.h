@@ -15,6 +15,7 @@
 #include "sc_vec2.h"
 #include "sc_vec3.h"
 
+/* refers to a specific buffer in the buffers array */
 #define SC_VERTEX_BUFFER_ID         0
 #define SC_NORMAL_BUFFER_ID         1
 #define SC_TEXCOORD_BUFFER_ID       2
