@@ -68,13 +68,14 @@ sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
    is referenced, 0 is returned, 1 otherwise. */
 int sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block);
 
-/* draws the world as it would be visible for the camera.  The transformations
-   for the camera themselves are however not applied:
+/* draws the world.  The OpenGL projection and model matrices are used
+   to calculate the visbility for the block of the world.  The camera has
+   to be applied beforehand:
 
        sc_camera_apply(cam);
-       sc_world_draw(world, cam);
+       sc_world_draw(world);
    */
-void sc_world_draw(sc_world_t *world, sc_camera_t *cam);
+void sc_world_draw(sc_world_t *world);
 
 /* semi-internal function to create a new chunk. */
 sc_chunk_node_t *sc_new_chunk_node(void);

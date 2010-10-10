@@ -103,47 +103,9 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
-#if 1
     sc_engine_clear(sc_color(0x336699ff));
     sc_camera_apply(cam);
-    sc_world_draw(world, cam);
-#endif
-#if 0
-    GLfloat vertices[16] = {
-        -10.0f, -10.0f,  10.0f,
-         10.0f, -10.0f,  10.0f,
-         10.0f, -10.0f, -10.0f,
-        -10.0f, -10.0f, -10.0f
-    };
-
-    /* clear display first and apply camera transformation */
-    sc_engine_clear(sc_color(0x336699ff));
-    sc_camera_apply(cam);
-
-    /* draw a tile */
-    sc_bind_texture(sc_get_block_texture(SC_BLOCK_PLANKS));
-    glVertexPointer(3, GL_FLOAT, 0, vertices);
-    glDrawArrays(GL_QUADS, 0, 4);
-    glPushMatrix();
-        sc_bind_texture(sc_get_block_texture(SC_BLOCK_COBBLESTONE));
-        glTranslatef(20.0f, 0.0f, 0.0f);
-        glDrawArrays(GL_QUADS, 0, 4);
-    glPopMatrix();
-    glPushMatrix();
-        sc_bind_texture(sc_get_block_texture(SC_BLOCK_WATER));
-        glTranslatef(20.0f, 0.0f, 20.0f);
-        glDrawArrays(GL_QUADS, 0, 4);
-    glPopMatrix();
-    glPushMatrix();
-        sc_bind_texture(sc_get_block_texture(SC_BLOCK_GRASS));
-        glTranslatef(0.0f, 0.0f, 20.0f);
-        glDrawArrays(GL_QUADS, 0, 4);
-    glPopMatrix();
-
-    /* teapot for testing purposes */
-    sc_unbind_texture();
-    glutWireTeapot(10.0f);
-#endif
+    sc_world_draw(world);
 }
 
 void

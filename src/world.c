@@ -199,7 +199,7 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
 }
 
 void
-sc_world_draw(sc_world_t *world, sc_camera_t *cam)
+sc_world_draw(sc_world_t *world)
 {
     int x, y;
     GLfloat vertices[16] = {
