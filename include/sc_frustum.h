@@ -1,0 +1,36 @@
+/* helpers for the frustum calculations */
+#ifndef _INC_SC_FRUSTUM_H_
+#define _INC_SC_FRUSTUM_H_
+
+#include "sc_boot.h"
+#include "sc_vec4.h"
+#include "sc_mat4.h"
+
+#define SC_LEFT_FRUSTUM_PLANE       0
+#define SC_RIGHT_FRUSTUM_PLANE      1
+#define SC_BOTTOM_FRUSTUM_PLANE     2
+#define SC_TOP_FRUSTUM_PLANE        3
+#define SC_NEAR_FRUSTUM_PLANE       4
+#define SC_FAR_FRUSTUM_PLANE        5
+
+typedef struct {
+    sc_mat4_t planes[6];
+} sc_frustum_t;
+
+typedef struct {
+    sc_vec3_t position;
+    sc_vec3_t dimensions;
+} sc_bounding_box_t;
+
+/* sets the frustum to the current values from the engine */
+sc_frustum_t *sc_get_current_frustum(sc_frustum_t *frustum_out);
+
+/* tests if the given bounding box is in the frustum.  This function
+   returns three different values:
+
+   -1       entirely outside of frustum
+   0        partially in the frustum
+   1        completely inside the frustum */
+int sc_frustum_test(const sc_frustum_t *frustum, const sc_bounding_box_t *box);
+
+#endif

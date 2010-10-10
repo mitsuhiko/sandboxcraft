@@ -20,6 +20,7 @@ set(SOURCES
     src/camera.c
     src/math.c
     src/color.c
+    src/frustum.c
 )
 set(HEADERS
 	include/sc_boot.h
@@ -41,6 +42,7 @@ set(HEADERS
     include/sc_camera.h
     include/sc_math.h
     include/sc_color.h
+    include/sc_frustum.h
 )
 
 find_package(SDL 1.2.7 REQUIRED)
