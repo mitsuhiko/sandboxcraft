@@ -130,6 +130,15 @@ sc_engine_clear(sc_color_t color)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+sc_mat4_t *
+sc_engine_get_mvp_matrix(sc_mat4_t *mat_out)
+{
+    sc_mat4_t m, p;
+    glGetFloatv(GL_MODELVIEW_MATRIX, m.elms);
+    glGetFloatv(GL_PROJECTION_MATRIX, p.elms);
+    return sc_mat4_mul(mat_out, &p, &m);
+}
+
 void
 sc_engine_begin_frame(void)
 {

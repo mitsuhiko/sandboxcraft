@@ -4,6 +4,7 @@
 
 #include "sc_boot.h"
 #include "sc_color.h"
+#include "sc_mat4.h"
 
 /* abstract the sdl tick interface */
 #define sc_engine_get_ticks SDL_GetTicks
@@ -40,6 +41,9 @@ int sc_engine_mouse_grabbed(void);
 
 /* clears the screen.  This clears depth buffer and color. */
 void sc_engine_clear(sc_color_t color);
+
+/* returns the current model-view-projection matrix */
+sc_mat4_t *sc_engine_get_mvp_matrix(sc_mat4_t *mat_out);
 
 /* callback for begin/end of frame handling */
 void sc_engine_begin_frame(void);
