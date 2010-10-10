@@ -132,8 +132,8 @@ sc_atlas_t *
 sc_new_atlas(size_t width, size_t height, GLint filtering)
 {
     sc_atlas_t *atlas = sc_xalloc(sc_atlas_t);
-    width = sc_next_power_of_two(width);
-    height = sc_next_power_of_two(height);
+    assert(sc_is_power_of_two(width));
+    assert(sc_is_power_of_two(height));
     atlas->surface = sc_memassert(SDL_CreateRGBSurface(
         SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0));
     atlas->filtering = filtering;

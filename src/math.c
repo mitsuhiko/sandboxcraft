@@ -12,3 +12,9 @@ sc_next_power_of_two(size_t value)
     value |= value >> 16;
     return value + 1;
 }
+
+int
+sc_is_power_of_two(size_t value)
+{
+    return (value & (value - 1)) == 0;
+}

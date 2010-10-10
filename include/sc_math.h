@@ -10,5 +10,6 @@
 #define sc_rad2deg(rad) ((rad) * 180.0f / M_PI)
 
 size_t sc_next_power_of_two(size_t value);
+int sc_is_power_of_two(size_t value);
 
 #endif

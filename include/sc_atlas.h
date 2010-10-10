@@ -42,8 +42,8 @@
 typedef struct {} sc_atlas_t;
 #endif
 
-/* creates a new atlas from a given size and filtering.  The size should
-   be a power of two, if not this will round up. */
+/* creates a new atlas from a given size and filtering.  The size must
+   be a power of two, even on systems that support it. */
 sc_atlas_t *sc_new_atlas(size_t width, size_t height, GLint filtering);
 
 /* finalizes the atlas and uploads the texture into vram.  This also

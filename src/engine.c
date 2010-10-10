@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include "sc_engine.h"
 #include "sc_error.h"
@@ -77,12 +78,42 @@ sc_engine_init(void)
     init_glut();
 
     init_graphics();
+
+    /* show detected features on stderr */
+    sc_engine_dump_info();
 }
 
 void
 sc_engine_shutdown(void)
 {
     SDL_Quit();
+}
+
+void
+sc_engine_dump_info(void)
+{
+    fprintf(stderr, "Running SDL %d.%d.%d\n",
+            SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL);
+    fprintf(stderr, "Using OpenGL %s\n", sc_engine_get_opengl_version());
+    fprintf(stderr, "Vertex buffer support:     %s\n",
+            GLEE_ARB_vertex_buffer_object ? "yes" : "no");
+    fprintf(stderr, "Textures non power of two: %s\n",
+            GLEE_ARB_texture_non_power_of_two ? "yes" : "no");
+    fprintf(stderr, "ARB multisampling:         %s\n",
+            GLEE_ARB_multisample ? "yes" : "no");
+}
+
+const char *
+sc_engine_get_opengl_version(void)
+{
+    /* do not test for newer version as we're not supporting 3.0 */
+    if (GLEE_VERSION_2_1) return "2.1";
+    if (GLEE_VERSION_2_0) return "2.0";
+    if (GLEE_VERSION_1_5) return "1.5";
+    if (GLEE_VERSION_1_4) return "1.4";
+    if (GLEE_VERSION_1_3) return "1.3";
+    if (GLEE_VERSION_1_2) return "1.2";
+    return "1.1";
 }
 
 void

@@ -27,6 +27,14 @@ extern sc_gametime_t sc_gametime;
 void sc_engine_init(void);
 void sc_engine_shutdown(void);
 
+/* writes the detected engine features to stderr */
+void sc_engine_dump_info(void);
+
+/* returns the version of OpenGL as string for debugging purposes.  This
+   should not be used for feature checks in the code however.  Use the
+   GLee support macros instead */
+const char *sc_engine_get_opengl_version(void);
+
 /* returns the current dimensions of the viewport */
 void sc_engine_get_dimensions(float *width, float *height);
 
