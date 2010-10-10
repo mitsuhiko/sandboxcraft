@@ -1,0 +1,75 @@
+/*
+	Don't set font sizes, leave that up to the user
+*/
+
+p, a, dd, td, li, ul, dd, dl { 
+	/* font-family: Times, serif; */
+	font-style: normal; 
+	font-weight: normal; 
+	line-height: 150%; 
+	text-indent: 0em;
+	/* text-align: justify; */
+}
+
+a.href {
+	color: #0000aa;
+}
+
+body { 
+	/* background-color: white */
+	margin-top: 30px;
+	margin-bottom: 100px;
+	margin-left: 50px;
+	margin-right: 50px;
+}
+
+blockquote {
+	padding-top: 15px;
+	padding-bottom: 15px;
+   line-height: 130%;
+   font-family: Times, serif;
+   color: #005500;
+}
+
+pre, code {
+	line-height: 120%;
+	font-family: Courier, monospace;
+	color: #000000;
+}
+
+H1 { 
+	text-transform: capitalize;
+	line-height: 125%;
+	color: #000000; 
+	font-family: serif; 
+	letter-spacing: 0.2em;
+	font-size: x-large;
+}
+
+H2 {                    
+   color: #000000;
+   font-family: serif;
+	letter-spacing: 0.1em;
+	font-size: large;
+}
+
+H3 {                    
+   color: #000000;
+	letter-spacing: 0.1em;
+   font-family: serif;
+	font-size: large;
+}
+
+H4 {
+	font-size: medium;
+}
+
+H5 {
+   font-size: medium;
+}
+
+H6 {
+   font-size: normal;
+	font-weight: bold;
+}
+
