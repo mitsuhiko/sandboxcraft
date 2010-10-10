@@ -27,7 +27,6 @@
 #ifndef _SC_DONT_DEFINE_VBO
 typedef struct {
     GLuint buffers[4];
-    size_t indices;
     size_t vertices;
 } sc_vbo_t;
 #endif
