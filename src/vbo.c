@@ -10,6 +10,10 @@ typedef struct {
     GLuint buffers[4];
     size_t vertices;
     size_t _buffer_size;
+    /* this is where the vertices are stored in main memory until they
+       are uploaded to the graphics device.  The first three items above
+       are the only ones exposed in the header, everything down here is
+       specific to the implementation. */
     sc_vec3_t *_vertices;
     sc_vec3_t *_normals;
     sc_vec2_t *_tex_coords;
@@ -79,9 +83,9 @@ enlarge_if_necessary(sc_vbo_t *vbo)
 
     size = !vbo->_buffer_size ? INITIAL_SIZE : (size_t)(vbo->_buffer_size * 1.3);
 
-    vbo->_vertices = sc_xrealloc(vbo->_vertices, sizeof(sc_vec3_t) * size);
-    vbo->_normals = sc_xrealloc(vbo->_normals, sizeof(sc_vec3_t) * size);
-    vbo->_tex_coords = sc_xrealloc(vbo->_tex_coords, sizeof(sc_vec3_t) * size);
+    vbo->_vertices = sc_xrealloc(vbo->_vertices, sizeof(sc_vec3_t) * size * 3);
+    vbo->_normals = sc_xrealloc(vbo->_normals, sizeof(sc_vec3_t) * size * 3);
+    vbo->_tex_coords = sc_xrealloc(vbo->_tex_coords, sizeof(sc_vec3_t) * size * 2);
     vbo->_buffer_size = size;
 }
 
@@ -91,18 +95,15 @@ sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices[3],
                     const sc_vec2_t *tex_coords[3])
 {
     int i;
-    sc_vec3_t real_normals[3];
+    sc_vec3_t normal;
 
     for (i = 0; i < 3; i++) {
-        real_normals[i] = *normals[i];
-        sc_vec3_normalize(&real_normals[i]);
-    }
-
-    for (i = 0; i < 3; i++) {
+        normal = *normals[i];
+        sc_vec3_normalize(&normal);
         enlarge_if_necessary(vbo);
-        memcpy(vbo->_vertices + vbo->vertices, vertices, sizeof(sc_vec3_t));
-        memcpy(vbo->_normals + vbo->vertices, &real_normals, sizeof(sc_vec3_t));
-        memcpy(vbo->_tex_coords + vbo->vertices, tex_coords, sizeof(sc_vec2_t));
+        memcpy(vbo->_vertices + vbo->vertices, &vertices[i], sizeof(sc_vec3_t));
+        memcpy(vbo->_normals + vbo->vertices, &normal, sizeof(sc_vec3_t));
+        memcpy(vbo->_tex_coords + vbo->vertices, &tex_coords[i], sizeof(sc_vec2_t));
         vbo->vertices++;
     }
 }
