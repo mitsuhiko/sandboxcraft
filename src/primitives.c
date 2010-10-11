@@ -19,7 +19,7 @@ sc_new_cube(float size)
     sc_vec3_set(&normals[2], 0.0f, 0.0f, 1.0f);
     sc_vec2_set(&tex_coords[0], 1.0f, 1.0f);
     sc_vec2_set(&tex_coords[1], 0.0f, 1.0f);
-    sc_vec2_set(&tex_coords[3], 0.0f, 0.0f);
+    sc_vec2_set(&tex_coords[2], 0.0f, 0.0f);
     sc_vbo_add_triangle(rv, vertices, normals, tex_coords);
 
     sc_vec3_set(&vertices[0], x, -x, x);
