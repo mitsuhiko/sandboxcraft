@@ -30,11 +30,9 @@ resize_viewport(void)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-#if 0 /* broken because of the cube */
     /* do backface culling */
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
-#endif
 
     /* setup viewport */
     glViewport(0, 0, WIDTH, HEIGHT);
