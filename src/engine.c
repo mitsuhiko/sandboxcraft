@@ -32,7 +32,7 @@ resize_viewport(void)
 
     /* do backface culling */
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    glCullFace(GL_BACK);
 
     /* setup viewport */
     glViewport(0, 0, WIDTH, HEIGHT);
