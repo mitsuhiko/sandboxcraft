@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "sc_world.h"
-
+#include "sc_vbo.h"
 
 /* helper that discovers a single chunk. x/y are world coords */
 static void

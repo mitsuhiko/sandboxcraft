@@ -1,12 +1,13 @@
 /* implements basic support for vertex buffer objects.
 
    The vbo interface that is implemented here always operates on triangles
-   and will use arrays and not element indices.  That means the triggererd
-   drawcall is gLDrawArrays with GL_TRIANGLES.
+   and will internally optimize for best memory usage by comparing with
+   already registered vertices.  This however also means that the add
+   method has a complexity of O(n) which slows down the vertex buffer
+   creation.
    
-   Because this game is designed to work on primitives which might be
-   created programatically and not from a model file, the vertices, normals
-   and texture coordinates are added at the same time to the vbo. */
+   It might be interesting to check if the check in there is really
+   necessary. */
 #ifndef _INC_SC_VBO_H_
 #define _INC_SC_VBO_H_
 
@@ -41,9 +42,9 @@ void sc_free_vbo(sc_vbo_t *vbo);
 void sc_finalize_vbo(sc_vbo_t *vbo);
 
 /* adds a new triangle to the vbo */
-void sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices[3],
-                         const sc_vec3_t *normals[3],
-                         const sc_vec2_t *tex_coords[3]);
+void sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
+                         const sc_vec3_t *normals,
+                         const sc_vec2_t *tex_coords);
 
 /* draws the complete vbo */
 void sc_vbo_draw(const sc_vbo_t *vbo);

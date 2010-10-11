@@ -23,6 +23,7 @@ set(SOURCES
     src/color.c
     src/frustum.c
     src/vbo.c
+    src/primitives.c
 
     deps/GLee/GLee.c
 )
@@ -49,6 +50,7 @@ set(HEADERS
     include/sc_color.h
     include/sc_frustum.h
     include/sc_vbo.h
+    include/sc_primitives.h
 
     deps/GLee/GLee.h
 )

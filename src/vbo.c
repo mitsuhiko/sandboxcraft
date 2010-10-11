@@ -29,6 +29,9 @@ sc_new_vbo(void)
     sc_vbo_t *rv = sc_xalloc(sc_vbo_t);
     rv->vertices = 0;
     rv->_buffer_size = 0;
+    rv->_vertices = NULL;
+    rv->_normals = NULL;
+    rv->_tex_coords = NULL;
     return rv;
 }
 
@@ -90,15 +93,15 @@ enlarge_if_necessary(sc_vbo_t *vbo)
 }
 
 void
-sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices[3],
-                    const sc_vec3_t *normals[3],
-                    const sc_vec2_t *tex_coords[3])
+sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
+                    const sc_vec3_t *normals,
+                    const sc_vec2_t *tex_coords)
 {
     int i;
     sc_vec3_t normal;
 
     for (i = 0; i < 3; i++) {
-        normal = *normals[i];
+        normal = normals[i];
         sc_vec3_normalize(&normal);
         enlarge_if_necessary(vbo);
         memcpy(vbo->_vertices + vbo->vertices, &vertices[i], sizeof(sc_vec3_t));
