@@ -113,7 +113,14 @@ sc_game_render(void)
     sc_world_draw(world);
 #endif
     sc_bind_texture(debug_texture);
+
     sc_vbo_draw(cube);
+    glPushMatrix();
+        glTranslatef(60.0f, 0.0f, 0.0f);
+        sc_vbo_draw(cube);
+        glTranslatef(60.0f, 0.0f, 0.0f);
+        sc_vbo_draw(cube);
+    glPopMatrix();
 }
 
 void
