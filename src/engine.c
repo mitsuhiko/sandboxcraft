@@ -63,6 +63,7 @@ init_graphics(void)
 static void
 init_glut(void)
 {
+    /* on OS X something already initializes glut.  I bet SDL does */
 #if SC_PLATFORM != SC_PLATFORM_OSX
     int argc = 0;
     char **argv = NULL;

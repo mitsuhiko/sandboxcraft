@@ -18,9 +18,6 @@ struct {
     int d;
 } keysdown;
 
-static sc_vbo_t *cube;
-static sc_texture_t *debug_texture;
-
 
 static void
 perform_late_init(void)
@@ -107,20 +104,9 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
-    sc_engine_clear(sc_color(0x336699ff));
+    sc_engine_clear(sc_color(0x24596Bff));
     sc_camera_apply(cam);
-#if 0
     sc_world_draw(world);
-#endif
-    sc_bind_texture(debug_texture);
-
-    sc_vbo_draw(cube);
-    glPushMatrix();
-        glTranslatef(60.0f, 0.0f, 0.0f);
-        sc_vbo_draw(cube);
-        glTranslatef(60.0f, 0.0f, 0.0f);
-        sc_vbo_draw(cube);
-    glPopMatrix();
 }
 
 void
@@ -161,8 +147,6 @@ sc_game_late_init(void)
     sc_init_blocks();
 
     world = sc_new_world();
-    cube = sc_new_cube(50.0f);
-    debug_texture = sc_texture_from_resource("debug.png", GL_NEAREST);
     cam = sc_new_camera();
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
@@ -183,8 +167,6 @@ void
 sc_game_shutdown(void)
 {
     sc_engine_grab_mouse(0);
-    sc_free_vbo(cube);
-    sc_free_texture(debug_texture);
     sc_free_camera(cam);
     sc_free_world(world);
     sc_free_blocks();
