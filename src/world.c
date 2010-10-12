@@ -2,6 +2,9 @@
 #include <stdlib.h>
 
 #include "sc_world.h"
+#include "sc_frustum.h"
+
+#define BLOCK_DIMENSION 20.0f
 
 /* helper that discovers a single chunk. x/y are world coords */
 static void
@@ -201,12 +204,23 @@ void
 sc_world_draw(sc_world_t *world)
 {
     int x, y, z;
+    sc_frustum_t frustum;
+    sc_vec3_t block_dimensions;
+
+    sc_get_current_frustum(&frustum);
+    sc_vec3_set(&block_dimensions, BLOCK_DIMENSION,
+                BLOCK_DIMENSION, BLOCK_DIMENSION);
 
     for (z = 0; z < SC_CHUNK_RESOLUTION; z++)
         for (y = 0; y < SC_CHUNK_RESOLUTION; y++)
             for (x = 0; x < SC_CHUNK_RESOLUTION; x++) {
                 sc_block_t *block = sc_world_get_block(world, x, y, z);
-                if (!block)
+                sc_vec3_t vec1, vec2;
+                sc_vec3_set(&vec1, BLOCK_DIMENSION * x,
+                                   BLOCK_DIMENSION * z,
+                                   BLOCK_DIMENSION * y);
+                sc_vec3_add(&vec2, &vec1, &block_dimensions);
+                if (!block || sc_frustum_test_aabb(&frustum, &vec1, &vec2) < 0)
                     continue;
                 glPushMatrix();
                     sc_bind_texture(block->texture);
