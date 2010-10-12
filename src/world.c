@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 #include "sc_world.h"
-#include "sc_vbo.h"
 
 /* helper that discovers a single chunk. x/y are world coords */
 static void
@@ -201,26 +200,20 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
 void
 sc_world_draw(sc_world_t *world)
 {
-    int x, y;
-    GLfloat vertices[16] = {
-        -10.0f, -10.0f,  10.0f,
-         10.0f, -10.0f,  10.0f,
-         10.0f, -10.0f, -10.0f,
-        -10.0f, -10.0f, -10.0f
-    };
-    glVertexPointer(3, GL_FLOAT, 0, vertices);
+    int x, y, z;
 
-    for (y = 0; y < 128; y++)
-        for (x = 0; x < 128; x++) {
-            sc_block_t *block = sc_world_get_block(world, x, y, 0);
-            if (!block)
-                continue;
-            glPushMatrix();
-            sc_bind_texture(block->texture);
-            glTranslatef(20.0f * x, 0.0f, 20.0f * y);
-            glDrawArrays(GL_QUADS, 0, 4);
-            glPopMatrix();
-        }
+    for (z = 0; z < SC_CHUNK_RESOLUTION; z++)
+        for (y = 0; y < SC_CHUNK_RESOLUTION; y++)
+            for (x = 0; x < SC_CHUNK_RESOLUTION; x++) {
+                sc_block_t *block = sc_world_get_block(world, x, y, z);
+                if (!block)
+                    continue;
+                glPushMatrix();
+                    sc_bind_texture(block->texture);
+                    glTranslatef(20.0f * x, 20.0f * y, 20.0f * z);
+                    sc_vbo_draw(block->vbo);
+                glPopMatrix();
+            }
 }
 
 sc_chunk_node_t *

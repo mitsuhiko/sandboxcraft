@@ -2,10 +2,12 @@
 
 #include "sc_blocks.h"
 #include "sc_atlas.h"
+#include "sc_primitives.h"
 
 #define ADD_BLOCK(btype, filename, bfalls_down, bmovement_factor) do { \
     sc_block_t *block = &blocks[btype]; \
     block->texture = sc_atlas_add_from_resource(block_atlas, filename); \
+    block->vbo = make_cube_vbo(block->texture); \
     if (!block->texture) sc_error_make_critical(); \
     block->type = btype; \
     block->falls_down = bfalls_down; \
@@ -14,6 +16,14 @@
 
 static sc_block_t *blocks;
 static sc_atlas_t *block_atlas;
+
+static sc_vbo_t *
+make_cube_vbo(const sc_texture_t *texture)
+{
+    sc_vbo_t *vbo = sc_new_cube(20.0f);
+    //sc_finalize_vbo(vbo);
+    return vbo;
+}
 
 void
 sc_init_blocks(void)
@@ -53,9 +63,14 @@ sc_get_block_name(sc_blocktype_t type)
 void
 sc_free_blocks(void)
 {
+    int i;
     if (!blocks)
         return;
     sc_free(block_atlas);
+
+    for (i = 0; i < SC_BLOCK_SLOTS; i++)
+        sc_free_vbo(blocks[i].vbo);
+
     sc_free(blocks);
     blocks = 0;
 }
