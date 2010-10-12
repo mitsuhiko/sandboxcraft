@@ -141,7 +141,7 @@ sc_game_early_init(void)
 void
 sc_game_late_init(void)
 {
-    int x, y;
+    int x, y, z;
     if (late_initialized)
         return;
     sc_init_blocks();
@@ -152,13 +152,18 @@ sc_game_late_init(void)
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
     sc_engine_grab_mouse(1);
 
-    for (y = 0; y < SC_CHUNK_RESOLUTION; y++)
-        for (x = 0; x < SC_CHUNK_RESOLUTION; x++)
-            sc_world_set_block(world, x, y, 0, sc_get_block(SC_BLOCK_GRASS));
-    sc_world_set_block(world, 5, 3, 0, sc_get_block(SC_BLOCK_PLANKS));
-    sc_world_set_block(world, 6, 3, 0, sc_get_block(SC_BLOCK_PLANKS));
-    sc_world_set_block(world, 6, 4, 0, sc_get_block(SC_BLOCK_PLANKS));
-    sc_world_set_block(world, 5, 4, 0, sc_get_block(SC_BLOCK_PLANKS));
+    for (z = 0; z < SC_CHUNK_RESOLUTION; z++)
+        for (y = 0; y < SC_CHUNK_RESOLUTION; y++)
+            for (x = 0; x < SC_CHUNK_RESOLUTION; x++)
+                sc_world_set_block(world, x, y, z,
+                    z == SC_CHUNK_RESOLUTION -1
+                        ? sc_get_block(SC_BLOCK_GRASS)
+                        : sc_get_block(SC_BLOCK_STONE));
+
+    sc_world_set_block(world, 5, 3, SC_CHUNK_RESOLUTION - 1, sc_get_block(SC_BLOCK_PLANKS));
+    sc_world_set_block(world, 6, 3, SC_CHUNK_RESOLUTION - 1, sc_get_block(SC_BLOCK_PLANKS));
+    sc_world_set_block(world, 6, 4, SC_CHUNK_RESOLUTION - 1, sc_get_block(SC_BLOCK_PLANKS));
+    sc_world_set_block(world, 5, 4, SC_CHUNK_RESOLUTION - 1, sc_get_block(SC_BLOCK_PLANKS));
 
     late_initialized = 1;
 }

@@ -200,34 +200,43 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
     return 1;
 }
 
+static int
+draw_block(sc_world_t *world, const sc_frustum_t *frustum,
+           size_t x, size_t y, size_t z)
+{
+    sc_block_t *block = sc_world_get_block(world, x, y, z);
+    sc_vec3_t vec1, vec2;
+    sc_vec3_set(&vec1, BLOCK_DIMENSION * x - BLOCK_DIMENSION / 2,
+                       BLOCK_DIMENSION * z - BLOCK_DIMENSION / 2,
+                       BLOCK_DIMENSION * y - BLOCK_DIMENSION / 2);
+    sc_vec3_set(&vec2, BLOCK_DIMENSION, BLOCK_DIMENSION, BLOCK_DIMENSION);
+    sc_vec3_add(&vec2, &vec2, &vec1);
+
+    if (!block || sc_frustum_test_aabb(frustum, &vec1, &vec2) < 0)
+        return 0;
+
+    glPushMatrix();
+        sc_bind_texture(block->texture);
+        glTranslatef(20.0f * x, 20.0f * z, 20.0f * y);
+        sc_vbo_draw(block->vbo);
+    glPopMatrix();
+    return 1;
+}
+
 void
 sc_world_draw(sc_world_t *world)
 {
-    int x, y, z;
+    int x, y, z, skipped = 0;
     sc_frustum_t frustum;
-    sc_vec3_t block_dimensions;
-
     sc_get_current_frustum(&frustum);
-    sc_vec3_set(&block_dimensions, BLOCK_DIMENSION,
-                BLOCK_DIMENSION, BLOCK_DIMENSION);
 
     for (z = 0; z < SC_CHUNK_RESOLUTION; z++)
         for (y = 0; y < SC_CHUNK_RESOLUTION; y++)
-            for (x = 0; x < SC_CHUNK_RESOLUTION; x++) {
-                sc_block_t *block = sc_world_get_block(world, x, y, z);
-                sc_vec3_t vec1, vec2;
-                sc_vec3_set(&vec1, BLOCK_DIMENSION * x,
-                                   BLOCK_DIMENSION * z,
-                                   BLOCK_DIMENSION * y);
-                sc_vec3_add(&vec2, &vec1, &block_dimensions);
-                if (!block || sc_frustum_test_aabb(&frustum, &vec1, &vec2) < 0)
-                    continue;
-                glPushMatrix();
-                    sc_bind_texture(block->texture);
-                    glTranslatef(20.0f * x, 20.0f * z, 20.0f * y);
-                    sc_vbo_draw(block->vbo);
-                glPopMatrix();
-            }
+            for (x = 0; x < SC_CHUNK_RESOLUTION; x++)
+                if (!draw_block(world, &frustum, x, y, z))
+                    skipped++;
+
+    printf("Skipped %d blocks\n", skipped);
 }
 
 sc_chunk_node_t *
