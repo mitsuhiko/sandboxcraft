@@ -210,7 +210,7 @@ sc_world_draw(sc_world_t *world)
                     continue;
                 glPushMatrix();
                     sc_bind_texture(block->texture);
-                    glTranslatef(20.0f * x, 20.0f * y, 20.0f * z);
+                    glTranslatef(20.0f * x, 20.0f * z, 20.0f * y);
                     sc_vbo_draw(block->vbo);
                 glPopMatrix();
             }

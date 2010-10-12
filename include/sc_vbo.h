@@ -46,6 +46,11 @@ void sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
                          const sc_vec3_t *normals,
                          const sc_vec2_t *tex_coords);
 
+/* updates the texture coordiates.  This is intended for use with texture
+   atlasses and probably only useful for quad-ish textures. */
+void sc_vbo_update_texcoords(const sc_vbo_t *vbo, float offset_x,
+                             float offset_y, float factor_x, float factor_y);
+
 /* draws the complete vbo */
 void sc_vbo_draw(const sc_vbo_t *vbo);
 

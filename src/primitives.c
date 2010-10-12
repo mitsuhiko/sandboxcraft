@@ -147,7 +147,6 @@ sc_new_cube(float size)
     sc_vec2_set(&tex_coords[1], 0.0f, 1.0f);
     sc_vec2_set(&tex_coords[2], 1.0f, 0.0f);
     sc_vbo_add_triangle(rv, vertices, normals, tex_coords);
-    sc_finalize_vbo(rv);
 
     return rv;
 }

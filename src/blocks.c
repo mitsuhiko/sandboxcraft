@@ -21,7 +21,11 @@ static sc_vbo_t *
 make_cube_vbo(const sc_texture_t *texture)
 {
     sc_vbo_t *vbo = sc_new_cube(20.0f);
-    //sc_finalize_vbo(vbo);
+    sc_vbo_update_texcoords(vbo, texture->coords[0],
+                            texture->coords[1],
+                            texture->coords[2] - texture->coords[0],
+                            texture->coords[5] - texture->coords[1]);
+    sc_finalize_vbo(vbo);
     return vbo;
 }
 

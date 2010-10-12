@@ -17,20 +17,16 @@ typedef struct {
     sc_vec4_t planes[6];
 } sc_frustum_t;
 
-typedef struct {
-    sc_vec3_t position;
-    sc_vec3_t dimensions;
-} sc_bounding_box_t;
-
 /* sets the frustum to the current values from the engine */
 sc_frustum_t *sc_get_current_frustum(sc_frustum_t *frustum_out);
 
-/* tests if the given bounding box is in the frustum.  This function
-   returns three different values:
+/* tests if the given axis aligned bounding box is in the frustum.
+   Return value:
 
-   -1       entirely outside of frustum
-   0        partially in the frustum
-   1        completely inside the frustum */
-int sc_frustum_test(const sc_frustum_t *frustum, const sc_bounding_box_t *box);
+     -1       entirely outside of frustum
+     0        partially in the frustum
+     1        completely inside the frustum */
+int sc_frustum_test_aabb(const sc_frustum_t *frustum, const sc_vec3_t *vec1,
+                         const sc_vec3_t *vec2);
 
 #endif

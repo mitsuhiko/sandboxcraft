@@ -62,14 +62,15 @@ sc_get_current_frustum(sc_frustum_t *frustum_out)
 }
 
 static int
-plane_test(const sc_vec4_t *plane, const sc_bounding_box_t *box)
+plane_test(const sc_vec4_t *plane, const sc_vec3_t *vec1,
+           const sc_vec3_t *vec2)
 {
-    float p1 = box->position.x * plane->x;
-    float p2 = box->position.y * plane->y;
-    float p3 = box->position.z * plane->z;
-    float d1 = box->dimensions.x * plane->x;
-    float d2 = box->dimensions.y * plane->y;
-    float d3 = box->dimensions.z * plane->z;
+    float p1 = vec1->x * plane->x;
+    float p2 = vec1->y * plane->y;
+    float p3 = vec1->z * plane->z;
+    float d1 = vec2->x * plane->x;
+    float d2 = vec2->y * plane->y;
+    float d3 = vec2->z * plane->z;
     int points = 0;
 
     if (p1 + p2 + p3 + plane->w > 0) points++;
@@ -85,12 +86,13 @@ plane_test(const sc_vec4_t *plane, const sc_bounding_box_t *box)
 }
 
 int
-sc_frustum_test(const sc_frustum_t *frustum, const sc_bounding_box_t *box)
+sc_frustum_test_aabb(const sc_frustum_t *frustum, const sc_vec3_t *vec1,
+                     const sc_vec3_t *vec2)
 {
     int i, rv, points_visible = 0;
 
     for (i = 0; i < 6; i++) {
-        if ((rv = plane_test(&frustum->planes[i], box)) == 0)
+        if ((rv = plane_test(&frustum->planes[i], vec1, vec2)) == 0)
             return -1;
         points_visible += rv;
     }

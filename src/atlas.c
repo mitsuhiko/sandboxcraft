@@ -92,8 +92,8 @@ static void
 update_texture_coords(struct atlas_node *node, sc_atlas_t *atlas)
 {
     /* the +1 is required to offset the left edge fix */
-    float atlas_width = (float)atlas->surface->w;
-    float atlas_height = (float)atlas->surface->h;
+    float atlas_width = (float)atlas->root->width;
+    float atlas_height = (float)atlas->root->height;
     float u1 = (node->x + 1) / atlas_width;
     float v1 = (node->y + 1) / atlas_height;
     float u2 = (node->x + node->texture.width + 1) / atlas_width;
@@ -103,18 +103,14 @@ update_texture_coords(struct atlas_node *node, sc_atlas_t *atlas)
 }
 
 static void
-sync_textures_recursive(struct atlas_node *node, sc_atlas_t *atlas)
+update_texture_id_recursive(struct atlas_node *node, sc_atlas_t *atlas)
 {
-    if (node->in_use) {
+    if (node->in_use)
         node->texture.id = atlas->texture->id;
-        node->texture.stored_width = atlas->texture->stored_width;
-        node->texture.stored_height = atlas->texture->stored_height;
-        update_texture_coords(node, atlas);
-    }
     if (node->left)
-        sync_textures_recursive(node->left, atlas);
+        update_texture_id_recursive(node->left, atlas);
     if (node->right)
-        sync_textures_recursive(node->right, atlas);
+        update_texture_id_recursive(node->right, atlas);
 }
 
 static void
@@ -212,10 +208,17 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
     /* bottom edge */
     TRY_BLIT(0, 0, rv->x + 1, rv->y + 2, img->w, 1);
 
+    /* texture id is unknown for now, we will get it later when the
+       atlas texture was uploaded */
     rv->texture.id = 0;
+
+    /* these however we already know */
     rv->texture.shared = 1;
     rv->texture.width = img->w;
     rv->texture.height = img->h;
+    rv->texture.stored_width = atlas->root->width;
+    rv->texture.stored_height = atlas->root->height;
+    update_texture_coords(rv, atlas);
 
     return &rv->texture;
 }
@@ -229,7 +232,7 @@ sc_finalize_atlas(sc_atlas_t *atlas)
     if (!texture)
         return 0;
     atlas->texture = texture;
-    sync_textures_recursive(atlas->root, atlas);
+    update_texture_id_recursive(atlas->root, atlas);
     SDL_FreeSurface(atlas->surface);
     atlas->surface = NULL;
     atlas->finalized = 1;

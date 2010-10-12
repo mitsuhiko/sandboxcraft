@@ -112,6 +112,19 @@ sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
 }
 
 void
+sc_vbo_update_texcoords(const sc_vbo_t *vbo, float offset_x, float offset_y,
+                        float factor_x, float factor_y)
+{
+    int i;
+    ASSERT_NOT_FINALIZED();
+
+    for (i = 0; i < vbo->vertices * 3; i++) {
+        vbo->_tex_coords[i].x = vbo->_tex_coords[i].x * factor_x + offset_x;
+        vbo->_tex_coords[i].y = vbo->_tex_coords[i].y * factor_y + offset_y;
+    }
+}
+
+void
 sc_vbo_draw(const sc_vbo_t *vbo)
 {
     ASSERT_FINALIZED();
