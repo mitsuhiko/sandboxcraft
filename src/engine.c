@@ -176,6 +176,30 @@ sc_engine_get_mvp_matrix(sc_mat4_t *mat_out)
     return sc_mat4_mul(mat_out, &p, &m);
 }
 
+sc_vec3_t *
+sc_engine_unproject(sc_vec3_t *vec_out, int x, int y)
+{
+    GLint viewport[4];
+    sc_mat4_t mvp;
+    sc_vec3_t screen_pos;
+
+    sc_engine_get_mvp_matrix(&mvp);
+    sc_mat4_inverse(&mvp, &mvp);
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    screen_pos.x = x;
+    screen_pos.y = viewport[3] - y;
+    glReadPixels((int)screen_pos.x, (int)screen_pos.y, 1, 1,
+                 GL_DEPTH_COMPONENT, GL_FLOAT, &screen_pos.z);
+
+    screen_pos.x = ((screen_pos.x - viewport[0]) / viewport[2]) * 2.0f - 1.0f;
+    screen_pos.y = ((screen_pos.y - viewport[1]) / viewport[3]) * 2.0f - 1.0f;
+    screen_pos.z = screen_pos.z * 2.0f - 1.0f;
+
+    sc_vec3_transform(vec_out, &screen_pos, &mvp);
+    return vec_out;
+}
+
 void
 sc_engine_begin_frame(void)
 {

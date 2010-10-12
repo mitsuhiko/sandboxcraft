@@ -1,10 +1,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "sc_engine.h"
 #include "sc_world.h"
 #include "sc_frustum.h"
 
-#define BLOCK_DIMENSION 20.0f
+#define BLOCK_SIZE 20.0f
 
 /* helper that discovers a single chunk. x/y are world coords */
 static void
@@ -206,10 +207,10 @@ draw_block(sc_world_t *world, const sc_frustum_t *frustum,
 {
     sc_block_t *block = sc_world_get_block(world, x, y, z);
     sc_vec3_t vec1, vec2;
-    sc_vec3_set(&vec1, BLOCK_DIMENSION * x - BLOCK_DIMENSION / 2,
-                       BLOCK_DIMENSION * z - BLOCK_DIMENSION / 2,
-                       BLOCK_DIMENSION * y - BLOCK_DIMENSION / 2);
-    sc_vec3_set(&vec2, BLOCK_DIMENSION, BLOCK_DIMENSION, BLOCK_DIMENSION);
+    sc_vec3_set(&vec1, BLOCK_SIZE * x - BLOCK_SIZE / 2,
+                       BLOCK_SIZE * z - BLOCK_SIZE / 2,
+                       BLOCK_SIZE * y - BLOCK_SIZE / 2);
+    sc_vec3_set(&vec2, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
     sc_vec3_add(&vec2, &vec2, &vec1);
 
     if (!block || sc_frustum_test_aabb(frustum, &vec1, &vec2) < 0)
@@ -217,7 +218,7 @@ draw_block(sc_world_t *world, const sc_frustum_t *frustum,
 
     glPushMatrix();
         sc_bind_texture(block->texture);
-        glTranslatef(20.0f * x, 20.0f * z, 20.0f * y);
+        glTranslatef(BLOCK_SIZE * x, BLOCK_SIZE * z, BLOCK_SIZE * y);
         sc_vbo_draw(block->vbo);
     glPopMatrix();
     return 1;
@@ -226,17 +227,14 @@ draw_block(sc_world_t *world, const sc_frustum_t *frustum,
 void
 sc_world_draw(sc_world_t *world)
 {
-    int x, y, z, skipped = 0;
+    int x, y, z;
     sc_frustum_t frustum;
     sc_get_current_frustum(&frustum);
 
     for (z = 0; z < SC_CHUNK_RESOLUTION; z++)
         for (y = 0; y < SC_CHUNK_RESOLUTION; y++)
             for (x = 0; x < SC_CHUNK_RESOLUTION; x++)
-                if (!draw_block(world, &frustum, x, y, z))
-                    skipped++;
-
-    printf("Skipped %d blocks\n", skipped);
+                draw_block(world, &frustum, x, y, z);
 }
 
 sc_chunk_node_t *
