@@ -4,7 +4,9 @@
 
 #include "sc_boot.h"
 
-typedef struct {
+struct _sc_mat4;
+struct _sc_vec3;
+typedef struct _sc_vec4 {
     float x;
     float y;
     float z;
@@ -47,6 +49,16 @@ sc_vec4_t *sc_vec4_mul(sc_vec4_t *vec_out, const sc_vec4_t *v, float factor);
 
 /* negates a vector in place and returns it */
 sc_vec4_t *sc_vec4_neg(sc_vec4_t *vec);
+
+/* transforms the vector by the given matrix */
+sc_vec4_t *sc_vec4_transform(sc_vec4_t *vec_out, const sc_vec4_t *vec,
+                             const struct _sc_mat4 *mat);
+
+/* transforms the vector by the given matrix.  This does not neglect the
+   fourth parameter and returns a vec3. */
+struct _sc_vec3 *sc_vec4_transform_homogenous(struct _sc_vec3 *vec_out,
+                                              const sc_vec4_t *vec,
+                                              const struct _sc_mat4 *mat);
 
 /* checks if two vectors are approximately the same */
 int sc_vec4_equal(const sc_vec4_t *v1, const sc_vec4_t *v2);

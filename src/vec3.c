@@ -1,4 +1,5 @@
 #include "sc_vec3.h"
+#include "sc_vec4.h"
 #include "sc_mat4.h"
 #include "sc_math.h"
 
@@ -109,6 +110,15 @@ sc_vec3_transform(sc_vec3_t *vec_out, const sc_vec3_t *vec,
     tmp.z = vec->x * m[2] + vec->y * m[6] + vec->z * m[10] + m[14];
     *vec_out = tmp;
     return vec_out;
+}
+
+sc_vec3_t *
+sc_vec3_transform_homogenous(sc_vec3_t *vec_out, const sc_vec3_t *vec,
+                             const sc_mat4_t *mat)
+{
+    sc_vec4_t vec4;
+    sc_vec4_set(&vec4, vec->x, vec->y, vec->z, 1.0f);
+    return sc_vec4_transform_homogenous(vec_out, &vec4, mat);
 }
 
 int

@@ -5,7 +5,7 @@
 #include "sc_boot.h"
 
 struct _sc_mat4;
-typedef struct {
+typedef struct _sc_vec3 {
     float x;
     float y;
     float z;
@@ -55,6 +55,12 @@ sc_vec3_t *sc_vec3_neg(sc_vec3_t *vec);
 /* transforms the vector by the given matrix */
 sc_vec3_t *sc_vec3_transform(sc_vec3_t *vec_out, const sc_vec3_t *vec,
                              const struct _sc_mat4 *mat);
+
+/* transforms the vector by the given matrix.  This performs a homogenous
+   transformation where the vector is converted into a vec4.  This is a
+   shortcut for sc_vec4_transform_homogenous. */
+sc_vec3_t *sc_vec3_transform_homogenous(sc_vec3_t *vec_out, const sc_vec3_t *vec,
+                                        const struct _sc_mat4 *mat);
 
 /* checks if two vectors are approximately the same */
 int sc_vec3_equal(const sc_vec3_t *v1, const sc_vec3_t *v2);

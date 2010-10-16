@@ -54,9 +54,6 @@ void sc_engine_clear(sc_color_t color);
 /* returns the current model-view-projection matrix */
 sc_mat4_t *sc_engine_get_mvp_matrix(sc_mat4_t *mat_out);
 
-/* Sets the vector to the world coordinates at a given screen position */
-sc_vec3_t *sc_engine_unproject(sc_vec3_t *vec_out, int x, int y);
-
 /* callback for begin/end of frame handling */
 void sc_engine_begin_frame(void);
 void sc_engine_end_frame(void);
