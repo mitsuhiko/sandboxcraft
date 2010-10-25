@@ -79,7 +79,7 @@ sc_free_blocks(void)
     blocks = 0;
 }
 
-sc_block_t *
+const sc_block_t *
 sc_get_block(sc_blocktype_t type)
 {
     assert(blocks);

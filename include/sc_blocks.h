@@ -32,7 +32,7 @@ void sc_init_blocks(void);
 void sc_free_blocks(void);
 const char *sc_get_block_name(sc_blocktype_t type);
 
-sc_block_t *sc_get_block(sc_blocktype_t type);
+const sc_block_t *sc_get_block(sc_blocktype_t type);
 #define sc_block_falls_down(type) (sc_get_block(type)->falls_down)
 #define sc_block_is_passable(type) (sc_get_block(type)->movement_factor > 0.0f)
 

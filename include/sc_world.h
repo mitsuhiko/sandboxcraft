@@ -26,7 +26,7 @@
 
 struct _sc_chunk_node;
 typedef struct _sc_chunk_node {
-    sc_block_t *block;
+    const sc_block_t *block;
     struct _sc_chunk_node *children[8];
 } sc_chunk_node_t;
 
@@ -46,6 +46,12 @@ typedef struct {
     size_t height;
 } sc_world_t;
 
+/* callbacks for chunk traversing.  For more information have a look
+   at the sc_walk_chunk function. */
+typedef int (*sc_chunk_walk_cb)(const sc_block_t *block,
+                                int x, int y, int z, size_t size,
+                                void *closure);
+
 
 /* creates a new world */
 sc_world_t *sc_new_world(void);
@@ -61,12 +67,13 @@ void sc_free_world(sc_world_t *world);
 void sc_probe_world(sc_world_t *world, int x, int y, int z);
 
 /* returns a block for a given tripple of world coodinates. */
-sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
+const sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
 
 /* Sets a block in the world.  This will automatically rediscover the
    world if the boundaries are hit.  If something outside the hard limits
    is referenced, 0 is returned, 1 otherwise. */
-int sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block);
+int sc_world_set_block(sc_world_t *world, int x, int y, int z,
+                       const sc_block_t *block);
 
 /* draws the world.  The OpenGL projection and model matrices are used
    to calculate the visbility for the block of the world.  The camera has
@@ -82,6 +89,18 @@ sc_chunk_node_t *sc_new_chunk_node(void);
 
 /* semi-internal function to free a chunk. */
 void sc_free_chunk_node(sc_chunk_node_t *node);
+
+/* traverses a given chunk.  This will execute the given callback with
+   the following information:
+    - the block that for a specific node if the size is 1, otherwise NULL.
+    - the x coordinate
+    - the y coordinate
+    - the z coordinate
+    - the size of the current node you're lookint at
+
+   If the callback returns 1 it will continue to traverse to all 8 children,
+   otherwise it will stop at that point. */
+void sc_walk_chunk(sc_chunk_t *chunk, sc_chunk_walk_cb cb, void *closure);
 
 
 #endif

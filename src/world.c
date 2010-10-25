@@ -142,7 +142,7 @@ sc_probe_world(sc_world_t *world, int x, int y, int z)
     resolve_block(world, x, y, z, 1, NULL, NULL);
 }
 
-sc_block_t *
+const sc_block_t *
 sc_world_get_block(sc_world_t *world, int x, int y, int z)
 {
     int local_x, local_y, size;
@@ -170,7 +170,8 @@ sc_world_get_block(sc_world_t *world, int x, int y, int z)
 }
 
 int
-sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
+sc_world_set_block(sc_world_t *world, int x, int y, int z,
+                   const sc_block_t *block)
 {
     int local_x, local_y, size;
     sc_chunk_t *chunk;
@@ -201,40 +202,74 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z, sc_block_t *block)
     return 1;
 }
 
-static int
-draw_block(sc_world_t *world, const sc_frustum_t *frustum,
-           size_t x, size_t y, size_t z)
+static void
+walk_chunk(const sc_chunk_node_t **children, const sc_block_t *block,
+           int x, int y, int z,
+           size_t size, sc_chunk_walk_cb cb, void *closure)
 {
-    sc_block_t *block = sc_world_get_block(world, x, y, z);
+    int i;
+
+    if (!cb(size == 1 ? block : NULL, x, y, z, size,
+            closure) && (size /= 2) < 1)
+        return;
+
+    if ((size /= 2) < 1)
+        return;
+
+    for (i = 0; i < 8; i++) {
+        const sc_chunk_node_t *child = children ? children[i] : NULL;
+        walk_chunk((const sc_chunk_node_t **)(child ? child->children : NULL),
+                   child ? child->block : block,
+                   x + ((i & 4) ? size : 0),
+                   y + ((i & 2) ? size : 0),
+                   z + ((i & 1) ? size : 0),
+                   size, cb, closure);
+    }
+}
+
+void
+sc_walk_chunk(sc_chunk_t *chunk, sc_chunk_walk_cb cb, void *closure)
+{
+    walk_chunk((const sc_chunk_node_t **)chunk->root->children,
+               chunk->root->block, 0, 0, 0,
+               SC_CHUNK_RESOLUTION, cb, closure);
+}
+
+static int
+contents_visible(const sc_frustum_t *frustum, int x, int y, int z, size_t size)
+{
     sc_vec3_t vec1, vec2;
     sc_vec3_set(&vec1, BLOCK_SIZE * x - BLOCK_SIZE / 2,
                        BLOCK_SIZE * z - BLOCK_SIZE / 2,
                        BLOCK_SIZE * y - BLOCK_SIZE / 2);
-    sc_vec3_set(&vec2, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+    sc_vec3_set(&vec2, BLOCK_SIZE * size, BLOCK_SIZE * size, BLOCK_SIZE * size);
     sc_vec3_add(&vec2, &vec2, &vec1);
+    return sc_frustum_test_aabb(frustum, &vec1, &vec2) >= 0;
+}
 
-    if (!block || sc_frustum_test_aabb(frustum, &vec1, &vec2) < 0)
+static int
+draw_if_visible(const sc_block_t *block, int x, int y, int z, size_t size,
+                void *closure)
+{
+    const sc_frustum_t *frustum = closure;
+    if (!contents_visible(frustum, x, y, z, size))
         return 0;
-
-    glPushMatrix();
-        sc_bind_texture(block->texture);
-        glTranslatef(BLOCK_SIZE * x, BLOCK_SIZE * z, BLOCK_SIZE * y);
-        sc_vbo_draw(block->vbo);
-    glPopMatrix();
+    if (size == 1 && block) {
+        glPushMatrix();
+            sc_bind_texture(block->texture);
+            glTranslatef(BLOCK_SIZE * x, BLOCK_SIZE * z, BLOCK_SIZE * y);
+            sc_vbo_draw(block->vbo);
+        glPopMatrix();
+    }
     return 1;
 }
 
 void
 sc_world_draw(sc_world_t *world)
 {
-    int x, y, z;
     sc_frustum_t frustum;
     sc_get_current_frustum(&frustum);
-
-    for (z = 0; z < SC_CHUNK_RESOLUTION; z++)
-        for (y = 0; y < SC_CHUNK_RESOLUTION; y++)
-            for (x = 0; x < SC_CHUNK_RESOLUTION; x++)
-                draw_block(world, &frustum, x, y, z);
+    sc_walk_chunk(&world->known[0][0], draw_if_visible, &frustum);
 }
 
 sc_chunk_node_t *
@@ -242,7 +277,7 @@ sc_new_chunk_node(void)
 {
     sc_chunk_node_t *node = sc_xalloc(sc_chunk_node_t);
     memset(node->children, 0, sizeof(node->children));
-    node->block = NULL;
+    node->block = sc_get_block(SC_BLOCK_STONE);
     return node;
 }
 
