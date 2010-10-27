@@ -21,7 +21,7 @@
 #include "sc_blocks.h"
 #include "sc_camera.h"
 
-#define SC_CHUNK_RESOLUTION     32
+#define SC_CHUNK_RESOLUTION     64
 #define SC_CHUNK_LIMIT          1024
 
 struct _sc_chunk_node;

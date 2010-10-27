@@ -277,7 +277,7 @@ sc_new_chunk_node(void)
 {
     sc_chunk_node_t *node = sc_xalloc(sc_chunk_node_t);
     memset(node->children, 0, sizeof(node->children));
-    node->block = sc_get_block(SC_BLOCK_STONE);
+    node->block = NULL;
     return node;
 }
 

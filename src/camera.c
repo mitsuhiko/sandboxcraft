@@ -4,7 +4,7 @@
 #include "sc_mat4.h"
 
 #define NEAR_PLANE 1.0f
-#define FAR_PLANE 5000.0f
+#define FAR_PLANE 800.0f
 
 sc_camera_t *
 sc_new_camera(void)
