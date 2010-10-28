@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "sc_engine.h"
+#include "sc_vec4.h"
 #include "sc_error.h"
 
 /* TODO: move to config */
@@ -125,14 +126,19 @@ sc_engine_get_opengl_version(void)
 void
 sc_engine_get_dimensions(float *width, float *height)
 {
-    *width = WIDTH;
-    *height = HEIGHT;
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    assert(viewport[0] == 0 && viewport[1] == 0);
+    *width = viewport[2];
+    *height = viewport[3];
 }
 
 float
 sc_engine_get_aspect(void)
 {
-    return (float)WIDTH / HEIGHT;
+    float width, height;
+    sc_engine_get_dimensions(&width, &height);
+    return width / height;
 }
 
 void
@@ -174,6 +180,46 @@ sc_engine_get_mvp_matrix(sc_mat4_t *mat_out)
     glGetFloatv(GL_MODELVIEW_MATRIX, m.elms);
     glGetFloatv(GL_PROJECTION_MATRIX, p.elms);
     return sc_mat4_mul(mat_out, &p, &m);
+}
+
+/* TODO: this is currently broken, does nothing! */
+int
+sc_engine_raycast(int x, int y, sc_vec3_t *pos_out, sc_vec3_t *dir_out)
+{
+    sc_mat4_t mmi, pmi;
+    sc_vec4_t v1, v2;
+    float near, far, width, height;
+
+    glGetFloatv(GL_MODELVIEW_MATRIX, mmi.elms);
+    if (!sc_mat4_inverse(&mmi, &mmi))
+        return 0;
+    glGetFloatv(GL_PROJECTION_MATRIX, pmi.elms);
+    if (!sc_mat4_inverse(&pmi, &pmi))
+        return 0;
+
+    sc_engine_get_dimensions(&width, &height);
+    near = pmi.elms[14] / (pmi.elms[10] - 1.0f);
+    far = pmi.elms[14] / (pmi.elms[10] + 1.0f);
+
+    v1.x = 2.0f * x / width - 1.0f;
+    v1.y = 2.0f * (height - y) / height - 1.0f;
+    v1.z = -1.0f;
+    v1.w = 1.0f;
+
+    v2 = v1;
+    v2.z = 1.0f;
+
+    sc_vec4_mul(&v1, &v1, near);
+    sc_vec4_transform(&v1, &v1, &pmi);
+    sc_vec4_transform(&v1, &v1, &mmi);
+
+    sc_vec4_mul(&v2, &v2, far);
+    sc_vec4_transform(&v2, &v2, &pmi);
+    sc_vec4_transform(&v2, &v2, &mmi);
+
+    sc_vec3_set(pos_out, v1.x, v1.y, v1.z);
+    sc_vec3_set(dir_out, v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+    return 1;
 }
 
 void

@@ -68,4 +68,8 @@ int sc_vec3_equal(const sc_vec3_t *v1, const sc_vec3_t *v2);
 /* checks if a vector is not zero in length or close to it */
 int sc_vec3_nonzero(const sc_vec3_t *vec);
 
+/* prints the given vector to stderr plus a newline */
+#define sc_vec3_debug(vec) \
+    fprintf(stderr, "vec3(%f, %f, %f)\n", (vec)->x, (vec)->y, (vec)->z)
+
 #endif

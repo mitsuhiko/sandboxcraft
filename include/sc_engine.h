@@ -54,6 +54,11 @@ void sc_engine_clear(sc_color_t color);
 /* returns the current model-view-projection matrix */
 sc_mat4_t *sc_engine_get_mvp_matrix(sc_mat4_t *mat_out);
 
+/* shoot a ray and return the point where it hit and a vector for the ray
+   direction.  Returns 1 on success or 0 if the MVP matrix was not
+   inversable which should be very unlikely. */
+int sc_engine_raycast(int x, int y, sc_vec3_t *pos_out, sc_vec3_t *dir_out);
+
 /* callback for begin/end of frame handling */
 void sc_engine_begin_frame(void);
 void sc_engine_end_frame(void);

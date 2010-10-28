@@ -66,4 +66,8 @@ int sc_vec4_equal(const sc_vec4_t *v1, const sc_vec4_t *v2);
 /* checks if a vector is not zero in length or close to it */
 int sc_vec4_nonzero(const sc_vec4_t *vec);
 
+/* prints the given vector to stderr plus a newline */
+#define sc_vec4_debug(vec) \
+    fprintf(stderr, "vec4(%f, %f, %f, %f)\n", (vec)->x, (vec)->y, (vec)->z, (vec)->w)
+
 #endif

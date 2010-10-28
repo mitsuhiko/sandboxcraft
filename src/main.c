@@ -38,6 +38,6 @@ client_main(int argc, char **argv)
 int
 main(int argc, char **argv)
 {
-	return run_game_controlled(argc, argv);
+    return run_game_controlled(argc, argv);
 }
 #endif
