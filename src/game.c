@@ -145,7 +145,7 @@ init_test_world(void)
     for (z = 0; z < SC_CHUNK_RESOLUTION; z++)
         for (y = 0; y < SC_CHUNK_RESOLUTION; y++)
             for (x = 0; x < SC_CHUNK_RESOLUTION; x++) {
-                const sc_block_t *block = NULL;
+                const sc_block_t *block = sc_get_block(SC_BLOCK_AIR);
                 if (z == 0)
                     block = sc_get_block(SC_BLOCK_GRASS);
                 else if (y >= z && x >= 10 && x <= 20)

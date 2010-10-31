@@ -4,14 +4,14 @@
 #include "sc_atlas.h"
 #include "sc_primitives.h"
 
-#define ADD_BLOCK(btype, filename, bfalls_down, bmovement_factor) do { \
-    sc_block_t *block = &blocks[btype]; \
-    block->texture = sc_atlas_add_from_resource(block_atlas, filename); \
+#define ADD_BLOCK(Type, Filename, FallsDown, MovementFactor) do { \
+    sc_block_t *block = &blocks[Type]; \
+    block->texture = sc_atlas_add_from_resource(block_atlas, Filename); \
     block->vbo = make_cube_vbo(block->texture); \
     if (!block->texture) sc_error_make_critical(); \
-    block->type = btype; \
-    block->falls_down = bfalls_down; \
-    block->movement_factor = bmovement_factor; \
+    block->type = Type; \
+    block->falls_down = FallsDown; \
+    block->movement_factor = MovementFactor; \
 } while (0)
 
 static sc_block_t *blocks;
@@ -37,6 +37,12 @@ sc_init_blocks(void)
     blocks = sc_memassert(sc_xcalloc(SC_BLOCK_SLOTS, sizeof(sc_block_t)));
     block_atlas = sc_new_atlas(64, 64, GL_NEAREST);
 
+    /* air is special, it's not really a block.  This works because the ID
+       of the air block is zero. */
+    memset(&blocks[SC_BLOCK_AIR], 0, sizeof(sc_block_t));
+    assert(SC_BLOCK_AIR == 0);
+
+    /* regular blocks */
     ADD_BLOCK(SC_BLOCK_GRASS, "grass.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_STONE, "stone.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_PLANKS, "planks.png", 0, 0.0f);
@@ -53,6 +59,7 @@ const char *
 sc_get_block_name(sc_blocktype_t type)
 {
     switch (type) {
+    case SC_BLOCK_AIR:          return "Air";
     case SC_BLOCK_GRASS:        return "Grass";
     case SC_BLOCK_STONE:        return "Stone";
     case SC_BLOCK_PLANKS:       return "Planks";

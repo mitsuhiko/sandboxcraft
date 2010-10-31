@@ -1,19 +1,6 @@
 /* the storage type for the world.
 
-   The idea is that the world has a maximum height (128) and is based on
-   chunks of a given size (128x128).  When you run out of space in a
-   horizontal direction a new chunk is added.  The chunks themselves are
-   addressed by positive and negative numbers where 0, 0 is the center
-   of the world.
-
-   Each chunk is an octree by itself.
-
-   This means that upon exploration of the world, the map moves the
-   pointers to the octree roots around in the world->known array so
-   that the center of the new world is again the original root chunk.
-   As a second effect the world always grows symmetrically.
-   
-   */
+   The world itself is an octree with a resolution of 128x128x128. */
 #ifndef _INC_SC_WORLD_H_
 #define _INC_SC_WORLD_H_
 
@@ -31,24 +18,13 @@ typedef struct _sc_chunk_node {
 } sc_chunk_node_t;
 
 typedef struct {
-    sc_chunk_node_t *root;
-    int x;
-    int y;
-    int version;                        /* incremented whenever a block in
-                                           the chunk is modified.  Overflows
-                                           are fine */
-} sc_chunk_t;
-
-typedef struct {
-    sc_chunk_t **known;                 /* the known world :) */
+    sc_chunk_node_t *root;              /* the root node of the octree */
     uint32_t seed;                      /* the seed for the world */
-    size_t width;
-    size_t height;
 } sc_world_t;
 
 /* callbacks for chunk traversing.  For more information have a look
    at the sc_walk_chunk function. */
-typedef int (*sc_chunk_walk_cb)(const sc_block_t *block,
+typedef int (*sc_chunk_walk_cb)(sc_world_t *world, const sc_block_t *block,
                                 int x, int y, int z, size_t size,
                                 void *closure);
 
@@ -59,12 +35,6 @@ sc_world_t *sc_new_world(void);
 /* frees the world from memory again.  At that point care must be taken
    that nothing references it any more. */
 void sc_free_world(sc_world_t *world);
-
-/* can be used to automatically discover new parts of the world.  This
-   can be called when the view is expanded beyond SC_CHUNK_RESOLUTION.
-   The z value is currently ignored, 0 can be assumed to probe into
-   the wild. */
-void sc_probe_world(sc_world_t *world, int x, int y, int z);
 
 /* returns a block for a given tripple of world coodinates. */
 const sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
@@ -90,7 +60,7 @@ sc_chunk_node_t *sc_new_chunk_node(void);
 /* semi-internal function to free a chunk. */
 void sc_free_chunk_node(sc_chunk_node_t *node);
 
-/* traverses a given chunk.  This will execute the given callback with
+/* traverses the world.  This will execute the given callback with
    the following information:
     - the block that for a specific node if the size is 1, otherwise NULL.
     - the x coordinate
@@ -100,7 +70,7 @@ void sc_free_chunk_node(sc_chunk_node_t *node);
 
    If the callback returns 1 it will continue to traverse to all 8 children,
    otherwise it will stop at that point. */
-void sc_walk_chunk(sc_chunk_t *chunk, sc_chunk_walk_cb cb, void *closure);
+void sc_walk_world(sc_world_t *world, sc_chunk_walk_cb cb, void *closure);
 
 
 #endif

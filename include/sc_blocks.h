@@ -7,13 +7,14 @@
 #include "sc_texture.h"
 
 typedef enum {
-    SC_BLOCK_GRASS = 0,
-    SC_BLOCK_STONE = 1,
-    SC_BLOCK_PLANKS = 2,
-    SC_BLOCK_SAND = 3,
-    SC_BLOCK_GRAVEL = 4,
-    SC_BLOCK_COBBLESTONE = 5,
-    SC_BLOCK_WATER = 6
+    SC_BLOCK_AIR = 0,
+    SC_BLOCK_GRASS = 1,
+    SC_BLOCK_STONE = 2,
+    SC_BLOCK_PLANKS = 3,
+    SC_BLOCK_SAND = 4,
+    SC_BLOCK_GRAVEL = 5,
+    SC_BLOCK_COBBLESTONE = 6,
+    SC_BLOCK_WATER = 7
 } sc_blocktype_t;
 
 typedef struct {
@@ -24,7 +25,7 @@ typedef struct {
     float movement_factor;
 } sc_block_t;
 
-#define SC_BLOCK_SLOTS 7
+#define SC_BLOCK_SLOTS 8
 
 /* initializes the blocks.  If that does not work, a critical error is
    set and the application aborts. */
