@@ -89,8 +89,7 @@ walk_chunk(sc_world_t *world, const sc_chunk_node_t **children,
 {
     int i;
 
-    if (!cb(world, size == 1 ? block : NULL, x, y, z, size,
-            closure) && (size /= 2) < 1)
+    if (!cb(world, block, x, y, z, size, closure) && (size /= 2) < 1)
         return;
 
     if ((size /= 2) < 1)

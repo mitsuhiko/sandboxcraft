@@ -62,7 +62,9 @@ void sc_free_chunk_node(sc_chunk_node_t *node);
 
 /* traverses the world.  This will execute the given callback with
    the following information:
-    - the block that for a specific node if the size is 1, otherwise NULL.
+    - the block that for a specific node if the size is 1, otherwise the
+      value for a block of that octree.  This value is totally unreliable
+      unless the size is 1, so don't be too clever.
     - the x coordinate
     - the y coordinate
     - the z coordinate
