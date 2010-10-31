@@ -12,7 +12,6 @@ sc_new_world(void)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
     world->root = sc_new_chunk_node();
-    world->root->block = sc_get_block(SC_BLOCK_STONE);
     return world;
 }
 
@@ -29,6 +28,12 @@ sc_world_get_block(sc_world_t *world, int x, int y, int z)
 {
     int size;
     sc_chunk_node_t *node, *child;
+
+    /* stuff outside of the cube is air */
+    if (x > SC_CHUNK_RESOLUTION || x < 0 ||
+        y > SC_CHUNK_RESOLUTION || y < 0 ||
+        z > SC_CHUNK_RESOLUTION || z < 0)
+        return sc_get_block(SC_BLOCK_AIR);
 
     /* locate the block in the octree */
     node = world->root;
@@ -125,7 +130,14 @@ contents_visible(const sc_frustum_t *frustum, int x, int y, int z, size_t size)
 static int
 touches_air(sc_world_t *world, int x, int y, int z)
 {
-    return 1;
+    return (
+        sc_world_get_block(world, x - 1, y, z)->type == SC_BLOCK_AIR ||
+        sc_world_get_block(world, x, y - 1, z)->type == SC_BLOCK_AIR ||
+        sc_world_get_block(world, x, y, z - 1)->type == SC_BLOCK_AIR ||
+        sc_world_get_block(world, x + 1, y, z)->type == SC_BLOCK_AIR ||
+        sc_world_get_block(world, x, y + 1, z)->type == SC_BLOCK_AIR ||
+        sc_world_get_block(world, x, y, z + 1)->type == SC_BLOCK_AIR
+    ); 
 }
 
 static int
@@ -135,7 +147,7 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
     const sc_frustum_t *frustum = closure;
     if (!contents_visible(frustum, x, y, z, size))
         return 0;
-    if (size == 1 && block->type != SC_BLOCK_AIR && touches_air(world, x, y, z)) {
+    if (size == 1 && block->texture && touches_air(world, x, y, z)) {
         glPushMatrix();
             sc_bind_texture(block->texture);
             glTranslatef(BLOCK_SIZE * x, BLOCK_SIZE * z, BLOCK_SIZE * y);
@@ -158,7 +170,7 @@ sc_new_chunk_node(void)
 {
     sc_chunk_node_t *node = sc_xalloc(sc_chunk_node_t);
     memset(node->children, 0, sizeof(node->children));
-    node->block = NULL;
+    node->block = sc_get_block(SC_BLOCK_AIR);
     return node;
 }
 
