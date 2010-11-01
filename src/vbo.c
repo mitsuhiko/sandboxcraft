@@ -126,7 +126,7 @@ sc_vbo_update_texcoords_range(sc_vbo_t *vbo, int start, int end,
     int i;
     ASSERT_NOT_FINALIZED();
 
-    for (i = start; i < end * 3; i++) {
+    for (i = start * 3; i < end * 3; i++) {
         vbo->_tex_coords[i].x = vbo->_tex_coords[i].x * factor_x + offset_x;
         vbo->_tex_coords[i].y = vbo->_tex_coords[i].y * factor_y + offset_y;
     }
