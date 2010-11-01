@@ -128,8 +128,8 @@ contents_visible(const sc_frustum_t *frustum, int x, int y, int z, size_t size)
 {
     sc_vec3_t vec1, vec2;
     sc_vec3_set(&vec1, BLOCK_SIZE * x - BLOCK_SIZE / 2,
-                       BLOCK_SIZE * z - BLOCK_SIZE / 2,
-                       BLOCK_SIZE * y - BLOCK_SIZE / 2);
+                       BLOCK_SIZE * y - BLOCK_SIZE / 2,
+                       BLOCK_SIZE * z - BLOCK_SIZE / 2);
     sc_vec3_set(&vec2, BLOCK_SIZE * size, BLOCK_SIZE * size, BLOCK_SIZE * size);
     sc_vec3_add(&vec2, &vec2, &vec1);
     return sc_frustum_test_aabb(frustum, &vec1, &vec2) >= 0;
@@ -178,7 +178,7 @@ update_vbo(sc_world_t *world, sc_chunk_node_t *node, int min_x, int min_y,
     sc_cube_add_ ##Side## _plane(node->vbo, BLOCK_SIZE, x * BLOCK_SIZE, \
                                  y * BLOCK_SIZE, z * BLOCK_SIZE); \
     sc_vbo_update_texcoords_from_texture_range( \
-        node->vbo, node->vbo->vertices - 2, node->vbo->vertices, \
+        node->vbo, node->vbo->vertices - 6, node->vbo->vertices, \
         block->texture); \
 } while (0)
 #define IS_AIR(X, Y, Z) \
