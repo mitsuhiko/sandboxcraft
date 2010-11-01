@@ -165,7 +165,7 @@ update_vbo(sc_world_t *world, sc_chunk_node_t *node, int x, int y, int z,
     int max_y = y + size;
     int max_z = z + size;
 
-    /* we currently do not support updating vbos in place */
+    /* vbos currently cannot be updated in place, so free the old */
     if (node->vbo)
         sc_free_vbo(node->vbo);
 

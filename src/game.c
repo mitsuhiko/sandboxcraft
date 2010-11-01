@@ -4,6 +4,7 @@
 #include "sc_world.h"
 #include "sc_camera.h"
 #include "sc_primitives.h"
+#include "sc_vbo.h"
 
 static int running;
 static int late_initialized;

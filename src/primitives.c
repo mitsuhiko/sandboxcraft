@@ -121,9 +121,9 @@ sc_cube_add_bottom_plane(sc_vbo_t *vbo, float size, float off_x,
     sc_vec2_t tex_coords[3];
     float x = size / 2;
 
-    sc_vec3_set(&vertices[0], off_x + x, off_y - x, off_y + x);
-    sc_vec3_set(&vertices[1], off_x - x, off_y - x, off_y + x);
-    sc_vec3_set(&vertices[2], off_x - x, off_y - x, off_y - x);
+    sc_vec3_set(&vertices[0], off_x + x, off_y - x, off_z + x);
+    sc_vec3_set(&vertices[1], off_x - x, off_y - x, off_z + x);
+    sc_vec3_set(&vertices[2], off_x - x, off_y - x, off_z - x);
     sc_vec3_set(&normals[0], -1.0f, 0.0f, 0.0f);
     sc_vec3_set(&normals[1], -1.0f, 0.0f, 0.0f);
     sc_vec3_set(&normals[2], -1.0f, 0.0f, 0.0f);
@@ -132,9 +132,9 @@ sc_cube_add_bottom_plane(sc_vbo_t *vbo, float size, float off_x,
     sc_vec2_set(&tex_coords[2], 0.0f, 0.0f);
     sc_vbo_add_triangle(vbo, vertices, normals, tex_coords);
 
-    sc_vec3_set(&vertices[0], off_x + x, off_y - x, off_y - x);
-    sc_vec3_set(&vertices[1], off_x + x, off_y - x, off_y + x);
-    sc_vec3_set(&vertices[2], off_x - x, off_y - x, off_y - x);
+    sc_vec3_set(&vertices[0], off_x + x, off_y - x, off_z - x);
+    sc_vec3_set(&vertices[1], off_x + x, off_y - x, off_z + x);
+    sc_vec3_set(&vertices[2], off_x - x, off_y - x, off_z - x);
     sc_vec3_set(&normals[0], -1.0f, 0.0f, 0.0f);
     sc_vec3_set(&normals[1], -1.0f, 0.0f, 0.0f);
     sc_vec3_set(&normals[2], -1.0f, 0.0f, 0.0f);
