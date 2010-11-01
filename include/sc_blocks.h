@@ -33,6 +33,10 @@ void sc_init_blocks(void);
 void sc_free_blocks(void);
 const char *sc_get_block_name(sc_blocktype_t type);
 
+/* returns the atlas texture for the blocks which contains all the other
+   textures. */
+const sc_texture_t *sc_blocks_get_atlas_texture(void);
+
 const sc_block_t *sc_get_block(sc_blocktype_t type);
 #define sc_block_falls_down(type) (sc_get_block(type)->falls_down)
 #define sc_block_is_passable(type) (sc_get_block(type)->movement_factor > 0.0f)

@@ -92,3 +92,9 @@ sc_get_block(sc_blocktype_t type)
     assert(blocks);
     return &blocks[type];
 }
+
+const sc_texture_t *
+sc_blocks_get_atlas_texture(void)
+{
+    return sc_atlas_get_texture(block_atlas);
+}

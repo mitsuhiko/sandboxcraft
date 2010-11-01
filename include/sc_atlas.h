@@ -65,4 +65,7 @@ sc_texture_t *sc_atlas_add_from_resource(sc_atlas_t *atlas,
 sc_texture_t *sc_atlas_add_from_surface(sc_atlas_t *atlas,
                                         SDL_Surface *img);
 
+/* returns the combined texture.  Requires that the atlas was finalized */
+const sc_texture_t *sc_atlas_get_texture(const sc_atlas_t *atlas);
+
 #endif

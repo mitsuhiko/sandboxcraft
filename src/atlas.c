@@ -249,3 +249,9 @@ sc_free_atlas(sc_atlas_t *atlas)
     free_nodes_recursive(atlas->root);
     sc_free(atlas);
 }
+
+const sc_texture_t *
+sc_atlas_get_texture(const sc_atlas_t *atlas)
+{
+    return atlas->texture;
+}
