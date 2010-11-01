@@ -8,7 +8,23 @@
    coordinates where the ring around the cube has standing texture
    coordiantes, the top is flipped and the bottom as well.
 
+   This is mostly a shortcut for the following six functions.
+
    The vbo is not yet finalized. */
 sc_vbo_t *sc_new_cube(float size);
+
+/* individual cube creation */
+void sc_cube_add_front_plane(sc_vbo_t *vbo, float size, float off_x,
+                             float off_y, float off_z);
+void sc_cube_add_back_plane(sc_vbo_t *vbo, float size, float off_x,
+                            float off_y, float off_z);
+void sc_cube_add_top_plane(sc_vbo_t *vbo, float size, float off_x,
+                           float off_y, float off_z);
+void sc_cube_add_bottom_plane(sc_vbo_t *vbo, float size, float off_x,
+                              float off_y, float off_z);
+void sc_cube_add_left_plane(sc_vbo_t *vbo, float size, float off_x,
+                            float off_y, float off_z);
+void sc_cube_add_right_plane(sc_vbo_t *vbo, float size, float off_x,
+                             float off_y, float off_z);
 
 #endif

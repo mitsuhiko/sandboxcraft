@@ -14,6 +14,7 @@
 #include "sc_boot.h"
 #include "sc_vec2.h"
 #include "sc_vec3.h"
+#include "sc_texture.h"
 
 /* refers to a specific buffer in the buffers array */
 #define SC_VERTEX_BUFFER_ID         0
@@ -48,8 +49,21 @@ void sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
 
 /* updates the texture coordiates.  This is intended for use with texture
    atlasses and probably only useful for quad-ish textures. */
-void sc_vbo_update_texcoords(const sc_vbo_t *vbo, float offset_x,
+void sc_vbo_update_texcoords(sc_vbo_t *vbo, float offset_x,
                              float offset_y, float factor_x, float factor_y);
+
+/* like sc_vbo_update_texcoords but with additional range */
+void sc_vbo_update_texcoords_range(sc_vbo_t *vbo, int start, int end,
+                                   float offset_x, float offset_y,
+                                   float factor_x, float factor_y);
+
+/* shortcut for sc_vbo_update_texcoords when texture coordinates should be
+   updated from the texture coordinates of a texture (for use with atlasses) */
+void sc_vbo_update_texcoords_from_texture(sc_vbo_t *vbo, const sc_texture_t *texture);
+
+/* like sc_vbo_update_texcoords_from_texture but with a range */
+void sc_vbo_update_texcoords_from_texture_range(sc_vbo_t *vbo, int start, int end,
+                                                const sc_texture_t *texture);
 
 /* draws the complete vbo */
 void sc_vbo_draw(const sc_vbo_t *vbo);

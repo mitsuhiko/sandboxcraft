@@ -3,13 +3,14 @@
 #include "sc_vec3.h"
 
 #define INITIAL_SIZE 255
-#define ASSERT_FINALIZED() assert(vbo->_vertices == NULL)
-#define ASSERT_NOT_FINALIZED() assert(vbo->_vertices != NULL)
+#define ASSERT_FINALIZED() assert(vbo->_finalized)
+#define ASSERT_NOT_FINALIZED() assert(!vbo->_finalized)
 
 typedef struct {
     GLuint buffers[4];
     size_t vertices;
     size_t _buffer_size;
+    int _finalized;
     /* this is where the vertices are stored in main memory until they
        are uploaded to the graphics device.  The first three items above
        are the only ones exposed in the header, everything down here is
@@ -28,6 +29,7 @@ sc_new_vbo(void)
 {
     sc_vbo_t *rv = sc_xalloc(sc_vbo_t);
     rv->vertices = 0;
+    rv->_finalized = 0;
     rv->_buffer_size = 0;
     rv->_vertices = NULL;
     rv->_normals = NULL;
@@ -71,6 +73,7 @@ sc_finalize_vbo(sc_vbo_t *vbo)
     sc_free(vbo->_normals);
     sc_free(vbo->_tex_coords);
 
+    vbo->_finalized = 1;
     vbo->_vertices = NULL;
     vbo->_normals = NULL;
     vbo->_tex_coords = NULL;
@@ -112,16 +115,42 @@ sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
 }
 
 void
-sc_vbo_update_texcoords(const sc_vbo_t *vbo, float offset_x, float offset_y,
-                        float factor_x, float factor_y)
+sc_vbo_update_texcoords_range(sc_vbo_t *vbo, int start, int end,
+                              float offset_x, float offset_y,
+                              float factor_x, float factor_y)
 {
     int i;
     ASSERT_NOT_FINALIZED();
 
-    for (i = 0; i < vbo->vertices * 3; i++) {
+    for (i = start; i < end * 3; i++) {
         vbo->_tex_coords[i].x = vbo->_tex_coords[i].x * factor_x + offset_x;
         vbo->_tex_coords[i].y = vbo->_tex_coords[i].y * factor_y + offset_y;
     }
+}
+
+void
+sc_vbo_update_texcoords(sc_vbo_t *vbo, float offset_x, float offset_y,
+                        float factor_x, float factor_y)
+{
+    return sc_vbo_update_texcoords_range(vbo, 0, vbo->vertices,
+                                         offset_x, offset_y,
+                                         factor_x, factor_y);
+}
+
+void
+sc_vbo_update_texcoords_from_texture_range(sc_vbo_t *vbo, int start, int end,
+                                           const sc_texture_t *texture)
+{
+    sc_vbo_update_texcoords_range(vbo, start, end,
+                                  texture->coords[0], texture->coords[1],
+                                  texture->coords[2] - texture->coords[0],
+                                  texture->coords[5] - texture->coords[1]);
+}
+
+void
+sc_vbo_update_texcoords_from_texture(sc_vbo_t *vbo, const sc_texture_t *texture)
+{
+    sc_vbo_update_texcoords_from_texture_range(vbo, 0, vbo->vertices, texture);
 }
 
 void
