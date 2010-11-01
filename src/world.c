@@ -32,9 +32,9 @@ sc_world_get_block(sc_world_t *world, int x, int y, int z)
     sc_chunk_node_t *node, *child;
 
     /* stuff outside of the cube is air */
-    if (x > SC_CHUNK_RESOLUTION || x < 0 ||
-        y > SC_CHUNK_RESOLUTION || y < 0 ||
-        z > SC_CHUNK_RESOLUTION || z < 0)
+    if (x >= SC_CHUNK_RESOLUTION || x < 0 ||
+        y >= SC_CHUNK_RESOLUTION || y < 0 ||
+        z >= SC_CHUNK_RESOLUTION || z < 0)
         return sc_get_block(SC_BLOCK_AIR);
 
     /* locate the block in the octree */
@@ -60,9 +60,9 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
     int size;
     sc_chunk_node_t *node, *child;
 
-    if (x > SC_CHUNK_RESOLUTION || x < 0 ||
-        y > SC_CHUNK_RESOLUTION || y < 0 ||
-        z > SC_CHUNK_RESOLUTION || z < 0)
+    if (x >= SC_CHUNK_RESOLUTION || x < 0 ||
+        y >= SC_CHUNK_RESOLUTION || y < 0 ||
+        z >= SC_CHUNK_RESOLUTION || z < 0)
         return 0;
 
     /* Find the block in the octree */
@@ -210,9 +210,9 @@ sc_world_get_vbo(sc_world_t *world, int x, int y, int z)
     int size;
     sc_chunk_node_t *node, *child;
 
-    if (x > SC_CHUNK_RESOLUTION || x < 0 ||
-        y > SC_CHUNK_RESOLUTION || y < 0 ||
-        z > SC_CHUNK_RESOLUTION || z < 0)
+    if (x >= SC_CHUNK_RESOLUTION || x < 0 ||
+        y >= SC_CHUNK_RESOLUTION || y < 0 ||
+        z >= SC_CHUNK_RESOLUTION || z < 0)
         return NULL;
 
     /* Find the block in the octree */

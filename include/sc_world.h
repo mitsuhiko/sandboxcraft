@@ -8,7 +8,7 @@
 #include "sc_blocks.h"
 #include "sc_camera.h"
 
-#define SC_CHUNK_RESOLUTION 64  /* size of the octree */
+#define SC_CHUNK_RESOLUTION 128 /* size of the octree */
 #define SC_CHUNK_VBO_SIZE   16  /* size of the node where vbos are stored */
 
 struct _sc_chunk_node;
