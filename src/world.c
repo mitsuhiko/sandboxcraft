@@ -173,7 +173,9 @@ update_vbo(sc_world_t *world, sc_chunk_node_t *node, int min_x, int min_y,
 
     node->vbo = sc_new_vbo();
 
-    /* helper macro that adds a new cube plane to the vbo */
+#define IS_AIR(X, Y, Z) \
+    (sc_world_get_block(world, X, Y, Z)->type == SC_BLOCK_AIR)
+
 #define ADD_PLANE(Side) do { \
     sc_cube_add_ ##Side## _plane(node->vbo, BLOCK_SIZE, x * BLOCK_SIZE, \
                                  y * BLOCK_SIZE, z * BLOCK_SIZE); \
@@ -181,8 +183,6 @@ update_vbo(sc_world_t *world, sc_chunk_node_t *node, int min_x, int min_y,
         node->vbo, node->vbo->vertices - 6, node->vbo->vertices, \
         block->texture); \
 } while (0)
-#define IS_AIR(X, Y, Z) \
-    (sc_world_get_block(world, X, Y, Z)->type == SC_BLOCK_AIR)
 
     /* we add all sides of each cube to the vbo that touch air */
     for (z = min_z; z < max_z; z++)
