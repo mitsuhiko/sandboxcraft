@@ -148,6 +148,7 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
        update the vbo if necessary. */
     if (size == SC_CHUNK_VBO_SIZE) {
         const sc_vbo_t *vbo = sc_world_get_vbo(world, x, y, z);
+        assert(vbo);
         sc_bind_texture(sc_blocks_get_atlas_texture());
         sc_vbo_draw(vbo);
         return 0;
@@ -220,8 +221,9 @@ sc_world_get_vbo(sc_world_t *world, int x, int y, int z)
     /* Find the block in the octree */
     node = world->root;
     size = SC_CHUNK_RESOLUTION;
-    while (size != SC_CHUNK_VBO_SIZE) {
+    while (1) {
         size_t idx;
+        size /= 2;
         idx = !!(x & size) << 2 | !!(y & size) << 1 | !!(z & size);
         child = node->children[idx];
         if (!child) {
@@ -231,7 +233,8 @@ sc_world_get_vbo(sc_world_t *world, int x, int y, int z)
             child->block = node->block;
         }
         node = child;
-        size /= 2;
+        if (size == SC_CHUNK_VBO_SIZE)
+            break;
     }
 
     if (!node->vbo || node->version != world->version)
