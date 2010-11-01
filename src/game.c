@@ -41,6 +41,7 @@ perform_late_init(void)
         glRotatef(35.0f, 1.0f, 0.0f, 0.0f);
         glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
         sc_bind_texture(loading);
+        sc_send_texture_coordinates(loading);
         glVertexPointer(3, GL_FLOAT, 0, vertices);
         glDrawArrays(GL_QUADS, 0, 4);
     glPopMatrix();
