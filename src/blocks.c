@@ -7,7 +7,6 @@
 #define ADD_BLOCK(Type, Filename, FallsDown, MovementFactor) do { \
     sc_block_t *block = &blocks[Type]; \
     block->texture = sc_atlas_add_from_resource(block_atlas, Filename); \
-    block->vbo = make_cube_vbo(block->texture); \
     if (!block->texture) sc_error_make_critical(); \
     block->type = Type; \
     block->falls_down = FallsDown; \
@@ -16,18 +15,6 @@
 
 static sc_block_t *blocks;
 static sc_atlas_t *block_atlas;
-
-static sc_vbo_t *
-make_cube_vbo(const sc_texture_t *texture)
-{
-    sc_vbo_t *vbo = sc_new_cube(20.0f);
-    sc_vbo_update_texcoords(vbo, texture->coords[0],
-                            texture->coords[1],
-                            texture->coords[2] - texture->coords[0],
-                            texture->coords[5] - texture->coords[1]);
-    sc_finalize_vbo(vbo);
-    return vbo;
-}
 
 void
 sc_init_blocks(void)
@@ -74,14 +61,9 @@ sc_get_block_name(sc_blocktype_t type)
 void
 sc_free_blocks(void)
 {
-    int i;
     if (!blocks)
         return;
     sc_free(block_atlas);
-
-    for (i = 0; i < SC_BLOCK_SLOTS; i++)
-        sc_free_vbo(blocks[i].vbo);
-
     sc_free(blocks);
     blocks = 0;
 }

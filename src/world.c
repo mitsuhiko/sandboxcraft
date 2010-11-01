@@ -4,6 +4,7 @@
 #include "sc_engine.h"
 #include "sc_world.h"
 #include "sc_frustum.h"
+#include "sc_primitives.h"
 
 #define BLOCK_SIZE 20.0f
 
@@ -12,6 +13,7 @@ sc_new_world(void)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
     world->root = sc_new_chunk_node();
+    world->version = 1;
     return world;
 }
 
@@ -74,11 +76,18 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
         if (!child) {
             child = sc_new_chunk_node();
             node->children[idx] = child;
+            /* remember the block when we create a new child */
+            child->block = node->block;
         }
         node = child;
     }
 
     node->block = block;
+
+    /* 0 is a reserved indicator we must never expose */
+    if (++world->version == 0)
+        world->version++;
+
     return 1;
 }
 
@@ -127,33 +136,109 @@ contents_visible(const sc_frustum_t *frustum, int x, int y, int z, size_t size)
 }
 
 static int
-touches_air(sc_world_t *world, int x, int y, int z)
-{
-    return (
-        sc_world_get_block(world, x - 1, y, z)->type == SC_BLOCK_AIR ||
-        sc_world_get_block(world, x, y - 1, z)->type == SC_BLOCK_AIR ||
-        sc_world_get_block(world, x, y, z - 1)->type == SC_BLOCK_AIR ||
-        sc_world_get_block(world, x + 1, y, z)->type == SC_BLOCK_AIR ||
-        sc_world_get_block(world, x, y + 1, z)->type == SC_BLOCK_AIR ||
-        sc_world_get_block(world, x, y, z + 1)->type == SC_BLOCK_AIR
-    ); 
-}
-
-static int
 draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
                 int z, size_t size, void *closure)
 {
     const sc_frustum_t *frustum = closure;
     if (!contents_visible(frustum, x, y, z, size))
         return 0;
-    if (size == 1 && block->texture && touches_air(world, x, y, z)) {
-        glPushMatrix();
-            sc_bind_texture(block->texture);
-            glTranslatef(BLOCK_SIZE * x, BLOCK_SIZE * z, BLOCK_SIZE * y);
-            sc_vbo_draw(block->vbo);
-        glPopMatrix();
+
+    /* we reached the level of the octree where vbos are stored.  Draw
+       that and stop recursing.  sc_world_get_vbo will automatically
+       update the vbo if necessary. */
+    if (size == SC_CHUNK_VBO_SIZE) {
+        sc_bind_texture(sc_blocks_get_atlas_texture());
+        const sc_vbo_t *vbo = sc_world_get_vbo(world, x, y, z);
+        sc_vbo_draw(vbo);
+        return 0;
     }
+
     return 1;
+}
+
+static void
+update_vbo(sc_world_t *world, sc_chunk_node_t *node, int x, int y, int z,
+           size_t size)
+{
+    const sc_block_t *block;
+    int max_x = x + size;
+    int max_y = y + size;
+    int max_z = z + size;
+
+    /* we currently do not support updating vbos in place */
+    if (node->vbo)
+        sc_free_vbo(node->vbo);
+
+    node->vbo = sc_new_vbo();
+
+    /* helper macro that adds a new cube plane to the vbo */
+#define ADD_PLANE(side) do { \
+    sc_cube_add_ ##side## _plane(node->vbo, BLOCK_SIZE, x * BLOCK_SIZE, \
+                                 y * BLOCK_SIZE, z * BLOCK_SIZE); \
+    sc_vbo_update_texcoords_from_texture_range( \
+        node->vbo, node->vbo->vertices - 2, node->vbo->vertices, \
+        block->texture); \
+} while (0)
+
+    /* we add all sides of each cube to the vbo that touch air */
+    for (; z < max_z; z++) for (; y < max_y; y++) for (; x < max_x; x++) {
+        block = sc_world_get_block(world, x, y, z);
+        if (block->type == SC_BLOCK_AIR)
+            continue;
+
+        if (sc_world_get_block(world, x - 1, y, z)->type == SC_BLOCK_AIR)
+            ADD_PLANE(left);
+        if (sc_world_get_block(world, x + 1, y, z)->type == SC_BLOCK_AIR)
+            ADD_PLANE(right);
+        if (sc_world_get_block(world, x, y - 1, z)->type == SC_BLOCK_AIR)
+            ADD_PLANE(bottom);
+        if (sc_world_get_block(world, x, y + 1, z)->type == SC_BLOCK_AIR)
+            ADD_PLANE(top);
+        if (sc_world_get_block(world, x, y, z - 1)->type == SC_BLOCK_AIR)
+            ADD_PLANE(back);
+        if (sc_world_get_block(world, x, y, z + 1)->type == SC_BLOCK_AIR)
+            ADD_PLANE(front);
+    }
+
+#undef ADD_PLANE
+
+    sc_finalize_vbo(node->vbo);
+    node->version = world->version;
+}
+
+const sc_vbo_t *
+sc_world_get_vbo(sc_world_t *world, int x, int y, int z)
+{
+    int size;
+    sc_chunk_node_t *node, *child;
+
+    if (x > SC_CHUNK_RESOLUTION || x < 0 ||
+        y > SC_CHUNK_RESOLUTION || y < 0 ||
+        z > SC_CHUNK_RESOLUTION || z < 0)
+        return NULL;
+
+    /* Find the block in the octree */
+    node = world->root;
+    size = SC_CHUNK_RESOLUTION;
+    while (size != SC_CHUNK_VBO_SIZE) {
+        size_t idx;
+        idx = !!(x & size) << 2 | !!(y & size) << 1 | !!(z & size);
+        child = node->children[idx];
+        if (!child) {
+            child = sc_new_chunk_node();
+            node->children[idx] = child;
+            /* remember the block when we create a new child */
+            child->block = node->block;
+        }
+        node = child;
+        size /= 2;
+    }
+
+    if (!node->vbo || node->version != world->version)
+        update_vbo(world, node, x - x % SC_CHUNK_VBO_SIZE,
+                   y - y % SC_CHUNK_VBO_SIZE, z - z % SC_CHUNK_VBO_SIZE,
+                   SC_CHUNK_VBO_SIZE);
+    return node->vbo;
 }
 
 void
@@ -170,6 +255,8 @@ sc_new_chunk_node(void)
     sc_chunk_node_t *node = sc_xalloc(sc_chunk_node_t);
     memset(node->children, 0, sizeof(node->children));
     node->block = sc_get_block(SC_BLOCK_AIR);
+    node->vbo = NULL;
+    node->version = 0;
     return node;
 }
 
@@ -181,5 +268,7 @@ sc_free_chunk_node(sc_chunk_node_t *node)
         return;
     for (i = 0; i < 8; i++)
         sc_free_chunk_node(node->children[i]);
+    if (node->vbo)
+        sc_free_vbo(node->vbo);
     sc_free(node);
 }

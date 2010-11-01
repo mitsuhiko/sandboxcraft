@@ -19,7 +19,6 @@ typedef enum {
 
 typedef struct {
     sc_texture_t *texture;
-    sc_vbo_t *vbo;
     sc_blocktype_t type;
     int falls_down;
     float movement_factor;

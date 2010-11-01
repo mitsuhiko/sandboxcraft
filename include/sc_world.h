@@ -8,18 +8,21 @@
 #include "sc_blocks.h"
 #include "sc_camera.h"
 
-#define SC_CHUNK_RESOLUTION     64
-#define SC_CHUNK_LIMIT          1024
+#define SC_CHUNK_RESOLUTION 64  /* size of the octree */
+#define SC_CHUNK_VBO_SIZE   16  /* size of the node where vbos are stored */
 
 struct _sc_chunk_node;
 typedef struct _sc_chunk_node {
     const sc_block_t *block;
+    sc_vbo_t *vbo;                      /* if there is a vbo for that node */
+    unsigned int version;               /* the version of the vbo */
     struct _sc_chunk_node *children[8];
 } sc_chunk_node_t;
 
 typedef struct {
     sc_chunk_node_t *root;              /* the root node of the octree */
     uint32_t seed;                      /* the seed for the world */
+    unsigned int version;
 } sc_world_t;
 
 /* callbacks for chunk traversing.  For more information have a look
@@ -53,6 +56,10 @@ int sc_world_set_block(sc_world_t *world, int x, int y, int z,
        sc_world_draw(world);
    */
 void sc_world_draw(sc_world_t *world);
+
+/* returns a vbo.  If the vbo does not exist so far or is outdated, a new
+   one is created. */
+const sc_vbo_t *sc_world_get_vbo(sc_world_t *world, int x, int y, int z);
 
 /* semi-internal function to create a new chunk. */
 sc_chunk_node_t *sc_new_chunk_node(void);
