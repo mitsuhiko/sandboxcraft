@@ -43,9 +43,9 @@ sc_init_blocks(void)
 }
 
 const char *
-sc_get_block_name(sc_blocktype_t type)
+sc_get_block_name(const sc_block_t *block)
 {
-    switch (type) {
+    switch (block->type) {
     case SC_BLOCK_AIR:          return "Air";
     case SC_BLOCK_GRASS:        return "Grass";
     case SC_BLOCK_STONE:        return "Stone";

@@ -158,13 +158,14 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
 }
 
 static void
-update_vbo(sc_world_t *world, sc_chunk_node_t *node, int x, int y, int z,
-           size_t size)
+update_vbo(sc_world_t *world, sc_chunk_node_t *node, int min_x, int min_y,
+           int min_z, size_t size)
 {
     const sc_block_t *block;
-    int max_x = x + size;
-    int max_y = y + size;
-    int max_z = z + size;
+    int x, y, z;
+    int max_x = min_x + size;
+    int max_y = min_y + size;
+    int max_z = min_z + size;
 
     /* vbos currently cannot be updated in place, so free the old */
     if (node->vbo)
@@ -173,35 +174,31 @@ update_vbo(sc_world_t *world, sc_chunk_node_t *node, int x, int y, int z,
     node->vbo = sc_new_vbo();
 
     /* helper macro that adds a new cube plane to the vbo */
-#define ADD_PLANE(side) do { \
-    sc_cube_add_ ##side## _plane(node->vbo, BLOCK_SIZE, x * BLOCK_SIZE, \
+#define ADD_PLANE(Side) do { \
+    sc_cube_add_ ##Side## _plane(node->vbo, BLOCK_SIZE, x * BLOCK_SIZE, \
                                  y * BLOCK_SIZE, z * BLOCK_SIZE); \
     sc_vbo_update_texcoords_from_texture_range( \
         node->vbo, node->vbo->vertices - 2, node->vbo->vertices, \
         block->texture); \
 } while (0)
+#define IS_AIR(X, Y, Z) \
+    (sc_world_get_block(world, X, Y, Z)->type == SC_BLOCK_AIR)
 
     /* we add all sides of each cube to the vbo that touch air */
-    for (; z < max_z; z++) for (; y < max_y; y++) for (; x < max_x; x++) {
-        block = sc_world_get_block(world, x, y, z);
-        if (block->type == SC_BLOCK_AIR)
-            continue;
+    for (z = min_z; z < max_z; z++)
+        for (y = min_y; y < max_y; y++)
+            for (x = min_x; x < max_x; x++) {
+                block = sc_world_get_block(world, x, y, z);
+                if (block->type == SC_BLOCK_AIR)
+                    continue;
 
-        if (sc_world_get_block(world, x - 1, y, z)->type == SC_BLOCK_AIR)
-            ADD_PLANE(left);
-        if (sc_world_get_block(world, x + 1, y, z)->type == SC_BLOCK_AIR)
-            ADD_PLANE(right);
-        if (sc_world_get_block(world, x, y - 1, z)->type == SC_BLOCK_AIR)
-            ADD_PLANE(bottom);
-        if (sc_world_get_block(world, x, y + 1, z)->type == SC_BLOCK_AIR)
-            ADD_PLANE(top);
-        if (sc_world_get_block(world, x, y, z - 1)->type == SC_BLOCK_AIR)
-            ADD_PLANE(back);
-        if (sc_world_get_block(world, x, y, z + 1)->type == SC_BLOCK_AIR)
-            ADD_PLANE(front);
-    }
-
-#undef ADD_PLANE
+                if (IS_AIR(x - 1, y, z)) ADD_PLANE(left);
+                if (IS_AIR(x + 1, y, z)) ADD_PLANE(right);
+                if (IS_AIR(x, y - 1, z)) ADD_PLANE(bottom);
+                if (IS_AIR(x, y + 1, z)) ADD_PLANE(top);
+                if (IS_AIR(x, y, z - 1)) ADD_PLANE(back);
+                if (IS_AIR(x, y, z + 1)) ADD_PLANE(front);
+            }
 
     sc_finalize_vbo(node->vbo);
     node->version = world->version;

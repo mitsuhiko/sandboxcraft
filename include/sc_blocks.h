@@ -30,7 +30,7 @@ typedef struct {
    set and the application aborts. */
 void sc_init_blocks(void);
 void sc_free_blocks(void);
-const char *sc_get_block_name(sc_blocktype_t type);
+const char *sc_get_block_name(const sc_block_t *block);
 
 /* returns the atlas texture for the blocks which contains all the other
    textures. */
