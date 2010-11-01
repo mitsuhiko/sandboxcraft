@@ -147,8 +147,8 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
        that and stop recursing.  sc_world_get_vbo will automatically
        update the vbo if necessary. */
     if (size == SC_CHUNK_VBO_SIZE) {
-        sc_bind_texture(sc_blocks_get_atlas_texture());
         const sc_vbo_t *vbo = sc_world_get_vbo(world, x, y, z);
+        sc_bind_texture(sc_blocks_get_atlas_texture());
         sc_vbo_draw(vbo);
         return 0;
     }
