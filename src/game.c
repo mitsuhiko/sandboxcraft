@@ -103,12 +103,32 @@ sc_game_update(void)
         sc_camera_strafe_right(cam, move_factor);
 }
 
+static void
+pick_test(void)
+{
+    int width, height;
+    sc_vec3_t vec;
+
+    /* now that we have that painted we can play with the z buffer */
+    sc_engine_get_dimensions(&width, &height);
+    if (sc_engine_unproject(&vec, width / 2, height / 2)) {
+        printf("Hitting: %f / %f / %f\n", vec.x, vec.y, vec.z);
+    }
+
+    glDisable(GL_DEPTH_TEST);
+        glTranslatef(vec.x, vec.y, vec.z);
+        glutSolidCube(20.0f);
+    glEnable(GL_DEPTH_TEST);
+}
+
 void
 sc_game_render(void)
 {
     sc_engine_clear(sc_color(0x24596Bff));
     sc_camera_apply(cam);
     sc_world_draw(world);
+
+    pick_test();
 }
 
 void
