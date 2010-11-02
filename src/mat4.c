@@ -70,7 +70,7 @@ sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle, const sc_vec3_t *axis)
 #define MINOR(m, r0, r1, r2, c0, c1, c2) ( \
     sc_mat4(m, r0, c0) * \
         (sc_mat4(m, r1, c1) * sc_mat4(m, r2, c2) - \
-         sc_mat4(m, r2, c1) * sc_mat4(m, r1, c2)) + \
+         sc_mat4(m, r2, c1) * sc_mat4(m, r1, c2)) - \
     sc_mat4(m, r0, c1) * \
         (sc_mat4(m, r1, c0) * sc_mat4(m, r2, c2) - \
          sc_mat4(m, r2, c0) * sc_mat4(m, r1, c2)) + \
@@ -81,25 +81,25 @@ sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle, const sc_vec3_t *axis)
 sc_mat4_t *
 sc_mat4_adjugate(sc_mat4_t *mat_out, const sc_mat4_t *mat)
 {
-    mat_out->elms[1]  =  MINOR(mat, 1, 2, 3, 1, 2, 3);
-    mat_out->elms[2]  = -MINOR(mat, 0, 2, 3, 1, 2, 3);
-    mat_out->elms[3]  =  MINOR(mat, 0, 1, 3, 1, 2, 3);
-    mat_out->elms[4]  = -MINOR(mat, 0, 1, 2, 1, 2, 3);
+    mat_out->elms[0]  =  MINOR(mat, 1, 2, 3, 1, 2, 3);
+    mat_out->elms[1]  = -MINOR(mat, 0, 2, 3, 1, 2, 3);
+    mat_out->elms[2]  =  MINOR(mat, 0, 1, 3, 1, 2, 3);
+    mat_out->elms[3]  = -MINOR(mat, 0, 1, 2, 1, 2, 3);
 
-    mat_out->elms[5]  = -MINOR(mat, 1, 2, 3, 0, 2, 3);
-    mat_out->elms[6]  =  MINOR(mat, 0, 2, 3, 0, 2, 3);
-    mat_out->elms[7]  = -MINOR(mat, 0, 1, 3, 0, 2, 3);
-    mat_out->elms[8]  =  MINOR(mat, 0, 1, 2, 0, 2, 3);
+    mat_out->elms[4]  = -MINOR(mat, 1, 2, 3, 0, 2, 3);
+    mat_out->elms[5]  =  MINOR(mat, 0, 2, 3, 0, 2, 3);
+    mat_out->elms[6]  = -MINOR(mat, 0, 1, 3, 0, 2, 3);
+    mat_out->elms[7]  =  MINOR(mat, 0, 1, 2, 0, 2, 3);
 
-    mat_out->elms[9]  =  MINOR(mat, 1, 2, 3, 0, 1, 3);
-    mat_out->elms[10] = -MINOR(mat, 0, 2, 3, 0, 1, 3);
-    mat_out->elms[11] =  MINOR(mat, 0, 1, 3, 0, 1, 3);
-    mat_out->elms[12] = -MINOR(mat, 0, 1, 2, 0, 1, 3);
+    mat_out->elms[8]  =  MINOR(mat, 1, 2, 3, 0, 1, 3);
+    mat_out->elms[9]  = -MINOR(mat, 0, 2, 3, 0, 1, 3);
+    mat_out->elms[10] =  MINOR(mat, 0, 1, 3, 0, 1, 3);
+    mat_out->elms[11] = -MINOR(mat, 0, 1, 2, 0, 1, 3);
 
-    mat_out->elms[13] = -MINOR(mat, 1, 2, 3, 0, 1, 2);
-    mat_out->elms[14] =  MINOR(mat, 0, 2, 3, 0, 1, 2);
-    mat_out->elms[15] = -MINOR(mat, 0, 1, 3, 0, 1, 2);
-    mat_out->elms[16] =  MINOR(mat, 0, 1, 2, 0, 1, 2);
+    mat_out->elms[12] = -MINOR(mat, 1, 2, 3, 0, 1, 2);
+    mat_out->elms[13] =  MINOR(mat, 0, 2, 3, 0, 1, 2);
+    mat_out->elms[14] = -MINOR(mat, 0, 1, 3, 0, 1, 2);
+    mat_out->elms[15] =  MINOR(mat, 0, 1, 2, 0, 1, 2);
 
     return mat_out;
 }
@@ -118,13 +118,56 @@ sc_mat4_determinant(const sc_mat4_t *mat)
 sc_mat4_t *
 sc_mat4_inverse(sc_mat4_t *mat_out, const sc_mat4_t *mat)
 {
-    float det = sc_mat4_determinant(mat);
-    sc_mat4_t adjugate;
-    if (det == 0.0f)
-        return NULL;
+    float t[4];
+    sc_mat4_t tmp;
+    int i, i1, j, k;
 
-    sc_mat4_adjugate(&adjugate, mat);
-    sc_mat4_scalar_mul(mat_out, &adjugate, 1.0f / det);
+    tmp = *mat;
+    sc_mat4_set_identity(mat_out);
+
+    /* find largest pivot in column i among rosws i..3 */
+    for (i = 0; i < 4; i++) {
+
+        /* row with largest pivot candiate */
+        i1 = i;
+        for (j = i + 1; j < 4; j++)
+            if (fabs(tmp.elms[j * 4 + i]) > fabs(tmp.elms[i1 * 4 + i]))
+                i1 = j;
+
+        /* swap rows i1 and i in a and b to put pivot on diagonal */
+        for (k = 0; k < 4; k++)
+            t[k] = tmp.elms[i1 * 4 + k];
+        for (k = 0; k < 4; k++) {
+            tmp.elms[i1 * 4 + k] = tmp.elms[i * 4 + k];
+            tmp.elms[i * 4 + k] = t[k];
+        }
+        for (k = 0; k < 4; k++)
+            t[k] = mat_out->elms[i1 * 4 + k];
+        for (k = 0; k < 4; k++) {
+            mat_out->elms[i1 * 4 + k] = mat_out->elms[i * 4 + k];
+            mat_out->elms[i * 4 + k] = t[k];
+        }
+
+        /* scale row j to have a unit diagonal */
+        if (!tmp.elms[i * 4 + i])
+            return NULL;
+        for (k = 0; k < 4; k++) {
+            mat_out->elms[i * 4 + k] /= tmp.elms[i * 4 + i];
+            tmp.elms[i * 4 + k] /= tmp.elms[i * 4 + i];
+        }
+
+        /* eliminate off-diagonal elements in col i of a, doing indentical
+           operations to b */
+        for (j = 0; j < 4; j++)
+            if (i != j)
+                for (k = 0; k < 4; k++) {
+                    mat_out->elms[j * 4 + k] -= tmp.elms[j * 4 + i] *
+                                                mat_out->elms[i * 4 + k];
+                    tmp.elms[j * 4 + k] -= tmp.elms[j * 4 + i] *
+                                           tmp.elms[i * 4 + k];
+                }
+    }
+
     return mat_out;
 }
 

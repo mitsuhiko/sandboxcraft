@@ -6,7 +6,10 @@
 #include "sc_vec3.h"
 
 typedef struct _sc_mat4 {
-    float elms[16];
+    union {
+        float m[4][4];      /* m[row][column] */
+        float elms[16];     /* elms[index] */
+    };
 } sc_mat4_t;
 
 /* helper macro to address a piece of the matrix */
