@@ -124,7 +124,7 @@ sc_engine_get_opengl_version(void)
 }
 
 void
-sc_engine_get_dimensions(float *width, float *height)
+sc_engine_get_dimensions(int *width, int *height)
 {
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -136,9 +136,9 @@ sc_engine_get_dimensions(float *width, float *height)
 float
 sc_engine_get_aspect(void)
 {
-    float width, height;
+    int width, height;
     sc_engine_get_dimensions(&width, &height);
-    return width / height;
+    return (float)width / height;
 }
 
 void
@@ -182,44 +182,52 @@ sc_engine_get_mvp_matrix(sc_mat4_t *mat_out)
     return sc_mat4_mul(mat_out, &p, &m);
 }
 
-/* TODO: this is currently broken, does nothing! */
-int
-sc_engine_raycast(int x, int y, sc_vec3_t *pos_out, sc_vec3_t *dir_out)
+sc_vec3_t *
+sc_engine_unproject(sc_vec3_t *vec_out, int x, int y)
 {
-    sc_mat4_t mmi, pmi;
-    sc_vec4_t v1, v2;
-    float near, far, width, height;
+#if 0
+    int width, height;
+    GLfloat winz;
+    sc_mat4_t mvp;
+    sc_vec3_t invec;
 
-    glGetFloatv(GL_MODELVIEW_MATRIX, mmi.elms);
-    if (!sc_mat4_inverse(&mmi, &mmi))
-        return 0;
-    glGetFloatv(GL_PROJECTION_MATRIX, pmi.elms);
-    if (!sc_mat4_inverse(&pmi, &pmi))
-        return 0;
+    sc_engine_get_mvp_matrix(&mvp);
+    if (!sc_mat4_inverse(&mvp, &mvp))
+        return NULL;
 
     sc_engine_get_dimensions(&width, &height);
-    near = pmi.elms[14] / (pmi.elms[10] - 1.0f);
-    far = pmi.elms[14] / (pmi.elms[10] + 1.0f);
+    glReadPixels(x, height - y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winz);
 
-    v1.x = 2.0f * x / width - 1.0f;
-    v1.y = 2.0f * (height - y) / height - 1.0f;
-    v1.z = -1.0f;
-    v1.w = 1.0f;
+    invec.x = x * 2.0f / width - 1.0f;
+    invec.y = (height - y) * 2.0f / height - 1.0f;
+    invec.z = winz * 2.0f - 1.0f;
+    sc_vec3_debug(&invec);
 
-    v2 = v1;
-    v2.z = 1.0f;
+    return sc_vec3_transform_homogenous(vec_out, &invec, &mvp);
+#endif
+#if 1
+    GLint viewport[4];
+    GLdouble modelview[16];
+    GLdouble projection[16];
+    GLfloat winX, winY, winZ;
+    GLdouble posX, posY, posZ;
 
-    sc_vec4_mul(&v1, &v1, near);
-    sc_vec4_transform(&v1, &v1, &pmi);
-    sc_vec4_transform(&v1, &v1, &mmi);
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    glGetIntegerv(GL_VIEWPORT, viewport);
 
-    sc_vec4_mul(&v2, &v2, far);
-    sc_vec4_transform(&v2, &v2, &pmi);
-    sc_vec4_transform(&v2, &v2, &mmi);
+    winX = (float)x;
+    winY = (float)viewport[3] - y;
+    glReadPixels(x, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 
-    sc_vec3_set(pos_out, v1.x, v1.y, v1.z);
-    sc_vec3_set(dir_out, v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
-    return 1;
+    gluUnProject(winX, winY, winZ, modelview, projection, viewport,
+                 &posX, &posY, &posZ);
+
+    vec_out->x = (float)posX;
+    vec_out->y = (float)posY;
+    vec_out->z = (float)posZ;
+    return vec_out;
+#endif
 }
 
 void

@@ -37,7 +37,7 @@ void sc_engine_dump_info(void);
 const char *sc_engine_get_opengl_version(void);
 
 /* returns the current dimensions of the viewport */
-void sc_engine_get_dimensions(float *width, float *height);
+void sc_engine_get_dimensions(int *width, int *height);
 
 /* returns the current view aspect */
 float sc_engine_get_aspect(void);
@@ -54,10 +54,9 @@ void sc_engine_clear(sc_color_t color);
 /* returns the current model-view-projection matrix */
 sc_mat4_t *sc_engine_get_mvp_matrix(sc_mat4_t *mat_out);
 
-/* shoot a ray and return the point where it hit and a vector for the ray
-   direction.  Returns 1 on success or 0 if the MVP matrix was not
-   inversable which should be very unlikely. */
-int sc_engine_raycast(int x, int y, sc_vec3_t *pos_out, sc_vec3_t *dir_out);
+/* unprojects screen coordinates into 3d space.  It will use the z buffer
+   information to reference the forcemost vertex. */
+sc_vec3_t *sc_engine_unproject(sc_vec3_t *vec_out, int x, int y);
 
 /* callback for begin/end of frame handling */
 void sc_engine_begin_frame(void);
