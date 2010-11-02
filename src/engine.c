@@ -185,7 +185,7 @@ sc_engine_get_mvp_matrix(sc_mat4_t *mat_out)
 sc_vec3_t *
 sc_engine_unproject(sc_vec3_t *vec_out, int x, int y)
 {
-#if 0
+#if 1
     int width, height;
     GLfloat winz;
     sc_mat4_t mvp;
@@ -201,11 +201,9 @@ sc_engine_unproject(sc_vec3_t *vec_out, int x, int y)
     invec.x = x * 2.0f / width - 1.0f;
     invec.y = (height - y) * 2.0f / height - 1.0f;
     invec.z = winz * 2.0f - 1.0f;
-    sc_vec3_debug(&invec);
 
     return sc_vec3_transform_homogenous(vec_out, &invec, &mvp);
-#endif
-#if 1
+#else
     GLint viewport[4];
     GLdouble modelview[16];
     GLdouble projection[16];
