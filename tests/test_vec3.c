@@ -1,4 +1,5 @@
 #include "sc_test.h"
+#include "sc_mat4.h"
 #include "sc_vec3.h"
 
 sc_test(basic_interface)
@@ -71,11 +72,31 @@ sc_test(comparisions)
     sc_assert(!sc_vec3_nonzero(&vec1));
 }
 
+sc_test(transform)
+{
+    sc_vec3_t vec, rv;
+    sc_mat4_t projection;
+
+    sc_mat4_set(&projection,
+        -1.049391f,  0.524844f,  0.628837f, 0.628353f,
+         0.000000f,  1.761655f, -0.399057f, -0.398750f,
+         0.987167f,  0.557926f,  0.668474f, 0.667960f,
+         35.27418f, -99.401901f, 71.160721f, 73.105240f
+    );
+    sc_vec3_set(&vec, 1.0f, 2.0f, 3.0f);
+    sc_vec3_transform_homogenous(&rv, &vec, &projection);
+
+    sc_assert_almost_equal(rv.x, 0.496214f);
+    sc_assert_almost_equal(rv.y, -1.250067f);
+    sc_assert_almost_equal(rv.z, 0.974071f);
+}
+
 sc_testsetup()
 {
     sc_testgroup(vec3) {
         sc_run_test(basic_interface);
         sc_run_test(math);
         sc_run_test(comparisions);
+        sc_run_test(transform);
     }
 }
