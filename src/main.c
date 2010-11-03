@@ -23,7 +23,7 @@ test_matrix(void)
 static int
 run_game_controlled(int argc, char **argv)
 {
-#if 1
+#if 0
     test_matrix();
     return 0;
 #endif

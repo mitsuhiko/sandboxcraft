@@ -119,7 +119,7 @@ sc_vec4_transform_homogenous(sc_vec3_t *vec_out, const sc_vec4_t *vec,
     sc_vec4_t tmp;
     float inv;
     sc_vec4_transform(&tmp, vec, mat);
-    if (tmp.w == 0)
+    if (tmp.w == 0.0f)
         return NULL;
     inv = 1.0f / tmp.w;
     vec_out->x = tmp.x * inv;

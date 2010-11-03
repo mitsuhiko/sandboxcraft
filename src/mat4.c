@@ -177,7 +177,8 @@ sc_mat4_inverse(sc_mat4_t *mat_out, const sc_mat4_t *mat)
 sc_mat4_t *
 sc_mat4_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat1, const sc_mat4_t *mat2)
 {
-    float *mo = mat_out->elms;
+    sc_mat4_t tmp;
+    float *mo = tmp.elms;
     const float *m1 = mat1->elms, *m2 = mat2->elms;
 
     mo[0] = m1[0] * m2[0] + m1[4] * m2[1] + m1[8] * m2[2] + m1[12] * m2[3];
@@ -200,6 +201,7 @@ sc_mat4_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat1, const sc_mat4_t *mat2)
     mo[14] = m1[2] * m2[12] + m1[6] * m2[13] + m1[10] * m2[14] + m1[14] * m2[15];
     mo[15] = m1[3] * m2[12] + m1[7] * m2[13] + m1[11] * m2[14] + m1[15] * m2[15];
 
+    *mat_out = tmp;
     return mat_out;
 }
 
