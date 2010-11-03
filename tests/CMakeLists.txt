@@ -16,7 +16,7 @@ foreach(TEST ${TESTS})
 endforeach()
 
 add_custom_target(test
-    ${CMAKE_CURRENT_BINARY_DIR}/runtests.sh
+    python ${CMAKE_CURRENT_BINARY_DIR}/runtests.py
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS ${TEST_EXECUTABLES}
 )

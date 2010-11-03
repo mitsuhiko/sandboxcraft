@@ -40,7 +40,7 @@ sc_test(basic_math)
 
 sc_testsetup()
 {
-    sc_testgroup(Vector3) {
+    sc_testgroup(vec3) {
         sc_run_test(basic_interface);
         sc_run_test(basic_math);
     }

@@ -79,10 +79,5 @@ main(int argc, char **argv)
 
     _sc_run_tests();
 
-    if (context.total_failed)
-        printf("FAIL(errors=%d)\n", context.total_failed);
-    else
-        printf("OK.\n");
-
     return !!context.total_failed;
 }
