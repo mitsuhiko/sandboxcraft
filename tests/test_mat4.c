@@ -122,7 +122,6 @@ sc_test(transpose)
         1.0f, 0.0f, 0.0f, 0.0f
     );
     sc_mat4_transpose(&mat, &mat);
-    sc_mat4_debug(&mat);
 }
 
 sc_testsetup()
