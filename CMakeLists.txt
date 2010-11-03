@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 2.6)
 
 project(SandboxCraft)
 
-set(SOURCES
-	src/main.c
+# do not add the test sources here.  Also not the stuff from test.c in the
+# src folder!
+
+set(LIB_SOURCES
     src/alloc.c
     src/error.c
     src/engine.c
@@ -27,7 +29,7 @@ set(SOURCES
 
     deps/GLee/GLee.c
 )
-set(HEADERS
+set(LIB_HEADERS
 	include/sc_boot.h
     include/sc_alloc.h
     include/sc_engine.h
@@ -55,15 +57,22 @@ set(HEADERS
     deps/GLee/GLee.h
 )
 
+set(GAME_SOURCES
+    src/main.c
+)
+set(GAME_HEADERS
+)
+
+if (APPLE)
+	set(GAME_SOURCES ${GAME_SOURCES} osxlauncher/launcher.m)
+	set(GAME_HEADERS ${GAME_HEADERS} osxlauncher/launcher.h)
+endif()
+
 find_package(SDL 1.2.7 REQUIRED)
 find_package(SDL_image 1.2 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 
-if (APPLE)
-	set(SOURCES ${SOURCES} osxlauncher/launcher.m)
-	set(HEADERS ${HEADERS} osxlauncher/launcher.h)
-endif()
 if (NOT WIN32)
     set(CMAKE_C_FLAGS "-g -Wall")
 endif()
@@ -80,18 +89,28 @@ add_executable(
 	SandboxCraft
 	WIN32
 	MACOSX_BUNDLE
-	${SOURCES}
-	${HEADERS}
+    ${GAME_SOURCES}
+    ${GAME_HEADERS}
+)
+
+add_library(
+    libsandboxcraft
+    STATIC
+	${LIB_SOURCES}
+	${LIB_HEADERS}
 )
 
 target_link_libraries(
 	SandboxCraft
+    libsandboxcraft
 	${SDL_LIBRARY}
 	${SDLIMAGE_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${GLU_LIBRARY}
 	${GLUT_glut_LIBRARY}
 )
+
+add_subdirectory(tests)
 
 if (WIN32)
     set(VS_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})

@@ -1,7 +1,9 @@
 CMakeCache.txt
 CMakeFiles
+*.a
 *.cmake
 SandboxCraft.app
 Makefile
 win_deps
 vs
+tests/*.bin
