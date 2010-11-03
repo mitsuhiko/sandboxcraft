@@ -20,9 +20,28 @@ sc_test(basic_interface)
     sc_assert(sc_vec3_is_zero(&vec));
 }
 
+sc_test(basic_math)
+{
+    sc_vec3_t vec1, vec2;
+
+    sc_vec3_set(&vec1, 1.0f, 2.0f, 3.0f);
+    sc_vec3_set(&vec2, 3.0f, 2.0f, 1.0f);
+    sc_vec3_sub(&vec1, &vec1, &vec2);
+
+    sc_assert_almost_equal(vec1.x, -2.0f);
+    sc_assert_almost_equal(vec1.y, 0.0f);
+    sc_assert_almost_equal(vec1.z, 2.0f);
+
+    sc_vec3_add(&vec1, &vec1, &vec1);
+    sc_assert_almost_equal(vec1.x, -4.0f);
+    sc_assert_almost_equal(vec1.y, 0.0f);
+    sc_assert_almost_equal(vec1.z, 4.0f);
+}
+
 sc_testsetup()
 {
     sc_testgroup(Vector3) {
         sc_run_test(basic_interface);
+        sc_run_test(basic_math);
     }
 }
