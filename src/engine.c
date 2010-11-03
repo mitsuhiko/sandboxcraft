@@ -189,7 +189,7 @@ sc_engine_unproject(sc_vec3_t *vec_out, int x, int y)
     int width, height;
     GLfloat winz;
     sc_mat4_t mvp;
-    sc_vec3_t invec;
+    sc_vec4_t invec;
 
     sc_engine_get_mvp_matrix(&mvp);
     if (!sc_mat4_inverse(&mvp, &mvp))
@@ -201,8 +201,9 @@ sc_engine_unproject(sc_vec3_t *vec_out, int x, int y)
     invec.x = x * 2.0f / width - 1.0f;
     invec.y = (height - y) * 2.0f / height - 1.0f;
     invec.z = winz * 2.0f - 1.0f;
+    invec.w = 1.0f;
 
-    return sc_vec3_transform_homogenous(vec_out, &invec, &mvp);
+    return sc_vec4_transform_homogenous(vec_out, &invec, &mvp);
 #else
     GLint viewport[4];
     GLdouble modelview[16];

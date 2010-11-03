@@ -29,10 +29,10 @@ sc_mat4_t *
 sc_mat4_set_identity(sc_mat4_t *mat)
 {
     memset(mat, 0, sizeof(sc_mat4_t));
-    sc_mat4(mat, 0, 0) = 1.0f;
-    sc_mat4(mat, 1, 1) = 1.0f;
-    sc_mat4(mat, 2, 2) = 1.0f;
-    sc_mat4(mat, 3, 3) = 1.0f;
+    mat->m[0][0] = 1.0f;
+    mat->m[1][1] = 1.0f;
+    mat->m[2][2] = 1.0f;
+    mat->m[3][3] = 1.0f;
     return mat;
 }
 
@@ -67,16 +67,13 @@ sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle, const sc_vec3_t *axis)
     return mat;
 }
 
-#define MINOR(m, r0, r1, r2, c0, c1, c2) ( \
-    sc_mat4(m, r0, c0) * \
-        (sc_mat4(m, r1, c1) * sc_mat4(m, r2, c2) - \
-         sc_mat4(m, r2, c1) * sc_mat4(m, r1, c2)) - \
-    sc_mat4(m, r0, c1) * \
-        (sc_mat4(m, r1, c0) * sc_mat4(m, r2, c2) - \
-         sc_mat4(m, r2, c0) * sc_mat4(m, r1, c2)) + \
-    sc_mat4(m, r0, c2) * \
-        (sc_mat4(m, r1, c0) * sc_mat4(m, r2, c1) - \
-         sc_mat4(m, r2, c0) * sc_mat4(m, r1, c1)))
+#define MINOR(M, r0, r1, r2, c0, c1, c2) ( \
+    M->m[r0][c0] * \
+        (M->m[r1][c1] * M->m[r2][c2] - M->m[r2][c1] * M->m[r1][c2]) - \
+    M->m[r0][c1] * \
+        (M->m[r1][c0] * M->m[r2][c2] - M->m[r2][c0] * M->m[r1][c2]) + \
+    M->m[r0][c2] * \
+        (M->m[r1][c0] * M->m[r2][c1] - M->m[r2][c0] * M->m[r1][c1]))
 
 sc_mat4_t *
 sc_mat4_adjugate(sc_mat4_t *mat_out, const sc_mat4_t *mat)
@@ -118,83 +115,90 @@ sc_mat4_determinant(const sc_mat4_t *mat)
 sc_mat4_t *
 sc_mat4_inverse(sc_mat4_t *mat_out, const sc_mat4_t *mat)
 {
-    float t[4];
     sc_mat4_t tmp;
-    int i, i1, j, k;
+    float v[6], t00, t10, t20, t30, det, idet, (*mo)[4] = tmp.m;
+    const float (*mi)[4] = mat->m;
 
-    tmp = *mat;
-    sc_mat4_set_identity(mat_out);
+    v[0] = mi[2][0] * mi[3][1] - mi[2][1] * mi[3][0];
+    v[1] = mi[2][0] * mi[3][2] - mi[2][2] * mi[3][0];
+    v[2] = mi[2][0] * mi[3][3] - mi[2][3] * mi[3][0];
+    v[3] = mi[2][1] * mi[3][2] - mi[2][2] * mi[3][1];
+    v[4] = mi[2][1] * mi[3][3] - mi[2][3] * mi[3][1];
+    v[5] = mi[2][2] * mi[3][3] - mi[2][3] * mi[3][2];
 
-    /* find largest pivot in column i among rosws i..3 */
-    for (i = 0; i < 4; i++) {
+    t00 = + (v[5] * mi[1][1] - v[4] * mi[1][2] + v[3] * mi[1][3]);
+    t10 = - (v[5] * mi[1][0] - v[2] * mi[1][2] + v[1] * mi[1][3]);
+    t20 = + (v[4] * mi[1][0] - v[2] * mi[1][1] + v[0] * mi[1][3]);
+    t30 = - (v[3] * mi[1][0] - v[1] * mi[1][1] + v[0] * mi[1][2]);
 
-        /* row with largest pivot candiate */
-        i1 = i;
-        for (j = i + 1; j < 4; j++)
-            if (fabs(tmp.elms[j * 4 + i]) > fabs(tmp.elms[i1 * 4 + i]))
-                i1 = j;
+    det = (t00 * mi[0][0] + t10 * mi[0][1] + t20 * mi[0][2] + t30 * mi[0][3]);
+    if (det == 0)
+        return NULL;
+    idet = 1.0f / det;
 
-        /* swap rows i1 and i in a and b to put pivot on diagonal */
-        for (k = 0; k < 4; k++)
-            t[k] = tmp.elms[i1 * 4 + k];
-        for (k = 0; k < 4; k++) {
-            tmp.elms[i1 * 4 + k] = tmp.elms[i * 4 + k];
-            tmp.elms[i * 4 + k] = t[k];
-        }
-        for (k = 0; k < 4; k++)
-            t[k] = mat_out->elms[i1 * 4 + k];
-        for (k = 0; k < 4; k++) {
-            mat_out->elms[i1 * 4 + k] = mat_out->elms[i * 4 + k];
-            mat_out->elms[i * 4 + k] = t[k];
-        }
+    mo[0][0] = t00 * idet;
+    mo[1][0] = t10 * idet;
+    mo[2][0] = t20 * idet;
+    mo[3][0] = t30 * idet;
 
-        /* scale row j to have a unit diagonal */
-        if (!tmp.elms[i * 4 + i])
-            return NULL;
-        for (k = 0; k < 4; k++) {
-            mat_out->elms[i * 4 + k] /= tmp.elms[i * 4 + i];
-            tmp.elms[i * 4 + k] /= tmp.elms[i * 4 + i];
-        }
+    mo[0][1] = - (v[5] * mi[0][1] - v[4] * mi[0][2] + v[3] * mi[0][3]) * idet;
+    mo[1][1] = + (v[5] * mi[0][0] - v[2] * mi[0][2] + v[1] * mi[0][3]) * idet;
+    mo[2][1] = - (v[4] * mi[0][0] - v[2] * mi[0][1] + v[0] * mi[0][3]) * idet;
+    mo[3][1] = + (v[3] * mi[0][0] - v[1] * mi[0][1] + v[0] * mi[0][2]) * idet;
 
-        /* eliminate off-diagonal elements in col i of a, doing indentical
-           operations to b */
-        for (j = 0; j < 4; j++)
-            if (i != j)
-                for (k = 0; k < 4; k++) {
-                    mat_out->elms[j * 4 + k] -= tmp.elms[j * 4 + i] *
-                                                mat_out->elms[i * 4 + k];
-                    tmp.elms[j * 4 + k] -= tmp.elms[j * 4 + i] *
-                                           tmp.elms[i * 4 + k];
-                }
-    }
+    v[0] = mi[1][0] * mi[3][1] - mi[1][1] * mi[3][0];
+    v[1] = mi[1][0] * mi[3][2] - mi[1][2] * mi[3][0];
+    v[2] = mi[1][0] * mi[3][3] - mi[1][3] * mi[3][0];
+    v[3] = mi[1][1] * mi[3][2] - mi[1][2] * mi[3][1];
+    v[4] = mi[1][1] * mi[3][3] - mi[1][3] * mi[3][1];
+    v[5] = mi[1][2] * mi[3][3] - mi[1][3] * mi[3][2];
 
+    mo[0][2] = + (v[5] * mi[0][1] - v[4] * mi[0][2] + v[3] * mi[0][3]) * idet;
+    mo[1][2] = - (v[5] * mi[0][0] - v[2] * mi[0][2] + v[1] * mi[0][3]) * idet;
+    mo[2][2] = + (v[4] * mi[0][0] - v[2] * mi[0][1] + v[0] * mi[0][3]) * idet;
+    mo[3][2] = - (v[3] * mi[0][0] - v[1] * mi[0][1] + v[0] * mi[0][2]) * idet;
+
+    v[0] = mi[2][1] * mi[1][0] - mi[2][0] * mi[1][1];
+    v[1] = mi[2][2] * mi[1][0] - mi[2][0] * mi[1][2];
+    v[2] = mi[2][3] * mi[1][0] - mi[2][0] * mi[1][3];
+    v[3] = mi[2][2] * mi[1][1] - mi[2][1] * mi[1][2];
+    v[4] = mi[2][3] * mi[1][1] - mi[2][1] * mi[1][3];
+    v[5] = mi[2][3] * mi[1][2] - mi[2][2] * mi[1][3];
+
+    mo[0][3] = - (v[5] * mi[0][1] - v[4] * mi[0][2] + v[3] * mi[0][3]) * idet;
+    mo[1][3] = + (v[5] * mi[0][0] - v[2] * mi[0][2] + v[1] * mi[0][3]) * idet;
+    mo[2][3] = - (v[4] * mi[0][0] - v[2] * mi[0][1] + v[0] * mi[0][3]) * idet;
+    mo[3][3] = + (v[3] * mi[0][0] - v[1] * mi[0][1] + v[0] * mi[0][2]) * idet;
+
+    *mat_out = tmp;
     return mat_out;
 }
 
 sc_mat4_t *
 sc_mat4_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat1, const sc_mat4_t *mat2)
 {
+    float *mo = mat_out->elms;
     const float *m1 = mat1->elms, *m2 = mat2->elms;
 
-    mat_out->elms[0] = m1[0] * m2[0] + m1[4] * m2[1] + m1[8] * m2[2] + m1[12] * m2[3];
-    mat_out->elms[1] = m1[1] * m2[0] + m1[5] * m2[1] + m1[9] * m2[2] + m1[13] * m2[3];
-    mat_out->elms[2] = m1[2] * m2[0] + m1[6] * m2[1] + m1[10] * m2[2] + m1[14] * m2[3];
-    mat_out->elms[3] = m1[3] * m2[0] + m1[7] * m2[1] + m1[11] * m2[2] + m1[15] * m2[3];
+    mo[0] = m1[0] * m2[0] + m1[4] * m2[1] + m1[8] * m2[2] + m1[12] * m2[3];
+    mo[1] = m1[1] * m2[0] + m1[5] * m2[1] + m1[9] * m2[2] + m1[13] * m2[3];
+    mo[2] = m1[2] * m2[0] + m1[6] * m2[1] + m1[10] * m2[2] + m1[14] * m2[3];
+    mo[3] = m1[3] * m2[0] + m1[7] * m2[1] + m1[11] * m2[2] + m1[15] * m2[3];
 
-    mat_out->elms[4] = m1[0] * m2[4] + m1[4] * m2[5] + m1[8] * m2[6] + m1[12] * m2[7];
-    mat_out->elms[5] = m1[1] * m2[4] + m1[5] * m2[5] + m1[9] * m2[6] + m1[13] * m2[7];
-    mat_out->elms[6] = m1[2] * m2[4] + m1[6] * m2[5] + m1[10] * m2[6] + m1[14] * m2[7];
-    mat_out->elms[7] = m1[3] * m2[4] + m1[7] * m2[5] + m1[11] * m2[6] + m1[15] * m2[7];
+    mo[4] = m1[0] * m2[4] + m1[4] * m2[5] + m1[8] * m2[6] + m1[12] * m2[7];
+    mo[5] = m1[1] * m2[4] + m1[5] * m2[5] + m1[9] * m2[6] + m1[13] * m2[7];
+    mo[6] = m1[2] * m2[4] + m1[6] * m2[5] + m1[10] * m2[6] + m1[14] * m2[7];
+    mo[7] = m1[3] * m2[4] + m1[7] * m2[5] + m1[11] * m2[6] + m1[15] * m2[7];
 
-    mat_out->elms[8] = m1[0] * m2[8] + m1[4] * m2[9] + m1[8] * m2[10] + m1[12] * m2[11];
-    mat_out->elms[9] = m1[1] * m2[8] + m1[5] * m2[9] + m1[9] * m2[10] + m1[13] * m2[11];
-    mat_out->elms[10] = m1[2] * m2[8] + m1[6] * m2[9] + m1[10] * m2[10] + m1[14] * m2[11];
-    mat_out->elms[11] = m1[3] * m2[8] + m1[7] * m2[9] + m1[11] * m2[10] + m1[15] * m2[11];
+    mo[8] = m1[0] * m2[8] + m1[4] * m2[9] + m1[8] * m2[10] + m1[12] * m2[11];
+    mo[9] = m1[1] * m2[8] + m1[5] * m2[9] + m1[9] * m2[10] + m1[13] * m2[11];
+    mo[10] = m1[2] * m2[8] + m1[6] * m2[9] + m1[10] * m2[10] + m1[14] * m2[11];
+    mo[11] = m1[3] * m2[8] + m1[7] * m2[9] + m1[11] * m2[10] + m1[15] * m2[11];
 
-    mat_out->elms[12] = m1[0] * m2[12] + m1[4] * m2[13] + m1[8] * m2[14] + m1[12] * m2[15];
-    mat_out->elms[13] = m1[1] * m2[12] + m1[5] * m2[13] + m1[9] * m2[14] + m1[13] * m2[15];
-    mat_out->elms[14] = m1[2] * m2[12] + m1[6] * m2[13] + m1[10] * m2[14] + m1[14] * m2[15];
-    mat_out->elms[15] = m1[3] * m2[12] + m1[7] * m2[13] + m1[11] * m2[14] + m1[15] * m2[15];
+    mo[12] = m1[0] * m2[12] + m1[4] * m2[13] + m1[8] * m2[14] + m1[12] * m2[15];
+    mo[13] = m1[1] * m2[12] + m1[5] * m2[13] + m1[9] * m2[14] + m1[13] * m2[15];
+    mo[14] = m1[2] * m2[12] + m1[6] * m2[13] + m1[10] * m2[14] + m1[14] * m2[15];
+    mo[15] = m1[3] * m2[12] + m1[7] * m2[13] + m1[11] * m2[14] + m1[15] * m2[15];
 
     return mat_out;
 }
@@ -214,6 +218,6 @@ sc_mat4_transpose(sc_mat4_t *mat_out, const sc_mat4_t *mat)
     int x, y;
     for (y = 0; y < 4; y++)
         for (x = 0; x < 4; x++)
-            sc_mat4(mat_out, y, x) = sc_mat4(mat, x, y);
+            mat_out->m[y][x] = mat->m[x][y];
     return mat_out;
 }

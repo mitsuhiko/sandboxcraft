@@ -112,10 +112,8 @@ pick_test(void)
     /* now that we have that painted we can play with the z buffer */
     sc_engine_get_dimensions(&width, &height);
     if (sc_engine_unproject(&vec, width / 2, height / 2)) {
-        glDisable(GL_DEPTH_TEST);
-            glTranslatef(vec.x, vec.y, vec.z);
-            glutSolidCube(20.0f);
-        glEnable(GL_DEPTH_TEST);
+        glTranslatef(vec.x, vec.y, vec.z);
+        glutSolidCube(20.0f);
     }
 }
 

@@ -4,10 +4,29 @@
 #include "sc_game.h"
 #include "sc_engine.h"
 #include "sc_path.h"
+#include "sc_mat4.h"
+
+static void
+test_matrix(void)
+{
+    sc_mat4_t mat;
+    sc_mat4_set(&mat,
+        2, 1, 4, 3,
+        1, 1, 0, 0,
+        1, 1, 1, 0,
+        1, 1, 1, 1
+    );
+    sc_mat4_inverse(&mat, &mat);
+    sc_mat4_debug(&mat);
+}
 
 static int
 run_game_controlled(int argc, char **argv)
 {
+#if 1
+    test_matrix();
+    return 0;
+#endif
     sc_engine_init();
     atexit(sc_engine_shutdown);
     sc_game_early_init();
