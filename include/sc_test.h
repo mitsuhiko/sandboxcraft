@@ -19,10 +19,24 @@
     __LINE__, __FILE__, (__FUNCTION__ + SC_TEST_NAME_OFFSET)
 
 /* assertions */
+#define sc_assert_equal(A, B) do { \
+    if ((A) != (B)) { \
+        sc_test_fail(SC_TEST_CONTEXT_INFO, "%s is not equal to %s", \
+                     #A, #B); \
+        return; \
+    } \
+} while(0)
 #define sc_assert_almost_equal(A, B) do { \
     if (!((A) < ((B) + 1e-6) && (A) > ((B) - 1e-6))) { \
         sc_test_fail(SC_TEST_CONTEXT_INFO, "%s is not almost equal to %s", \
                      #A, #B); \
+        return; \
+    } \
+} while(0)
+#define sc_assert(Expr) do { \
+    if (!(Expr)) { \
+        sc_test_fail(SC_TEST_CONTEXT_INFO, "Expression '%s' evaluated to false", \
+                     #Expr); \
         return; \
     } \
 } while(0)

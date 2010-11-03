@@ -12,9 +12,11 @@ foreach(TEST ${TESTS})
         ${GLU_LIBRARY}
         ${GLUT_glut_LIBRARY}
     )
+    set(TEST_EXECUTABLES ${TEST}.bin ${TEST_EXECUTABLES})
 endforeach()
 
 add_custom_target(test
     ${CMAKE_CURRENT_BINARY_DIR}/runtests.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${TEST_EXECUTABLES}
 )
