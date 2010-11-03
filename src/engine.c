@@ -174,18 +174,31 @@ sc_engine_clear(sc_color_t color)
 }
 
 sc_mat4_t *
+sc_engine_get_model_matrix(sc_mat4_t *mat_out)
+{
+    glGetFloatv(GL_MODELVIEW_MATRIX, mat_out->elms);
+    return mat_out;
+}
+
+sc_mat4_t *
+sc_engine_get_projection_matrix(sc_mat4_t *mat_out)
+{
+    glGetFloatv(GL_PROJECTION_MATRIX, mat_out->elms);
+    return mat_out;
+}
+
+sc_mat4_t *
 sc_engine_get_mvp_matrix(sc_mat4_t *mat_out)
 {
     sc_mat4_t m, p;
-    glGetFloatv(GL_MODELVIEW_MATRIX, m.elms);
-    glGetFloatv(GL_PROJECTION_MATRIX, p.elms);
+    sc_engine_get_model_matrix(&m);
+    sc_engine_get_projection_matrix(&p);
     return sc_mat4_mul(mat_out, &m, &p);
 }
 
 sc_vec3_t *
 sc_engine_unproject(sc_vec3_t *vec_out, int x, int y)
 {
-#if 1
     int width, height;
     GLfloat winz;
     sc_mat4_t mvp;
@@ -204,29 +217,6 @@ sc_engine_unproject(sc_vec3_t *vec_out, int x, int y)
     invec.w = 1.0f;
 
     return sc_vec4_transform_homogenous(vec_out, &invec, &mvp);
-#else
-    GLint viewport[4];
-    GLdouble modelview[16];
-    GLdouble projection[16];
-    GLfloat winX, winY, winZ;
-    GLdouble posX, posY, posZ;
-
-    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
-    glGetDoublev(GL_PROJECTION_MATRIX, projection);
-    glGetIntegerv(GL_VIEWPORT, viewport);
-
-    winX = (float)x;
-    winY = (float)viewport[3] - y;
-    glReadPixels(x, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-
-    gluUnProject(winX, winY, winZ, modelview, projection, viewport,
-                 &posX, &posY, &posZ);
-
-    vec_out->x = (float)posX;
-    vec_out->y = (float)posY;
-    vec_out->z = (float)posZ;
-    return vec_out;
-#endif
 }
 
 void
