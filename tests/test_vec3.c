@@ -20,9 +20,10 @@ sc_test(basic_interface)
     sc_assert(sc_vec3_is_zero(&vec));
 }
 
-sc_test(basic_math)
+sc_test(math)
 {
-    sc_vec3_t vec1, vec2;
+    float length, val;
+    sc_vec3_t vec1, vec2, vec3;
 
     sc_vec3_set(&vec1, 1.0f, 2.0f, 3.0f);
     sc_vec3_set(&vec2, 3.0f, 2.0f, 1.0f);
@@ -36,12 +37,45 @@ sc_test(basic_math)
     sc_assert_almost_equal(vec1.x, -4.0f);
     sc_assert_almost_equal(vec1.y, 0.0f);
     sc_assert_almost_equal(vec1.z, 4.0f);
+
+    length = sc_vec3_length(&vec1);
+    sc_assert_almost_equal(length, 5.656854f);
+
+    sc_vec3_mul(&vec1, &vec1, 2);
+    length = sc_vec3_length(&vec1);
+    sc_assert_almost_equal(length, 5.656854f * 2);
+
+    sc_vec3_neg(&vec2);
+    sc_assert_almost_equal(vec2.x, -3.0f);
+    sc_assert_almost_equal(vec2.y, -2.0f);
+    sc_assert_almost_equal(vec2.z, -1.0f);
+
+    sc_vec3_set(&vec3, 2.0f, 4.0f, 3.0f);
+    val = sc_vec3_dot(&vec2, &vec3);
+    sc_assert_almost_equal(val, -17.0f);
+}
+
+sc_test(comparisions)
+{
+    sc_vec3_t vec1, vec2;
+
+    sc_vec3_set(&vec1, 1.0f, 1.0f, 1.0f);
+    sc_vec3_set(&vec2, 1.0f, 1.0f, 1.0f);
+
+    sc_assert(sc_vec3_equal(&vec1, &vec2));
+    vec2.z = 2.0f;
+    sc_assert(!sc_vec3_equal(&vec1, &vec2));
+
+    sc_assert(sc_vec3_nonzero(&vec1));
+    sc_vec3_zero(&vec1);
+    sc_assert(!sc_vec3_nonzero(&vec1));
 }
 
 sc_testsetup()
 {
     sc_testgroup(vec3) {
         sc_run_test(basic_interface);
-        sc_run_test(basic_math);
+        sc_run_test(math);
+        sc_run_test(comparisions);
     }
 }
