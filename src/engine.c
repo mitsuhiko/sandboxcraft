@@ -179,7 +179,7 @@ sc_engine_get_mvp_matrix(sc_mat4_t *mat_out)
     sc_mat4_t m, p;
     glGetFloatv(GL_MODELVIEW_MATRIX, m.elms);
     glGetFloatv(GL_PROJECTION_MATRIX, p.elms);
-    return sc_mat4_mul(mat_out, &p, &m);
+    return sc_mat4_mul(mat_out, &m, &p);
 }
 
 sc_vec3_t *

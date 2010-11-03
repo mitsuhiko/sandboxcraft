@@ -87,10 +87,50 @@ sc_test(inverse)
     sc_assert(!sc_mat4_equal(&mat, &expected));
 }
 
+sc_test(multiplication)
+{
+    sc_mat4_t mat1, mat2, expected;
+    sc_mat4_set(&mat1,
+        2.0f, 1.0f, 4.0f, 3.0f,
+        1.0f, 1.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 1.0f
+    );
+    sc_mat4_set(&mat2,
+        2.0f, 1.0f, 4.0f, 3.0f,
+        2.0f, 1.0f, 0.0f, 0.0f,
+        3.0f, 1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 4.0f
+    );
+    sc_mat4_set(&expected,
+        21.0f, 10.0f, 15.0f, 18.0f,
+         4.0f,  2.0f,  4.0f,  3.0f,
+         7.0f,  3.0f,  5.0f,  3.0f,
+         8.0f,  4.0f,  6.0f,  7.0f
+    );
+    sc_mat4_mul(&mat1, &mat1, &mat2);
+    sc_assert(sc_mat4_equal(&mat1, &expected));
+}
+
+sc_test(transpose)
+{
+    sc_mat4_t mat;
+    sc_mat4_set(&mat,
+        1.0f, 0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f, 0.0f
+    );
+    sc_mat4_transpose(&mat, &mat);
+    sc_mat4_debug(&mat);
+}
+
 sc_testsetup()
 {
     sc_testgroup(mat4) {
         sc_run_test(basic_interface);
         sc_run_test(inverse);
+        sc_run_test(multiplication);
+        sc_run_test(transpose);
     }
 }

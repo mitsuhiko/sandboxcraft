@@ -179,31 +179,18 @@ sc_mat4_inverse(sc_mat4_t *mat_out, const sc_mat4_t *mat)
 sc_mat4_t *
 sc_mat4_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat1, const sc_mat4_t *mat2)
 {
-    sc_mat4_t tmp;
-    float *mo = tmp.elms;
-    const float *m1 = mat1->elms, *m2 = mat2->elms;
+    sc_mat4_t rv;
+    int i, j, k;
 
-    mo[0] = m1[0] * m2[0] + m1[4] * m2[1] + m1[8] * m2[2] + m1[12] * m2[3];
-    mo[1] = m1[1] * m2[0] + m1[5] * m2[1] + m1[9] * m2[2] + m1[13] * m2[3];
-    mo[2] = m1[2] * m2[0] + m1[6] * m2[1] + m1[10] * m2[2] + m1[14] * m2[3];
-    mo[3] = m1[3] * m2[0] + m1[7] * m2[1] + m1[11] * m2[2] + m1[15] * m2[3];
+    for (i = 0; i < 4; i++)
+        for (j = 0; j < 4; j++) {
+            float sum = 0.0f;
+            for (k = 0; k < 4; k++)
+                sum += mat1->m[i][k] * mat2->m[k][j];
+            rv.m[i][j] = sum;
+        }
 
-    mo[4] = m1[0] * m2[4] + m1[4] * m2[5] + m1[8] * m2[6] + m1[12] * m2[7];
-    mo[5] = m1[1] * m2[4] + m1[5] * m2[5] + m1[9] * m2[6] + m1[13] * m2[7];
-    mo[6] = m1[2] * m2[4] + m1[6] * m2[5] + m1[10] * m2[6] + m1[14] * m2[7];
-    mo[7] = m1[3] * m2[4] + m1[7] * m2[5] + m1[11] * m2[6] + m1[15] * m2[7];
-
-    mo[8] = m1[0] * m2[8] + m1[4] * m2[9] + m1[8] * m2[10] + m1[12] * m2[11];
-    mo[9] = m1[1] * m2[8] + m1[5] * m2[9] + m1[9] * m2[10] + m1[13] * m2[11];
-    mo[10] = m1[2] * m2[8] + m1[6] * m2[9] + m1[10] * m2[10] + m1[14] * m2[11];
-    mo[11] = m1[3] * m2[8] + m1[7] * m2[9] + m1[11] * m2[10] + m1[15] * m2[11];
-
-    mo[12] = m1[0] * m2[12] + m1[4] * m2[13] + m1[8] * m2[14] + m1[12] * m2[15];
-    mo[13] = m1[1] * m2[12] + m1[5] * m2[13] + m1[9] * m2[14] + m1[13] * m2[15];
-    mo[14] = m1[2] * m2[12] + m1[6] * m2[13] + m1[10] * m2[14] + m1[14] * m2[15];
-    mo[15] = m1[3] * m2[12] + m1[7] * m2[13] + m1[11] * m2[14] + m1[15] * m2[15];
-
-    *mat_out = tmp;
+    *mat_out = rv;
     return mat_out;
 }
 
@@ -220,9 +207,11 @@ sc_mat4_t *
 sc_mat4_transpose(sc_mat4_t *mat_out, const sc_mat4_t *mat)
 {
     int x, y;
+    sc_mat4_t tmp = *mat;
     for (y = 0; y < 4; y++)
         for (x = 0; x < 4; x++)
-            mat_out->m[y][x] = mat->m[x][y];
+            tmp.m[y][x] = mat->m[x][y];
+    *mat_out = tmp;
     return mat_out;
 }
 
