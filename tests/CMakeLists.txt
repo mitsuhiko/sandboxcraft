@@ -13,3 +13,8 @@ foreach(TEST ${TESTS})
         ${GLUT_glut_LIBRARY}
     )
 endforeach()
+
+add_custom_target(test
+    ${CMAKE_CURRENT_BINARY_DIR}/runtests.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
