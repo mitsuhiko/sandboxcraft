@@ -1,5 +1,6 @@
 #!/bin/env/python
 import os
+import sys
 from subprocess import call
 
 os.chdir(os.path.dirname(__file__))
@@ -14,3 +15,4 @@ if not failed_groups:
     print 'OK.'
 else:
     print 'FAIL(failed_groups=%d)' % len(failed_groups)
+    sys.exit(1)
