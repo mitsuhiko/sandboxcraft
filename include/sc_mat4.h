@@ -46,6 +46,9 @@ sc_mat4_t *sc_mat4_scalar_mul(sc_mat4_t *mat_out, const sc_mat4_t *mat,
 /* transposes a matrix */
 sc_mat4_t *sc_mat4_transpose(sc_mat4_t *mat_out, const sc_mat4_t *mat);
 
+/* checks if a matrix equals another matrix */
+int sc_mat4_equal(const sc_mat4_t *mat1, const sc_mat4_t *mat2);
+
 /* prints matrix to stderr */
 #define sc_mat4_debug(M) \
     fprintf(stderr, "[[%f, %f, %f, %f],\n [%f, %f, %f, %f],\n" \

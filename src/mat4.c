@@ -1,6 +1,8 @@
 #include "sc_mat4.h"
 #include "sc_math.h"
 
+#define EPSILON (1e-6)
+
 sc_mat4_t *
 sc_mat4_set(sc_mat4_t *mat, float a, float b, float c, float d, float e,
             float f, float g, float h, float i, float j, float k, float l,
@@ -222,4 +224,15 @@ sc_mat4_transpose(sc_mat4_t *mat_out, const sc_mat4_t *mat)
         for (x = 0; x < 4; x++)
             mat_out->m[y][x] = mat->m[x][y];
     return mat_out;
+}
+
+int
+sc_mat4_equal(const sc_mat4_t *mat1, const sc_mat4_t *mat2)
+{
+    int i;
+    for (i = 0; i < 16; i++)
+        if (!(mat1->elms[i] < mat2->elms[i] + EPSILON &&
+              mat1->elms[i] > mat2->elms[i] - EPSILON))
+            return 0;
+    return 1;
 }
