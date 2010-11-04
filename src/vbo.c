@@ -55,8 +55,6 @@ void
 sc_finalize_vbo(sc_vbo_t *vbo)
 {
     ASSERT_NOT_FINALIZED();
-    if (!vbo->vertices)
-        goto finalize;
 
     glGenBuffers(3, vbo->buffers);
 
@@ -75,7 +73,6 @@ sc_finalize_vbo(sc_vbo_t *vbo)
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vbo->vertices * 2,
                  vbo->_tex_coords, GL_STATIC_DRAW);
 
-finalize:
     sc_free(vbo->_vertices);
     sc_free(vbo->_normals);
     sc_free(vbo->_tex_coords);
