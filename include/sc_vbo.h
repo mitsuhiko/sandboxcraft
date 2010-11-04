@@ -20,14 +20,13 @@
 #define SC_VERTEX_BUFFER_ID         0
 #define SC_NORMAL_BUFFER_ID         1
 #define SC_TEXCOORD_BUFFER_ID       2
-#define SC_INDEX_BUFFER_ID          3
 
 /* internally a vbo provides more information, but this is not part of the
    public interface and subject to change.  Due to how the implementation
    looks like we have to not define this type if we are asked for it. */
 #ifndef _SC_DONT_DEFINE_VBO
 typedef struct {
-    GLuint buffers[4];
+    GLuint buffers[3];
     size_t vertices;
 } sc_vbo_t;
 #endif

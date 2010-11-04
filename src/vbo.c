@@ -7,7 +7,7 @@
 #define ASSERT_NOT_FINALIZED() assert(!vbo->_finalized)
 
 typedef struct {
-    GLuint buffers[4];
+    GLuint buffers[3];
     size_t vertices;
     size_t _buffer_size;
     int _finalized;
@@ -42,6 +42,9 @@ sc_free_vbo(sc_vbo_t *vbo)
 {
     if (!vbo)
         return;
+    if (vbo->_finalized)
+        glDeleteBuffers(3, vbo->buffers);
+    vbo->_finalized = 0;
     sc_free(vbo->_vertices);
     sc_free(vbo->_normals);
     sc_free(vbo->_tex_coords);
