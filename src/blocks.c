@@ -63,7 +63,7 @@ sc_free_blocks(void)
 {
     if (!blocks)
         return;
-    sc_free(block_atlas);
+    sc_free_atlas(block_atlas);
     sc_free(blocks);
     blocks = 0;
 }
