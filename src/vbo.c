@@ -3,14 +3,18 @@
 #include "sc_vec3.h"
 
 #define INITIAL_SIZE 255
-#define ASSERT_FINALIZED() assert(vbo->_finalized)
-#define ASSERT_NOT_FINALIZED() assert(!vbo->_finalized)
+#define ASSERT_FINALIZED() assert(vbo->_mode == MODE_FINALIZED)
+#define ASSERT_NOT_FINALIZED() assert(vbo->_mode != MODE_FINALIZED)
+
+#define MODE_FRESH 0
+#define MODE_FINALIZED 1
+#define MODE_REUESD 2
 
 typedef struct {
     GLuint buffers[3];
     size_t vertices;
     size_t _buffer_size;
-    int _finalized;
+    int _mode;
     /* this is where the vertices are stored in main memory until they
        are uploaded to the graphics device.  The first three items above
        are the only ones exposed in the header, everything down here is
@@ -29,7 +33,7 @@ sc_new_vbo(void)
 {
     sc_vbo_t *rv = sc_xalloc(sc_vbo_t);
     rv->vertices = 0;
-    rv->_finalized = 0;
+    rv->_mode = MODE_FRESH;
     rv->_buffer_size = 0;
     rv->_vertices = NULL;
     rv->_normals = NULL;
@@ -42,9 +46,8 @@ sc_free_vbo(sc_vbo_t *vbo)
 {
     if (!vbo)
         return;
-    if (vbo->_finalized)
+    if (vbo->_mode != MODE_FRESH)
         glDeleteBuffers(3, vbo->buffers);
-    vbo->_finalized = 0;
     sc_free(vbo->_vertices);
     sc_free(vbo->_normals);
     sc_free(vbo->_tex_coords);
@@ -56,7 +59,8 @@ sc_finalize_vbo(sc_vbo_t *vbo)
 {
     ASSERT_NOT_FINALIZED();
 
-    glGenBuffers(3, vbo->buffers);
+    if (vbo->_mode == MODE_FRESH)
+        glGenBuffers(3, vbo->buffers);
 
     /* vertex data */
     glBindBuffer(GL_ARRAY_BUFFER, vbo->buffers[SC_VERTEX_BUFFER_ID]);
@@ -77,7 +81,20 @@ sc_finalize_vbo(sc_vbo_t *vbo)
     sc_free(vbo->_normals);
     sc_free(vbo->_tex_coords);
 
-    vbo->_finalized = 1;
+    vbo->_mode = MODE_FINALIZED;
+    vbo->_vertices = NULL;
+    vbo->_normals = NULL;
+    vbo->_tex_coords = NULL;
+}
+
+void
+sc_reuse_vbo(sc_vbo_t *vbo)
+{
+    ASSERT_FINALIZED();
+    
+    vbo->_mode = MODE_REUESD;
+    vbo->vertices = 0;
+    vbo->_buffer_size = 0;
     vbo->_vertices = NULL;
     vbo->_normals = NULL;
     vbo->_tex_coords = NULL;

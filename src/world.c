@@ -192,11 +192,10 @@ update_vbo(sc_world_t *world, sc_chunk_node_t *node, int min_x, int min_y,
     int max_y = min_y + size;
     int max_z = min_z + size;
 
-    /* vbos currently cannot be updated in place, so free the old */
     if (node->vbo)
-        sc_free_vbo(node->vbo);
-
-    node->vbo = sc_new_vbo();
+        sc_reuse_vbo(node->vbo);
+    else
+        node->vbo = sc_new_vbo();
 
 #define IS_AIR(X, Y, Z) \
     (sc_world_get_block(world, X, Y, Z)->type == SC_BLOCK_AIR)
