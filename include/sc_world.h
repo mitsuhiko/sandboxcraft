@@ -48,6 +48,11 @@ const sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
 int sc_world_set_block(sc_world_t *world, int x, int y, int z,
                        const sc_block_t *block);
 
+/* blocks a block by screen position. */
+const sc_block_t *sc_world_get_block_by_pixel(sc_world_t *world, int sx, int sy,
+                                              int *x, int *y, int *z);
+
+
 /* draws the world.  The OpenGL projection and model matrices are used
    to calculate the visbility for the block of the world.  The camera has
    to be applied beforehand:

@@ -91,6 +91,31 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
     return 1;
 }
 
+const sc_block_t *
+sc_world_get_block_by_pixel(sc_world_t *world, int sx, int sy,
+                            int *x, int *y, int *z)
+{
+    int bx, by, bz;
+    sc_vec3_t hit;
+
+    if (!sc_engine_unproject(&hit, sx, sy))
+        return NULL;
+
+    bx = (int)(hit.x + BLOCK_SIZE / 2) / BLOCK_SIZE;
+    by = (int)(hit.y + BLOCK_SIZE / 2) / BLOCK_SIZE;
+    bz = (int)(hit.z + BLOCK_SIZE / 2) / BLOCK_SIZE;
+
+    if (bx >= SC_CHUNK_RESOLUTION || bx < 0 ||
+        by >= SC_CHUNK_RESOLUTION || by < 0 ||
+        bz >= SC_CHUNK_RESOLUTION || bz < 0)
+        return NULL;
+
+    *x = bx;
+    *y = by;
+    *z = bz;
+    return sc_world_get_block(world, bx, by, bz);
+}
+
 static void
 walk_chunk(sc_world_t *world, const sc_chunk_node_t **children,
            const sc_block_t *block, int x, int y, int z, size_t size,

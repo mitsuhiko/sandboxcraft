@@ -19,12 +19,4 @@
 
 void *sc_memassert(void *p);
 
-/* dependencies on switching out the allocator:
-   1. sc_strdup is currently internally using the system's malloc.
-   
-   Generally speaking it's a good idea not to switch the allocator
-   on an individual level though because it means that the stdlib
-   will use a different allocation scheme and more importantly
-   valgrind will be unable to properly pick it up. */
-
 #endif

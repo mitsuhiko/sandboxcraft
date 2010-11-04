@@ -13,6 +13,11 @@ static int late_initialized;
 static sc_world_t *world;
 static sc_camera_t *cam;
 struct {
+    int x;
+    int y;
+    int z;
+} selected_block;
+struct {
     int w;
     int a;
     int s;
@@ -87,12 +92,19 @@ sc_game_handle_event(SDL_Event *evt)
     else if (evt->type == SDL_MOUSEMOTION)
         sc_camera_rotate_screen(cam, evt->motion.xrel * 0.25f,
                                 evt->motion.yrel * 0.25f);
+    else if (evt->type == SDL_MOUSEBUTTONUP)
+        sc_world_set_block(world, selected_block.x, selected_block.y,
+                           selected_block.z, sc_get_block(SC_BLOCK_WATER));
 }
 
 void
 sc_game_update(void)
 {
-    float move_factor = sc_gametime.delta * 0.1f;
+    int width, height;
+    const sc_block_t *block;
+    const float move_factor = sc_gametime.delta * 0.1f;
+
+    /* camera movement */
     if (keysdown.w)
         sc_camera_move_forward(cam, move_factor);
     if (keysdown.a)
@@ -101,20 +113,13 @@ sc_game_update(void)
         sc_camera_move_backward(cam, move_factor);
     if (keysdown.d)
         sc_camera_strafe_right(cam, move_factor);
-}
 
-static void
-pick_test(void)
-{
-    int width, height;
-    sc_vec3_t vec;
-
-    /* now that we have that painted we can play with the z buffer */
+    /* selecting of blocks */
     sc_engine_get_dimensions(&width, &height);
-    if (sc_engine_unproject(&vec, width / 2, height / 2)) {
-        glTranslatef(vec.x, vec.y, vec.z);
-        glutSolidCube(20.0f);
-    }
+    block = sc_world_get_block_by_pixel(world, width / 2, height / 2,
+                                        &selected_block.x,
+                                        &selected_block.y,
+                                        &selected_block.z);
 }
 
 void
@@ -124,7 +129,12 @@ sc_game_render(void)
     sc_camera_apply(cam);
     sc_world_draw(world);
 
-    pick_test();
+    glPushMatrix();
+        glTranslatef(selected_block.x * 20,
+                     selected_block.y * 20,
+                     selected_block.z * 20);
+        glutWireCube(22);
+    glPopMatrix();
 }
 
 void
