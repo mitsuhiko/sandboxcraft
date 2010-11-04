@@ -58,7 +58,7 @@ sc_finalize_vbo(sc_vbo_t *vbo)
     if (!vbo->vertices)
         goto finalize;
 
-    glGenBuffers(4, vbo->buffers);
+    glGenBuffers(3, vbo->buffers);
 
     /* vertex data */
     glBindBuffer(GL_ARRAY_BUFFER, vbo->buffers[SC_VERTEX_BUFFER_ID]);
