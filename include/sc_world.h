@@ -15,14 +15,13 @@ struct _sc_chunk_node;
 typedef struct _sc_chunk_node {
     const sc_block_t *block;
     sc_vbo_t *vbo;                      /* if there is a vbo for that node */
-    unsigned int version;               /* the version of the vbo */
+    int dirty;                          /* need to redraw? */
     struct _sc_chunk_node *children[8];
 } sc_chunk_node_t;
 
 typedef struct {
     sc_chunk_node_t *root;              /* the root node of the octree */
     uint32_t seed;                      /* the seed for the world */
-    unsigned int version;
 } sc_world_t;
 
 /* callbacks for chunk traversing.  For more information have a look

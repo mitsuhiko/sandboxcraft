@@ -13,7 +13,6 @@ sc_new_world(void)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
     world->root = sc_new_chunk_node();
-    world->version = 1;
     return world;
 }
 
@@ -23,6 +22,39 @@ sc_free_world(sc_world_t *world)
     if (!world)
         return;
     sc_free_chunk_node(world->root);
+}
+
+static sc_chunk_node_t *
+find_vbo_node(sc_world_t *world, int x, int y, int z)
+{
+    int size;
+    sc_chunk_node_t *node, *child;
+
+    if (x >= SC_CHUNK_RESOLUTION || x < 0 ||
+        y >= SC_CHUNK_RESOLUTION || y < 0 ||
+        z >= SC_CHUNK_RESOLUTION || z < 0)
+        return NULL;
+
+    /* Find the block in the octree */
+    node = world->root;
+    size = SC_CHUNK_RESOLUTION;
+    while (1) {
+        size_t idx;
+        size /= 2;
+        idx = !!(x & size) << 2 | !!(y & size) << 1 | !!(z & size);
+        child = node->children[idx];
+        if (!child) {
+            child = sc_new_chunk_node();
+            node->children[idx] = child;
+            /* remember the block when we create a new child */
+            child->block = node->block;
+        }
+        node = child;
+        if (size == SC_CHUNK_VBO_SIZE)
+            break;
+    }
+
+    return node;
 }
 
 const sc_block_t *
@@ -80,14 +112,29 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
             child->block = node->block;
         }
         node = child;
+        if (size == SC_CHUNK_VBO_SIZE)
+            node->dirty = 1;
+    }
+
+    /* helper macro to mark other vbos as dirty */
+#define MARK_DIRTY(X, Y, Z) do { \
+    sc_chunk_node_t *node = find_vbo_node(world, X, Y, Z); \
+    if (node) \
+        node->dirty = 1; \
+} while (0)
+
+    /* in case we replace air for non air at an edge block we have to be
+       extra careful and update the dirty flags of the blocks nearby. */
+    if ((node->block->type == SC_BLOCK_AIR) != (block->type == SC_BLOCK_AIR)) {
+        if ((x + 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x + 1, y, z);
+        if ((x - 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x - 1, y, z);
+        if ((y + 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y + 1, z);
+        if ((y - 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y - 1, z);
+        if ((z + 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y, z + z);
+        if ((z - 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y, z - 1);
     }
 
     node->block = block;
-
-    /* 0 is a reserved indicator we must never expose */
-    if (++world->version == 0)
-        world->version++;
-
     return 1;
 }
 
@@ -224,41 +271,17 @@ update_vbo(sc_world_t *world, sc_chunk_node_t *node, int min_x, int min_y,
                 if (IS_AIR(x, y, z + 1)) ADD_PLANE(front);
             }
 
+    node->dirty = 0;
     sc_finalize_vbo(node->vbo);
-    node->version = world->version;
 }
 
 const sc_vbo_t *
 sc_world_get_vbo(sc_world_t *world, int x, int y, int z)
 {
-    int size;
-    sc_chunk_node_t *node, *child;
-
-    if (x >= SC_CHUNK_RESOLUTION || x < 0 ||
-        y >= SC_CHUNK_RESOLUTION || y < 0 ||
-        z >= SC_CHUNK_RESOLUTION || z < 0)
+    sc_chunk_node_t *node = find_vbo_node(world, x, y, z);
+    if (!node)
         return NULL;
-
-    /* Find the block in the octree */
-    node = world->root;
-    size = SC_CHUNK_RESOLUTION;
-    while (1) {
-        size_t idx;
-        size /= 2;
-        idx = !!(x & size) << 2 | !!(y & size) << 1 | !!(z & size);
-        child = node->children[idx];
-        if (!child) {
-            child = sc_new_chunk_node();
-            node->children[idx] = child;
-            /* remember the block when we create a new child */
-            child->block = node->block;
-        }
-        node = child;
-        if (size == SC_CHUNK_VBO_SIZE)
-            break;
-    }
-
-    if (!node->vbo || node->version != world->version)
+    if (!node->vbo || node->dirty)
         update_vbo(world, node, x - x % SC_CHUNK_VBO_SIZE,
                    y - y % SC_CHUNK_VBO_SIZE, z - z % SC_CHUNK_VBO_SIZE,
                    SC_CHUNK_VBO_SIZE);
@@ -280,7 +303,7 @@ sc_new_chunk_node(void)
     memset(node->children, 0, sizeof(node->children));
     node->block = sc_get_block(SC_BLOCK_AIR);
     node->vbo = NULL;
-    node->version = 0;
+    node->dirty = 0;
     return node;
 }
 
