@@ -62,6 +62,12 @@ sc_vec3_t *sc_vec3_transform_homogenous(sc_vec3_t *vec_out, const sc_vec3_t *vec
 /* checks if two vectors are approximately the same */
 int sc_vec3_equal(const sc_vec3_t *v1, const sc_vec3_t *v2);
 
+/* other comparisions */
+int sc_vec3_lt(const sc_vec3_t *v1, const sc_vec3_t *v2);
+int sc_vec3_le(const sc_vec3_t *v1, const sc_vec3_t *v2);
+int sc_vec3_gt(const sc_vec3_t *v1, const sc_vec3_t *v2);
+int sc_vec3_ge(const sc_vec3_t *v1, const sc_vec3_t *v2);
+
 /* checks if a vector is not zero in length or close to it */
 int sc_vec3_nonzero(const sc_vec3_t *vec);
 
