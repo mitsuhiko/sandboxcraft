@@ -8,6 +8,16 @@
 
 #define BLOCK_SIZE 20.0f
 
+struct ray_query_data {
+    sc_ray_t ray;
+    float distance;
+    int rx;
+    int ry;
+    int rz;
+    int found;
+};
+
+
 sc_world_t *
 sc_new_world(void)
 {
@@ -138,29 +148,62 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
     return 1;
 }
 
+static void
+make_block_aabb(sc_vec3_t *vec1_out, sc_vec3_t *vec2_out,
+                int x, int y, int z, size_t size)
+{
+    sc_vec3_set(vec1_out, BLOCK_SIZE * x - BLOCK_SIZE / 2,
+                          BLOCK_SIZE * y - BLOCK_SIZE / 2,
+                          BLOCK_SIZE * z - BLOCK_SIZE / 2);
+    sc_vec3_set(vec2_out, BLOCK_SIZE * size,
+                          BLOCK_SIZE * size,
+                          BLOCK_SIZE * size);
+    sc_vec3_add(vec2_out, vec2_out, vec1_out);
+}
+
+static int
+ray_walk_check(sc_world_t *world, const sc_block_t *block,
+               int x, int y, int z, size_t size, void *closure)
+{
+    float distance;
+    struct ray_query_data *data = closure;
+    sc_vec3_t vec1, vec2;
+    make_block_aabb(&vec1, &vec2, x, y, z, size);
+
+    if (!sc_ray_intersects_aabb(&data->ray, &vec1, &vec2, &distance))
+        return 0;
+
+    if (size == 1 && block->type != SC_BLOCK_AIR &&
+        (!data->found || distance < data->distance)) {
+        data->rx = x;
+        data->ry = y;
+        data->rz = z;
+        data->found = 1;
+    }
+    return 1;
+}
+
 const sc_block_t *
 sc_world_get_block_by_pixel(sc_world_t *world, int sx, int sy,
                             int *x, int *y, int *z)
 {
-    int bx, by, bz;
-    sc_vec3_t hit;
+    struct ray_query_data data;
+    data.found = 0;
 
-    if (!sc_engine_unproject(&hit, sx, sy))
+    if (!sc_engine_raycast(&data.ray, sx, sy))
         return NULL;
 
-    bx = (int)(hit.x + BLOCK_SIZE / 2) / BLOCK_SIZE;
-    by = (int)(hit.y + BLOCK_SIZE / 2) / BLOCK_SIZE;
-    bz = (int)(hit.z + BLOCK_SIZE / 2) / BLOCK_SIZE;
-
-    if (bx >= SC_CHUNK_RESOLUTION || bx < 0 ||
-        by >= SC_CHUNK_RESOLUTION || by < 0 ||
-        bz >= SC_CHUNK_RESOLUTION || bz < 0)
+    sc_walk_world(world, ray_walk_check, &data);
+    if (!data.found ||
+        data.rx >= SC_CHUNK_RESOLUTION || data.rx < 0 ||
+        data.ry >= SC_CHUNK_RESOLUTION || data.ry < 0 ||
+        data.rz >= SC_CHUNK_RESOLUTION || data.rz < 0)
         return NULL;
 
-    *x = bx;
-    *y = by;
-    *z = bz;
-    return sc_world_get_block(world, bx, by, bz);
+    *x = data.rx;
+    *y = data.ry;
+    *z = data.rz;
+    return sc_world_get_block(world, data.rx, data.ry, data.rz);
 }
 
 static void
@@ -199,11 +242,7 @@ static int
 contents_visible(const sc_frustum_t *frustum, int x, int y, int z, size_t size)
 {
     sc_vec3_t vec1, vec2;
-    sc_vec3_set(&vec1, BLOCK_SIZE * x - BLOCK_SIZE / 2,
-                       BLOCK_SIZE * y - BLOCK_SIZE / 2,
-                       BLOCK_SIZE * z - BLOCK_SIZE / 2);
-    sc_vec3_set(&vec2, BLOCK_SIZE * size, BLOCK_SIZE * size, BLOCK_SIZE * size);
-    sc_vec3_add(&vec2, &vec2, &vec1);
+    make_block_aabb(&vec1, &vec2, x, y, z, size);
     return sc_frustum_test_aabb(frustum, &vec1, &vec2) >= 0;
 }
 

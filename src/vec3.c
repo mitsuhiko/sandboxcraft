@@ -143,12 +143,3 @@ sc_vec3_nonzero(const sc_vec3_t *vec)
         vec->z >= EPSILON || vec->z <= -EPSILON
     );
 }
-
-#define VEC_COMPARISON(Name, Op) \
-    int sc_vec3_##Name(const sc_vec3_t *v1, const sc_vec3_t *v2) { \
-        return ((v1->x Op v2->x) && (v1->y Op v2->y) && (v1->z Op v2->z)); \
-    }
-VEC_COMPARISON(lt, <)
-VEC_COMPARISON(le, <=)
-VEC_COMPARISON(gt, >)
-VEC_COMPARISON(ge, >=)

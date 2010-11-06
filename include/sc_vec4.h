@@ -60,12 +60,6 @@ struct _sc_vec3 *sc_vec4_transform_homogenous(struct _sc_vec3 *vec_out,
 /* checks if two vectors are approximately the same */
 int sc_vec4_equal(const sc_vec4_t *v1, const sc_vec4_t *v2);
 
-/* other comparisions */
-int sc_vec4_lt(const sc_vec4_t *v1, const sc_vec4_t *v2);
-int sc_vec4_le(const sc_vec4_t *v1, const sc_vec4_t *v2);
-int sc_vec4_gt(const sc_vec4_t *v1, const sc_vec4_t *v2);
-int sc_vec4_ge(const sc_vec4_t *v1, const sc_vec4_t *v2);
-
 /* checks if a vector is not zero in length or close to it */
 int sc_vec4_nonzero(const sc_vec4_t *vec);
 

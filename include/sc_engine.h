@@ -6,6 +6,7 @@
 #include "sc_color.h"
 #include "sc_vec3.h"
 #include "sc_mat4.h"
+#include "sc_ray.h"
 
 /* abstract the sdl tick interface */
 #define sc_engine_get_ticks SDL_GetTicks
@@ -63,6 +64,9 @@ sc_mat4_t *sc_engine_get_mvp_matrix(sc_mat4_t *mat_out);
 /* unprojects screen coordinates into 3d space.  It will use the z buffer
    information to reference the forcemost vertex. */
 sc_vec3_t *sc_engine_unproject(sc_vec3_t *vec_out, int x, int y);
+
+/* casts an actual ray into the screen */
+sc_ray_t *sc_engine_raycast(sc_ray_t *ray_out, int x, int y);
 
 /* callback for begin/end of frame handling */
 void sc_engine_begin_frame(void);

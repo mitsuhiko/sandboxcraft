@@ -48,12 +48,6 @@ sc_vec2_t *sc_vec2_neg(sc_vec2_t *vec);
 /* checks if two vectors are approximately the same */
 int sc_vec2_equal(const sc_vec2_t *v1, const sc_vec2_t *v2);
 
-/* other comparisions */
-int sc_vec2_lt(const sc_vec2_t *v1, const sc_vec2_t *v2);
-int sc_vec2_le(const sc_vec2_t *v1, const sc_vec2_t *v2);
-int sc_vec2_gt(const sc_vec2_t *v1, const sc_vec2_t *v2);
-int sc_vec2_ge(const sc_vec2_t *v1, const sc_vec2_t *v2);
-
 /* checks if a vector is not zero in length or close to it */
 int sc_vec2_nonzero(const sc_vec2_t *vec);
 

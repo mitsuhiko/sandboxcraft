@@ -219,6 +219,31 @@ sc_engine_unproject(sc_vec3_t *vec_out, int x, int y)
     return sc_vec4_transform_homogenous(vec_out, &invec, &mvp);
 }
 
+sc_ray_t *
+sc_engine_raycast(sc_ray_t *ray_out, int x, int y)
+{
+    int width, height;
+    sc_mat4_t mvp;
+    sc_vec4_t invec, forward;
+
+    sc_engine_get_mvp_matrix(&mvp);
+    if (!sc_mat4_inverse(&mvp, &mvp))
+        return NULL;
+
+    sc_engine_get_dimensions(&width, &height);
+
+    sc_vec4_set(&invec, x * 2.0f / width - 1.0f,
+                (height - y) * 2.0f / height - 1.0f, 0.0f, 1.0f);
+    sc_vec4_set(&forward, 0.0f, 0.0f, -1.0f, 1.0f);
+
+    if (!sc_vec4_transform_homogenous(&ray_out->pos, &invec, &mvp) ||
+        !sc_vec4_transform_homogenous(&ray_out->dir, &forward, &mvp))
+        return NULL;
+    sc_vec3_normalize(&ray_out->dir);
+
+    return ray_out;
+}
+
 void
 sc_engine_begin_frame(void)
 {

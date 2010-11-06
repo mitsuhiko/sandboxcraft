@@ -26,6 +26,7 @@ set(LIB_SOURCES
     src/frustum.c
     src/vbo.c
     src/primitives.c
+    src/ray.c
 
     deps/GLee/GLee.c
 )
@@ -53,6 +54,7 @@ set(LIB_HEADERS
     include/sc_frustum.h
     include/sc_vbo.h
     include/sc_primitives.h
+    include/sc_ray.h
 
     deps/GLee/GLee.h
 )
