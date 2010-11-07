@@ -36,8 +36,8 @@ sc_ray_intersects_aabb(const sc_ray_t *ray, const sc_vec3_t *vec1,
     HIT_CHECK(vec2, x, 1, y, z);    /* max x */
     HIT_CHECK(vec1, y, 0, x, z);    /* min y */
     HIT_CHECK(vec2, y, 1, x, z);    /* max y */
-    HIT_CHECK(vec1, z, 0, x, z);    /* min z */
-    HIT_CHECK(vec2, z, 1, x, z);    /* max z */
+    HIT_CHECK(vec1, z, 0, x, y);    /* min z */
+    HIT_CHECK(vec2, z, 1, x, y);    /* max z */
 
     if (!did_hit)
         return 0;

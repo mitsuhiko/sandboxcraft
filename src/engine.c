@@ -223,8 +223,9 @@ sc_ray_t *
 sc_engine_raycast(sc_ray_t *ray_out, int x, int y)
 {
     int width, height;
+    float cx, cy;
     sc_mat4_t mvp;
-    sc_vec4_t invec, forward;
+    sc_vec4_t vec1, vec2;
 
     sc_engine_get_mvp_matrix(&mvp);
     if (!sc_mat4_inverse(&mvp, &mvp))
@@ -232,13 +233,15 @@ sc_engine_raycast(sc_ray_t *ray_out, int x, int y)
 
     sc_engine_get_dimensions(&width, &height);
 
-    sc_vec4_set(&invec, x * 2.0f / width - 1.0f,
-                (height - y) * 2.0f / height - 1.0f, 0.0f, 1.0f);
-    sc_vec4_set(&forward, 0.0f, 0.0f, -1.0f, 1.0f);
+    cx = x * 2.0f / width - 1.0f;
+    cy = (height - y) * 2.0f / height - 1.0f;
+    sc_vec4_set(&vec1, cx, cy, 0.0f, 1.0f);
+    sc_vec4_set(&vec2, cx, cy, 1.0f, 1.0f);
 
-    if (!sc_vec4_transform_homogenous(&ray_out->pos, &invec, &mvp) ||
-        !sc_vec4_transform_homogenous(&ray_out->dir, &forward, &mvp))
+    if (!sc_vec4_transform_homogenous(&ray_out->pos, &vec1, &mvp) ||
+        !sc_vec4_transform_homogenous(&ray_out->dir, &vec2, &mvp))
         return NULL;
+
     sc_vec3_normalize(&ray_out->dir);
 
     return ray_out;
