@@ -31,9 +31,9 @@ struct chunk_node_children { CHUNK_NODE_CHILDREN; };
 struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
 
 /* various helper macros to test for bits */
-#define CHUNK_IS_LEAF(C) (((C)->flags & CHUNK_FLAG_LEAF) != 0)
-#define CHUNK_IS_DIRTY(C) (((C)->flags & CHUNK_FLAG_DIRTY) != 0)
-#define CHUNK_HAS_VBO(C) (((C)->flags & CHUNK_FLAG_VBO) != 0)
+#define CHUNK_IS_LEAF(C)    (((C)->flags & CHUNK_FLAG_LEAF) != 0)
+#define CHUNK_IS_DIRTY(C)   (((C)->flags & CHUNK_FLAG_DIRTY) != 0)
+#define CHUNK_HAS_VBO(C)    (((C)->flags & CHUNK_FLAG_VBO) != 0)
 
 /* returns the block type for a node if that node contains block information
    or SC_BLOCK_AIR if it does not carry any block info */
@@ -205,7 +205,12 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
     /* the child of size 1 should be a leaf */
     assert(CHUNK_IS_LEAF(node));
 
-    /* helper macro to mark other vbos as dirty. */
+    /* helper macro to mark other vbos as dirty.
+
+       TODO: one could speed this up by remembering the parents for each
+             node.  This however would require 4 additional bytes for
+             each node, so it has some memory limitations.  If this ever
+             becomes a performance problem, we know where to fix it. */
 #define MARK_DIRTY(X, Y, Z) do { \
     struct chunk_node_vbo *node = find_vbo_node(world, X, Y, Z); \
     if (node) \
