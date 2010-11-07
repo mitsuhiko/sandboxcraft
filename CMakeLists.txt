@@ -27,6 +27,7 @@ set(LIB_SOURCES
     src/vbo.c
     src/primitives.c
     src/ray.c
+    src/debug.c
 
     deps/GLee/GLee.c
 )
@@ -55,6 +56,7 @@ set(LIB_HEADERS
     include/sc_vbo.h
     include/sc_primitives.h
     include/sc_ray.h
+    include/sc_debug.h
 
     deps/GLee/GLee.h
 )

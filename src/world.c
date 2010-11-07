@@ -5,6 +5,7 @@
 #include "sc_world.h"
 #include "sc_frustum.h"
 #include "sc_primitives.h"
+#include "sc_debug.h"
 
 #define BLOCK_SIZE 20.0f
 

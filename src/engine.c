@@ -4,6 +4,7 @@
 #include "sc_engine.h"
 #include "sc_vec4.h"
 #include "sc_error.h"
+#include "sc_debug.h"
 
 /* TODO: move to config */
 #define WIDTH 800
@@ -256,6 +257,11 @@ sc_engine_begin_frame(void)
 void
 sc_engine_end_frame(void)
 {
+    /* print debugging information if not in production mode */
+#ifndef NDEBUG
+    sc_debug_flush();
+#endif
+
 #ifdef FPS_LIMIT
     if (sc_gametime.delta < (1000.0f / FPS_LIMIT))
         sc_engine_delay((sc_ticks_t)((1000.0f / FPS_LIMIT) -
