@@ -8,28 +8,25 @@
 #include "sc_blocks.h"
 #include "sc_camera.h"
 
-#define SC_CHUNK_RESOLUTION 128 /* size of the octree */
-#define SC_CHUNK_VBO_SIZE   16  /* size of the node where vbos are stored */
+/* number of chunks in our octree */
+#define SC_CHUNK_RESOLUTION 128
 
-struct _sc_chunk_node;
-typedef struct _sc_chunk_node {
-    const sc_block_t *block;
-    sc_vbo_t *vbo;                      /* if there is a vbo for that node */
-    int dirty;                          /* need to redraw? */
-    struct _sc_chunk_node *children[8];
-} sc_chunk_node_t;
+/* where the vbos are stored.  chunk_resolution % vbo_size === 0! */
+#define SC_CHUNK_VBO_SIZE   16
 
-typedef struct {
-    sc_chunk_node_t *root;              /* the root node of the octree */
-    uint32_t seed;                      /* the seed for the world */
-} sc_world_t;
+/* the size of a block in the world */
+#define SC_BLOCK_SIZE 20.0f
+
+/* the world is an opaque type */
+#ifndef _SC_DONT_DEFINE_WORLD
+typedef struct {} sc_world_t;
+#endif
 
 /* callbacks for chunk traversing.  For more information have a look
    at the sc_walk_chunk function. */
 typedef int (*sc_chunk_walk_cb)(sc_world_t *world, const sc_block_t *block,
                                 int x, int y, int z, size_t size,
                                 void *closure);
-
 
 /* creates a new world */
 sc_world_t *sc_new_world(void);
@@ -47,7 +44,7 @@ const sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
 int sc_world_set_block(sc_world_t *world, int x, int y, int z,
                        const sc_block_t *block);
 
-/* blocks a block by screen position. */
+/* returns a block by screen position. */
 const sc_block_t *sc_world_get_block_by_pixel(sc_world_t *world, int sx, int sy,
                                               int *x, int *y, int *z);
 
@@ -64,12 +61,6 @@ void sc_world_draw(sc_world_t *world);
 /* returns a vbo.  If the vbo does not exist so far or is outdated, a new
    one is created. */
 const sc_vbo_t *sc_world_get_vbo(sc_world_t *world, int x, int y, int z);
-
-/* semi-internal function to create a new chunk. */
-sc_chunk_node_t *sc_new_chunk_node(void);
-
-/* semi-internal function to free a chunk. */
-void sc_free_chunk_node(sc_chunk_node_t *node);
 
 /* traverses the world.  This will execute the given callback with
    the following information:

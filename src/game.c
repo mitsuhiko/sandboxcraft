@@ -130,9 +130,9 @@ sc_game_render(void)
     sc_world_draw(world);
 
     glPushMatrix();
-        glTranslatef(selected_block.x * 20,
-                     selected_block.y * 20,
-                     selected_block.z * 20);
+        glTranslatef(selected_block.x * SC_BLOCK_SIZE,
+                     selected_block.y * SC_BLOCK_SIZE,
+                     selected_block.z * SC_BLOCK_SIZE);
         glutWireCube(22);
     glPopMatrix();
 }

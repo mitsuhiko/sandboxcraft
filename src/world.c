@@ -1,13 +1,52 @@
+/* internal version of the world struct.  The public one is completely
+   empty as we do not expose anything currently.  This will change once
+   we introduce other information there */
+struct chunk_node;
+typedef struct {
+    struct chunk_node *root;            /* the root node of the octree */
+} sc_world_t;
+
 #include <assert.h>
 #include <stdlib.h>
 
+#define _SC_DONT_DEFINE_WORLD
 #include "sc_engine.h"
+#include "sc_blocks.h"
 #include "sc_world.h"
 #include "sc_frustum.h"
 #include "sc_primitives.h"
-#include "sc_debug.h"
 
-#define BLOCK_SIZE 20.0f
+/* current set of flags to keep different struct sizes apart */
+#define CHUNK_FLAG_LEAF         1       /* this node has no children */
+#define CHUNK_FLAG_VBO          2       /* this node stores a vbo */
+#define CHUNK_FLAG_DIRTY        4       /* this node's vbo needs update */
+
+/* defines the different structs for the octree nodes.  The flags above
+   tell which version of the struct we're dealing with. */
+#define CHUNK_NODE_BASE char flags
+#define CHUNK_NODE_CHILDREN CHUNK_NODE_BASE; struct chunk_node *children[8]
+struct chunk_node { CHUNK_NODE_BASE; };
+struct chunk_node_leaf { CHUNK_NODE_BASE; sc_blocktype_t block; };
+struct chunk_node_children { CHUNK_NODE_CHILDREN; };
+struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
+
+/* various helper macros to test for bits */
+#define CHUNK_IS_LEAF(C) (((C)->flags & CHUNK_FLAG_LEAF) != 0)
+#define CHUNK_IS_DIRTY(C) (((C)->flags & CHUNK_FLAG_DIRTY) != 0)
+#define CHUNK_HAS_VBO(C) (((C)->flags & CHUNK_FLAG_VBO) != 0)
+
+/* returns the block type for a node if that node contains block information
+   or SC_BLOCK_AIR if it does not carry any block info */
+#define CHUNK_GET_BLOCK_TYPE(C) \
+    (CHUNK_IS_LEAF(C) ? ((struct chunk_node_leaf *)C)->block : SC_BLOCK_AIR)
+#define CHUNK_GET_BLOCK(C) sc_get_block(CHUNK_GET_BLOCK_TYPE(C))
+
+/* helper check to see if any of the arguments is outside of the world */
+#define OUT_OF_BOUNDS(X, Y, Z) \
+    ((x) >= SC_CHUNK_RESOLUTION || (x) < 0 || \
+     (y) >= SC_CHUNK_RESOLUTION || (y) < 0 || \
+     (z) >= SC_CHUNK_RESOLUTION || (z) < 0)
+
 
 struct ray_query_data {
     sc_ray_t ray;
@@ -19,11 +58,60 @@ struct ray_query_data {
 };
 
 
+static struct chunk_node *
+new_chunk_node(struct chunk_node_children *parent, size_t size, int child_pos)
+{
+    struct chunk_node *rv;
+
+    /* make sure the parent is not a leaf.  Should not happen as we do not
+       support payload for items with a size != 1 and this is the only
+       function that creates nodes besides the one in the world init. */
+    assert(!parent || !CHUNK_IS_LEAF(parent));
+
+    if (size == 1) {
+        rv = sc_xalloc(struct chunk_node_leaf);
+        rv->flags = CHUNK_FLAG_LEAF;
+    }
+    else {
+        if (size == SC_CHUNK_VBO_SIZE) {
+            rv = sc_xalloc(struct chunk_node_vbo);
+            rv->flags = CHUNK_FLAG_VBO | CHUNK_FLAG_DIRTY;
+            ((struct chunk_node_vbo *)rv)->vbo = NULL;
+        }
+        else {
+            rv = sc_xalloc(struct chunk_node_children);
+            rv->flags = 0;
+        }
+        memset(((struct chunk_node_children *)rv)->children, 0,
+               sizeof(struct chunk_node *) * 8);
+    }
+    if (parent)
+        parent->children[child_pos] = rv;
+    return rv;
+}
+
+static void
+free_chunk_node(struct chunk_node *node)
+{
+    size_t i;
+    if (!node)
+        return;
+    if (!CHUNK_IS_LEAF(node)) {
+        struct chunk_node_children *nodec = (struct chunk_node_children *)node;
+        for (i = 0; i < 8; i++)
+            free_chunk_node(nodec->children[i]);
+    }
+    if (CHUNK_HAS_VBO(node))
+        sc_free_vbo(((struct chunk_node_vbo *)node)->vbo);
+    sc_free(node);
+}
+
 sc_world_t *
 sc_new_world(void)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
-    world->root = sc_new_chunk_node();
+    world->root = new_chunk_node(NULL, SC_CHUNK_VBO_SIZE, 0);
+    assert(SC_CHUNK_RESOLUTION % SC_CHUNK_VBO_SIZE == 0);
     return world;
 }
 
@@ -32,36 +120,34 @@ sc_free_world(sc_world_t *world)
 {
     if (!world)
         return;
-    sc_free_chunk_node(world->root);
+    free_chunk_node(world->root);
 }
 
-static sc_chunk_node_t *
-find_vbo_node(sc_world_t *world, int x, int y, int z)
+static struct chunk_node *
+find_node(sc_world_t *world, int x, int y, int z, size_t limit)
 {
     int size;
-    sc_chunk_node_t *node, *child;
+    struct chunk_node *node, *child;
+    struct chunk_node_children *nodec;
 
-    if (x >= SC_CHUNK_RESOLUTION || x < 0 ||
-        y >= SC_CHUNK_RESOLUTION || y < 0 ||
-        z >= SC_CHUNK_RESOLUTION || z < 0)
+    if (OUT_OF_BOUNDS(x, y, z))
         return NULL;
 
-    /* Find the block in the octree */
     node = world->root;
     size = SC_CHUNK_RESOLUTION;
     while (1) {
         size_t idx;
         size /= 2;
+        if (CHUNK_IS_LEAF(node))
+            break;
+        nodec = (struct chunk_node_children *)node;
         idx = !!(x & size) << 2 | !!(y & size) << 1 | !!(z & size);
-        child = node->children[idx];
-        if (!child) {
-            child = sc_new_chunk_node();
-            node->children[idx] = child;
-            /* remember the block when we create a new child */
-            child->block = node->block;
-        }
+        child = nodec->children[idx];
+        if (!child)
+            break;
         node = child;
-        if (size == SC_CHUNK_VBO_SIZE)
+
+        if (size == limit)
             break;
     }
 
@@ -71,29 +157,21 @@ find_vbo_node(sc_world_t *world, int x, int y, int z)
 const sc_block_t *
 sc_world_get_block(sc_world_t *world, int x, int y, int z)
 {
-    int size;
-    sc_chunk_node_t *node, *child;
-
-    /* stuff outside of the cube is air */
-    if (x >= SC_CHUNK_RESOLUTION || x < 0 ||
-        y >= SC_CHUNK_RESOLUTION || y < 0 ||
-        z >= SC_CHUNK_RESOLUTION || z < 0)
+    struct chunk_node *node = find_node(world, x, y, z, 1);
+    /* out of bounds or all air so far */
+    if (node == NULL || !CHUNK_IS_LEAF(node))
         return sc_get_block(SC_BLOCK_AIR);
+    return CHUNK_GET_BLOCK(node);
+}
 
-    /* locate the block in the octree */
-    node = world->root;
-    size = SC_CHUNK_RESOLUTION;
-    while (size != 1) {
-        size_t idx;
-        size /= 2;
-        idx = !!(x & size) << 2 | !!(y & size) << 1 | !!(z & size);
-        child = node->children[idx];
-        if (!child)
-            break;
-        node = child;
-    }
-
-    return node->block;
+static struct chunk_node_vbo *
+find_vbo_node(sc_world_t *world, int x, int y, int z)
+{
+    struct chunk_node *node = find_node(world, x, y, z, SC_CHUNK_VBO_SIZE);
+    /* out of bounds or all air and so no vbo yet */
+    if (!node || !CHUNK_HAS_VBO(node))
+        return NULL;
+    return (struct chunk_node_vbo *)node;
 }
 
 int
@@ -101,11 +179,10 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
                    const sc_block_t *block)
 {
     int size;
-    sc_chunk_node_t *node, *child;
+    struct chunk_node *node, *child;
+    struct chunk_node_children *cnode;
 
-    if (x >= SC_CHUNK_RESOLUTION || x < 0 ||
-        y >= SC_CHUNK_RESOLUTION || y < 0 ||
-        z >= SC_CHUNK_RESOLUTION || z < 0)
+    if (OUT_OF_BOUNDS(x, y, z))
         return 0;
 
     /* Find the block in the octree */
@@ -115,28 +192,30 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
         size_t idx;
         size /= 2;
         idx = !!(x & size) << 2 | !!(y & size) << 1 | !!(z & size);
-        child = node->children[idx];
-        if (!child) {
-            child = sc_new_chunk_node();
-            node->children[idx] = child;
-            /* remember the block when we create a new child */
-            child->block = node->block;
-        }
-        node = child;
+        assert(!CHUNK_IS_LEAF(node));
+        cnode = (struct chunk_node_children *)node;
+        child = cnode->children[idx];
+        if (!child)
+            child = new_chunk_node(cnode, size, idx);
         if (size == SC_CHUNK_VBO_SIZE)
-            node->dirty = 1;
+            ((struct chunk_node_vbo *)child)->flags |= CHUNK_FLAG_DIRTY;
+        node = child;
     }
 
-    /* helper macro to mark other vbos as dirty */
+    /* the child of size 1 should be a leaf */
+    assert(CHUNK_IS_LEAF(node));
+
+    /* helper macro to mark other vbos as dirty. */
 #define MARK_DIRTY(X, Y, Z) do { \
-    sc_chunk_node_t *node = find_vbo_node(world, X, Y, Z); \
+    struct chunk_node_vbo *node = find_vbo_node(world, X, Y, Z); \
     if (node) \
-        node->dirty = 1; \
+        node->flags |= CHUNK_FLAG_DIRTY; \
 } while (0)
 
     /* in case we replace air for non air at an edge block we have to be
        extra careful and update the dirty flags of the blocks nearby. */
-    if ((node->block->type == SC_BLOCK_AIR) != (block->type == SC_BLOCK_AIR)) {
+    if ((CHUNK_GET_BLOCK_TYPE(node) == SC_BLOCK_AIR) !=
+        (block->type == SC_BLOCK_AIR)) {
         if ((x + 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x + 1, y, z);
         if ((x - 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x - 1, y, z);
         if ((y + 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y + 1, z);
@@ -145,7 +224,7 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
         if ((z - 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y, z - 1);
     }
 
-    node->block = block;
+    ((struct chunk_node_leaf *)node)->block = block->type;
     return 1;
 }
 
@@ -153,12 +232,12 @@ static void
 make_block_aabb(sc_vec3_t *vec1_out, sc_vec3_t *vec2_out,
                 int x, int y, int z, size_t size)
 {
-    sc_vec3_set(vec1_out, BLOCK_SIZE * x - BLOCK_SIZE / 2,
-                          BLOCK_SIZE * y - BLOCK_SIZE / 2,
-                          BLOCK_SIZE * z - BLOCK_SIZE / 2);
-    sc_vec3_set(vec2_out, BLOCK_SIZE * size,
-                          BLOCK_SIZE * size,
-                          BLOCK_SIZE * size);
+    sc_vec3_set(vec1_out, SC_BLOCK_SIZE * x - SC_BLOCK_SIZE / 2,
+                          SC_BLOCK_SIZE * y - SC_BLOCK_SIZE / 2,
+                          SC_BLOCK_SIZE * z - SC_BLOCK_SIZE / 2);
+    sc_vec3_set(vec2_out, SC_BLOCK_SIZE * size,
+                          SC_BLOCK_SIZE * size,
+                          SC_BLOCK_SIZE * size);
     sc_vec3_add(vec2_out, vec2_out, vec1_out);
 }
 
@@ -208,23 +287,26 @@ sc_world_get_block_by_pixel(sc_world_t *world, int sx, int sy,
 }
 
 static void
-walk_chunk(sc_world_t *world, const sc_chunk_node_t **children,
-           const sc_block_t *block, int x, int y, int z, size_t size,
+walk_chunk(sc_world_t *world, const struct chunk_node **children,
+           sc_blocktype_t block, int x, int y, int z, size_t size,
            sc_chunk_walk_cb cb, void *closure)
 {
     int i;
 
-    if (!cb(world, block, x, y, z, size, closure) && (size /= 2) < 1)
+    if (!cb(world, sc_get_block(block), x, y, z, size, closure))
         return;
 
     if ((size /= 2) < 1)
         return;
 
     for (i = 0; i < 8; i++) {
-        const sc_chunk_node_t *child = children ? children[i] : NULL;
-        walk_chunk(world, (const sc_chunk_node_t **)(child ? child->children
-                                                           : NULL),
-                   child ? child->block : block,
+        const struct chunk_node *child = children ? children[i] : NULL;
+        const struct chunk_node **children = NULL;
+        if (child && !CHUNK_IS_LEAF(child))
+            children = (const struct chunk_node **)((
+                const struct chunk_node_children *)child)->children;
+        walk_chunk(world, children,
+                   child ? CHUNK_GET_BLOCK_TYPE(child) : SC_BLOCK_AIR,
                    x + ((i & 4) ? size : 0),
                    y + ((i & 2) ? size : 0),
                    z + ((i & 1) ? size : 0),
@@ -235,8 +317,9 @@ walk_chunk(sc_world_t *world, const sc_chunk_node_t **children,
 void
 sc_walk_world(sc_world_t *world, sc_chunk_walk_cb cb, void *closure)
 {
-    walk_chunk(world, (const sc_chunk_node_t **)world->root->children,
-               world->root->block, 0, 0, 0, SC_CHUNK_RESOLUTION, cb, closure);
+    const struct chunk_node_children *root = (void *)world->root;
+    walk_chunk(world, (const struct chunk_node **)root->children,
+               SC_BLOCK_AIR, 0, 0, 0, SC_CHUNK_RESOLUTION, cb, closure);
 }
 
 static int
@@ -260,9 +343,12 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
        update the vbo if necessary. */
     if (size == SC_CHUNK_VBO_SIZE) {
         const sc_vbo_t *vbo = sc_world_get_vbo(world, x, y, z);
-        assert(vbo);
-        sc_bind_texture(sc_blocks_get_atlas_texture());
-        sc_vbo_draw(vbo);
+        /* in case a piece of world is still completely empty, we won't
+           have a vbo so far.  In that case, just ignore that */
+        if (vbo) {
+            sc_bind_texture(sc_blocks_get_atlas_texture());
+            sc_vbo_draw(vbo);
+        }
         return 0;
     }
 
@@ -270,8 +356,8 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
 }
 
 static void
-update_vbo(sc_world_t *world, sc_chunk_node_t *node, int min_x, int min_y,
-           int min_z, size_t size)
+update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
+           int min_y, int min_z, size_t size)
 {
     const sc_block_t *block;
     int x, y, z;
@@ -288,8 +374,8 @@ update_vbo(sc_world_t *world, sc_chunk_node_t *node, int min_x, int min_y,
     (sc_world_get_block(world, X, Y, Z)->type == SC_BLOCK_AIR)
 
 #define ADD_PLANE(Side) do { \
-    sc_cube_add_ ##Side## _plane(node->vbo, BLOCK_SIZE, x * BLOCK_SIZE, \
-                                 y * BLOCK_SIZE, z * BLOCK_SIZE); \
+    sc_cube_add_ ##Side## _plane(node->vbo, SC_BLOCK_SIZE, x * SC_BLOCK_SIZE, \
+                                 y * SC_BLOCK_SIZE, z * SC_BLOCK_SIZE); \
     sc_vbo_update_texcoords_from_texture_range( \
         node->vbo, node->vbo->vertices - 6, node->vbo->vertices, \
         block->texture); \
@@ -311,17 +397,17 @@ update_vbo(sc_world_t *world, sc_chunk_node_t *node, int min_x, int min_y,
                 if (IS_AIR(x, y, z + 1)) ADD_PLANE(front);
             }
 
-    node->dirty = 0;
+    node->flags &= ~CHUNK_FLAG_DIRTY;
     sc_finalize_vbo(node->vbo);
 }
 
 const sc_vbo_t *
 sc_world_get_vbo(sc_world_t *world, int x, int y, int z)
 {
-    sc_chunk_node_t *node = find_vbo_node(world, x, y, z);
+    struct chunk_node_vbo *node = find_vbo_node(world, x, y, z);
     if (!node)
         return NULL;
-    if (!node->vbo || node->dirty)
+    if (!node->vbo || CHUNK_IS_DIRTY(node))
         update_vbo(world, node, x - x % SC_CHUNK_VBO_SIZE,
                    y - y % SC_CHUNK_VBO_SIZE, z - z % SC_CHUNK_VBO_SIZE,
                    SC_CHUNK_VBO_SIZE);
@@ -334,28 +420,4 @@ sc_world_draw(sc_world_t *world)
     sc_frustum_t frustum;
     sc_get_current_frustum(&frustum);
     sc_walk_world(world, draw_if_visible, &frustum);
-}
-
-sc_chunk_node_t *
-sc_new_chunk_node(void)
-{
-    sc_chunk_node_t *node = sc_xalloc(sc_chunk_node_t);
-    memset(node->children, 0, sizeof(node->children));
-    node->block = sc_get_block(SC_BLOCK_AIR);
-    node->vbo = NULL;
-    node->dirty = 0;
-    return node;
-}
-
-void
-sc_free_chunk_node(sc_chunk_node_t *node)
-{
-    size_t i;
-    if (!node)
-        return;
-    for (i = 0; i < 8; i++)
-        sc_free_chunk_node(node->children[i]);
-    if (node->vbo)
-        sc_free_vbo(node->vbo);
-    sc_free(node);
 }

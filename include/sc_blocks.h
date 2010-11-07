@@ -6,16 +6,16 @@
 #include "sc_vbo.h"
 #include "sc_texture.h"
 
-typedef enum {
-    SC_BLOCK_AIR = 0,
-    SC_BLOCK_GRASS = 1,
-    SC_BLOCK_STONE = 2,
-    SC_BLOCK_PLANKS = 3,
-    SC_BLOCK_SAND = 4,
-    SC_BLOCK_GRAVEL = 5,
-    SC_BLOCK_COBBLESTONE = 6,
-    SC_BLOCK_WATER = 7
-} sc_blocktype_t;
+#define SC_BLOCK_AIR            0
+#define SC_BLOCK_GRASS          1
+#define SC_BLOCK_STONE          2
+#define SC_BLOCK_PLANKS         3
+#define SC_BLOCK_SAND           4
+#define SC_BLOCK_GRAVEL         5
+#define SC_BLOCK_COBBLESTONE    6
+#define SC_BLOCK_WATER          7
+
+typedef char sc_blocktype_t;
 
 typedef struct {
     sc_texture_t *texture;
