@@ -15,6 +15,7 @@ typedef struct {
 #include "sc_world.h"
 #include "sc_frustum.h"
 #include "sc_primitives.h"
+#include "sc_math.h"
 
 /* current set of flags to keep different struct sizes apart */
 #define CHUNK_FLAG_LEAF         1       /* this node has no children */
@@ -59,34 +60,25 @@ struct ray_query_data {
 
 
 static struct chunk_node *
-new_chunk_node(struct chunk_node_children *parent, size_t size, int child_pos)
+new_chunk_node(size_t size)
 {
     struct chunk_node *rv;
-
-    /* make sure the parent is not a leaf.  Should not happen as we do not
-       support payload for items with a size != 1 and this is the only
-       function that creates nodes besides the one in the world init. */
-    assert(!parent || !CHUNK_IS_LEAF(parent));
-
     if (size == 1) {
         rv = sc_xalloc(struct chunk_node_leaf);
         rv->flags = CHUNK_FLAG_LEAF;
+        return rv;
+    }
+    if (size == SC_CHUNK_VBO_SIZE) {
+        rv = sc_xalloc(struct chunk_node_vbo);
+        rv->flags = CHUNK_FLAG_VBO | CHUNK_FLAG_DIRTY;
+        ((struct chunk_node_vbo *)rv)->vbo = NULL;
     }
     else {
-        if (size == SC_CHUNK_VBO_SIZE) {
-            rv = sc_xalloc(struct chunk_node_vbo);
-            rv->flags = CHUNK_FLAG_VBO | CHUNK_FLAG_DIRTY;
-            ((struct chunk_node_vbo *)rv)->vbo = NULL;
-        }
-        else {
-            rv = sc_xalloc(struct chunk_node_children);
-            rv->flags = 0;
-        }
-        memset(((struct chunk_node_children *)rv)->children, 0,
-               sizeof(struct chunk_node *) * 8);
+        rv = sc_xalloc(struct chunk_node_children);
+        rv->flags = 0;
     }
-    if (parent)
-        parent->children[child_pos] = rv;
+    memset(((struct chunk_node_children *)rv)->children, 0,
+           sizeof(struct chunk_node *) * 8);
     return rv;
 }
 
@@ -97,9 +89,9 @@ free_chunk_node(struct chunk_node *node)
     if (!node)
         return;
     if (!CHUNK_IS_LEAF(node)) {
-        struct chunk_node_children *nodec = (struct chunk_node_children *)node;
+        struct chunk_node_children *cn = (struct chunk_node_children *)node;
         for (i = 0; i < 8; i++)
-            free_chunk_node(nodec->children[i]);
+            free_chunk_node(cn->children[i]);
     }
     if (CHUNK_HAS_VBO(node))
         sc_free_vbo(((struct chunk_node_vbo *)node)->vbo);
@@ -110,7 +102,8 @@ sc_world_t *
 sc_new_world(void)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
-    world->root = new_chunk_node(NULL, SC_CHUNK_VBO_SIZE, 0);
+    world->root = new_chunk_node(SC_CHUNK_VBO_SIZE);
+    assert(sc_is_power_of_two(SC_CHUNK_RESOLUTION));
     assert(SC_CHUNK_RESOLUTION % SC_CHUNK_VBO_SIZE == 0);
     return world;
 }
@@ -184,6 +177,8 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
 
     if (OUT_OF_BOUNDS(x, y, z))
         return 0;
+    else if (sc_world_get_block(world, x, y, z)->type == block->type)
+        return 1;
 
     /* Find the block in the octree */
     node = world->root;
@@ -195,15 +190,14 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
         assert(!CHUNK_IS_LEAF(node));
         cnode = (struct chunk_node_children *)node;
         child = cnode->children[idx];
-        if (!child)
-            child = new_chunk_node(cnode, size, idx);
+        if (!child) {
+            child = new_chunk_node(size);
+            cnode->children[idx] = child;
+        }
         if (size == SC_CHUNK_VBO_SIZE)
-            ((struct chunk_node_vbo *)child)->flags |= CHUNK_FLAG_DIRTY;
+            child->flags |= CHUNK_FLAG_DIRTY;
         node = child;
     }
-
-    /* the child of size 1 should be a leaf */
-    assert(CHUNK_IS_LEAF(node));
 
     /* helper macro to mark other vbos as dirty.
 
@@ -229,6 +223,7 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
         if ((z - 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y, z - 1);
     }
 
+    assert(CHUNK_IS_LEAF(node));
     ((struct chunk_node_leaf *)node)->block = block->type;
     return 1;
 }
@@ -297,20 +292,18 @@ walk_chunk(sc_world_t *world, const struct chunk_node **children,
            sc_chunk_walk_cb cb, void *closure)
 {
     int i;
+    const struct chunk_node *child, **inner_children;
 
-    if (!cb(world, sc_get_block(block), x, y, z, size, closure))
-        return;
-
-    if ((size /= 2) < 1)
+    if (!cb(world, sc_get_block(block), x, y, z, size, closure) ||
+        (size /= 2) < 1)
         return;
 
     for (i = 0; i < 8; i++) {
-        const struct chunk_node *child = children ? children[i] : NULL;
-        const struct chunk_node **children = NULL;
-        if (child && !CHUNK_IS_LEAF(child))
-            children = (const struct chunk_node **)((
-                const struct chunk_node_children *)child)->children;
-        walk_chunk(world, children,
+        child = children ? children[i] : NULL;
+        inner_children = (child && !CHUNK_IS_LEAF(child)) ?
+            (const struct chunk_node **)((
+                const struct chunk_node_children *)child)->children : NULL;
+        walk_chunk(world, inner_children,
                    child ? CHUNK_GET_BLOCK_TYPE(child) : SC_BLOCK_AIR,
                    x + ((i & 4) ? size : 0),
                    y + ((i & 2) ? size : 0),
@@ -322,8 +315,8 @@ walk_chunk(sc_world_t *world, const struct chunk_node **children,
 void
 sc_walk_world(sc_world_t *world, sc_chunk_walk_cb cb, void *closure)
 {
-    const struct chunk_node_children *root = (void *)world->root;
-    walk_chunk(world, (const struct chunk_node **)root->children,
+    walk_chunk(world, (const struct chunk_node **)((struct
+                   chunk_node_children *)world->root)->children,
                SC_BLOCK_AIR, 0, 0, 0, SC_CHUNK_RESOLUTION, cb, closure);
 }
 
