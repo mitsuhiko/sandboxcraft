@@ -379,8 +379,8 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
     (sc_world_get_block(world, X, Y, Z)->type == SC_BLOCK_AIR)
 
 #define ADD_PLANE(Side) do { \
-    sc_cube_add_ ##Side## _plane(node->vbo, SC_BLOCK_SIZE, x * SC_BLOCK_SIZE, \
-                                 y * SC_BLOCK_SIZE, z * SC_BLOCK_SIZE); \
+    sc_cube_add_##Side##_plane(node->vbo, SC_BLOCK_SIZE, x * SC_BLOCK_SIZE, \
+                               y * SC_BLOCK_SIZE, z * SC_BLOCK_SIZE); \
     sc_vbo_update_texcoords_from_texture_range( \
         node->vbo, node->vbo->vertices - 6, node->vbo->vertices, \
         block->texture); \
