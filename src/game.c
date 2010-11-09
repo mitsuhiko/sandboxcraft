@@ -176,7 +176,7 @@ init_test_world(void)
                 const sc_block_t *block = sc_get_block(SC_BLOCK_AIR);
                 if (y == 0)
                     block = sc_get_block(SC_BLOCK_GRASS);
-                else if (z >= y && x >= 10 && x <= 20)
+                else if (z >= y && x >= 10 && x <= 20 && z < SC_CHUNK_RESOLUTION / 4)
                     block = sc_get_block(SC_BLOCK_STONE);
                 sc_world_set_block(world, x, y, z, block);
             }
@@ -189,13 +189,15 @@ sc_game_late_init(void)
         return;
     sc_init_blocks();
 
-    world = sc_new_world();
+    world = sc_new_world(42);
     cam = sc_new_camera();
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
     sc_engine_grab_mouse(1);
 
+#if 0
     init_test_world();
+#endif
 
     late_initialized = 1;
 }

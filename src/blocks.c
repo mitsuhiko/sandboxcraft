@@ -37,6 +37,7 @@ sc_init_blocks(void)
     ADD_BLOCK(SC_BLOCK_GRAVEL, "gravel.png", 1, 0.0f);
     ADD_BLOCK(SC_BLOCK_COBBLESTONE, "cobblestone.png", 0, 0.0f);
     ADD_BLOCK(SC_BLOCK_WATER, "water.png", 0, 0.7f);
+    ADD_BLOCK(SC_BLOCK_DARKGRASS, "darkgrass.png", 0, 0.0f);
 
     if (!sc_finalize_atlas(block_atlas))
         sc_error_make_critical();
@@ -72,7 +73,7 @@ const sc_block_t *
 sc_get_block(sc_blocktype_t type)
 {
     assert(blocks);
-    return &blocks[type];
+    return &blocks[(int)type];
 }
 
 const sc_texture_t *

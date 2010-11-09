@@ -1,9 +1,12 @@
+#include "sc_boot.h"
+
 /* internal version of the world struct.  The public one is completely
    empty as we do not expose anything currently.  This will change once
    we introduce other information there */
 struct chunk_node;
 typedef struct {
     struct chunk_node *root;            /* the root node of the octree */
+    uint32_t seed;
 } sc_world_t;
 
 #include <assert.h>
@@ -16,6 +19,8 @@ typedef struct {
 #include "sc_frustum.h"
 #include "sc_primitives.h"
 #include "sc_math.h"
+#include "sc_world.h"
+#include "sc_perlin.h"
 
 /* current set of flags to keep different struct sizes apart */
 #define CHUNK_FLAG_LEAF         1       /* this node has no children */
@@ -58,6 +63,29 @@ struct ray_query_data {
     int found;
 };
 
+static void
+generate_world(sc_world_t *world)
+{
+    int x, y, z, height;
+    const sc_block_t *block;
+    sc_perlin_t *perlin = sc_new_perlin(world->seed);
+
+    for (x = 0; x < SC_CHUNK_RESOLUTION; x++)
+        for (y = 0; y < SC_CHUNK_RESOLUTION; y++) {
+            height = (int)(sc_perlin_noise2(perlin,
+                x / (float)SC_CHUNK_RESOLUTION * 2.0f,
+                y / (float)SC_CHUNK_RESOLUTION * 2.0f) * 120) + 1;
+            for (z = 0; z < height; z++) {
+                block = sc_get_block(z == height - 1
+                    ? SC_BLOCK_GRASS : SC_BLOCK_DARKGRASS);
+                sc_world_set_block(world, x, z, y, block);
+            }
+            if (height <= 0)
+                sc_world_set_block(world, x, 0, y, sc_get_block(SC_BLOCK_WATER));
+        }
+
+    sc_free_perlin(perlin);
+}
 
 static struct chunk_node *
 new_chunk_node(size_t size)
@@ -99,12 +127,14 @@ free_chunk_node(struct chunk_node *node)
 }
 
 sc_world_t *
-sc_new_world(void)
+sc_new_world(uint32_t seed)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
     world->root = new_chunk_node(SC_CHUNK_VBO_SIZE);
+    world->seed = seed;
     assert(sc_is_power_of_two(SC_CHUNK_RESOLUTION));
     assert(SC_CHUNK_RESOLUTION % SC_CHUNK_VBO_SIZE == 0);
+    generate_world(world);
     return world;
 }
 

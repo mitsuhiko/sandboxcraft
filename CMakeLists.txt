@@ -28,6 +28,8 @@ set(LIB_SOURCES
     src/primitives.c
     src/ray.c
     src/debug.c
+    src/rnd.c
+    src/perlin.c
 
     deps/GLee/GLee.c
 )
@@ -57,6 +59,8 @@ set(LIB_HEADERS
     include/sc_primitives.h
     include/sc_ray.h
     include/sc_debug.h
+    include/sc_rnd.h
+    include/sc_perlin.h
 
     deps/GLee/GLee.h
 )

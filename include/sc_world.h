@@ -29,7 +29,7 @@ typedef int (*sc_chunk_walk_cb)(sc_world_t *world, const sc_block_t *block,
                                 void *closure);
 
 /* creates a new world */
-sc_world_t *sc_new_world(void);
+sc_world_t *sc_new_world(uint32_t seed);
 
 /* frees the world from memory again.  At that point care must be taken
    that nothing references it any more. */

@@ -14,6 +14,7 @@
 #define SC_BLOCK_GRAVEL         5
 #define SC_BLOCK_COBBLESTONE    6
 #define SC_BLOCK_WATER          7
+#define SC_BLOCK_DARKGRASS      8
 
 typedef char sc_blocktype_t;
 

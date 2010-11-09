@@ -25,6 +25,7 @@
 #else
 #  error "Unsupported platform"
 #endif
+#include <stdint.h>
 
 /* handy little helper to trigger a segfault */
 #define SC_SEGFAULT { int *x = 0; *x = 42; }
