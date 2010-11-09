@@ -9,7 +9,7 @@
 #include "sc_camera.h"
 
 /* number of chunks in our octree */
-#define SC_CHUNK_RESOLUTION 256
+#define SC_CHUNK_RESOLUTION 512
 
 /* where the vbos are stored.  chunk_resolution % vbo_size === 0! */
 #define SC_CHUNK_VBO_SIZE   16

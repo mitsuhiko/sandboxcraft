@@ -67,21 +67,25 @@ static void
 generate_world(sc_world_t *world)
 {
     int x, y, z, height;
-    const sc_block_t *block;
+    sc_blocktype_t block;
     sc_perlin_t *perlin = sc_new_perlin(world->seed);
 
     for (x = 0; x < SC_CHUNK_RESOLUTION; x++)
         for (y = 0; y < SC_CHUNK_RESOLUTION; y++) {
             height = (int)(sc_perlin_noise2(perlin,
-                x / (float)SC_CHUNK_RESOLUTION * 2.0f,
-                y / (float)SC_CHUNK_RESOLUTION * 2.0f) * 120) + 1;
+                x / (float)SC_CHUNK_RESOLUTION * 4.0f,
+                y / (float)SC_CHUNK_RESOLUTION * 4.0f) * 200) + 1;
             for (z = 0; z < height; z++) {
-                block = sc_get_block(z == height - 1
-                    ? SC_BLOCK_GRASS : SC_BLOCK_DARKGRASS);
-                sc_world_set_block(world, x, z, y, block);
+                block = z == height - 1 ? SC_BLOCK_GRASS0
+                      : z == height - 2 ? SC_BLOCK_GRASS1
+                      : z == height - 3 ? SC_BLOCK_GRASS2
+                      : SC_BLOCK_GRASS3;
+                sc_world_set_block(world, x, z, y, sc_get_block(block));
             }
-            if (height <= 0)
-                sc_world_set_block(world, x, 0, y, sc_get_block(SC_BLOCK_WATER));
+            if (height <= 0) {
+                block = SC_BLOCK_COBBLESTONE1;
+                sc_world_set_block(world, x, 0, y, sc_get_block(block));
+            }
         }
 
     sc_free_perlin(perlin);

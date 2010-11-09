@@ -94,7 +94,7 @@ sc_game_handle_event(SDL_Event *evt)
                                 evt->motion.yrel * 0.25f);
     else if (evt->type == SDL_MOUSEBUTTONUP)
         sc_world_set_block(world, selected_block.x, selected_block.y,
-                           selected_block.z, sc_get_block(SC_BLOCK_WATER));
+                           selected_block.z, sc_get_block(SC_BLOCK_COBBLESTONE0));
 }
 
 void
@@ -102,7 +102,7 @@ sc_game_update(void)
 {
     int width, height;
     const sc_block_t *block;
-    const float move_factor = sc_gametime.delta * 0.1f;
+    const float move_factor = sc_gametime.delta * 0.5f;
 
     /* camera movement */
     if (keysdown.w)
@@ -125,7 +125,7 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
-    sc_engine_clear(sc_color(0x2d3e47ff));
+    sc_engine_clear(sc_color(0x93ddefff));
     sc_camera_apply(cam);
     sc_world_draw(world);
 
