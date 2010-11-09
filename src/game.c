@@ -125,7 +125,7 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
-    sc_engine_clear(sc_color(0x24596Bff));
+    sc_engine_clear(sc_color(0x2d3e47ff));
     sc_camera_apply(cam);
     sc_world_draw(world);
 
