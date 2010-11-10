@@ -54,15 +54,6 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
      (z) >= (World)->size || (z) < 0)
 
 
-struct ray_query_data {
-    sc_ray_t ray;
-    float distance;
-    int rx;
-    int ry;
-    int rz;
-    int found;
-};
-
 static void
 generate_world(sc_world_t *world)
 {
@@ -130,26 +121,6 @@ free_chunk_node(struct chunk_node *node)
     sc_free(node);
 }
 
-sc_world_t *
-sc_new_world(uint32_t size)
-{
-    sc_world_t *world = sc_xalloc(sc_world_t);
-    world->root = new_chunk_node(SC_CHUNK_VBO_SIZE);
-    world->size = size;
-    assert(sc_is_power_of_two(world->size));
-    assert(world->size % SC_CHUNK_VBO_SIZE == 0);
-    generate_world(world);
-    return world;
-}
-
-void
-sc_free_world(sc_world_t *world)
-{
-    if (!world)
-        return;
-    free_chunk_node(world->root);
-}
-
 static struct chunk_node *
 find_node(sc_world_t *world, int x, int y, int z, size_t limit)
 {
@@ -182,7 +153,7 @@ find_node(sc_world_t *world, int x, int y, int z, size_t limit)
 }
 
 const sc_block_t *
-sc_world_get_block(sc_world_t *world, int x, int y, int z)
+get_block(sc_world_t *world, int x, int y, int z)
 {
     struct chunk_node *node = find_node(world, x, y, z, 1);
     /* out of bounds or all air so far */
@@ -202,8 +173,7 @@ find_vbo_node(sc_world_t *world, int x, int y, int z)
 }
 
 int
-sc_world_set_block(sc_world_t *world, int x, int y, int z,
-                   const sc_block_t *block)
+set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
 {
     int size;
     struct chunk_node *node, *child;
@@ -211,7 +181,7 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
 
     if (OUT_OF_BOUNDS(world, x, y, z))
         return 0;
-    else if (sc_world_get_block(world, x, y, z)->type == block->type)
+    else if (get_block(world, x, y, z)->type == block->type)
         return 1;
 
     /* Find the block in the octree */
@@ -263,64 +233,6 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
 }
 
 static void
-make_block_aabb(sc_vec3_t *vec1_out, sc_vec3_t *vec2_out,
-                int x, int y, int z, size_t size)
-{
-    sc_vec3_set(vec1_out, SC_BLOCK_SIZE * x - SC_BLOCK_SIZE / 2,
-                          SC_BLOCK_SIZE * y - SC_BLOCK_SIZE / 2,
-                          SC_BLOCK_SIZE * z - SC_BLOCK_SIZE / 2);
-    sc_vec3_set(vec2_out, SC_BLOCK_SIZE * size,
-                          SC_BLOCK_SIZE * size,
-                          SC_BLOCK_SIZE * size);
-    sc_vec3_add(vec2_out, vec2_out, vec1_out);
-}
-
-static int
-ray_walk_check(sc_world_t *world, const sc_block_t *block,
-               int x, int y, int z, size_t size, void *closure)
-{
-    float distance;
-    struct ray_query_data *data = closure;
-    sc_vec3_t vec1, vec2;
-    make_block_aabb(&vec1, &vec2, x, y, z, size);
-
-    if (!sc_ray_intersects_aabb(&data->ray, &vec1, &vec2, &distance))
-        return 0;
-
-    if (size == 1 && block->type != SC_BLOCK_AIR &&
-        (!data->found || distance < data->distance)) {
-        data->rx = x;
-        data->ry = y;
-        data->rz = z;
-        data->found = 1;
-    }
-    return 1;
-}
-
-const sc_block_t *
-sc_world_get_block_by_pixel(sc_world_t *world, int sx, int sy,
-                            int *x, int *y, int *z)
-{
-    struct ray_query_data data;
-    data.found = 0;
-
-    if (!sc_engine_raycast(&data.ray, sx, sy))
-        return NULL;
-
-    sc_walk_world(world, ray_walk_check, &data);
-    if (!data.found ||
-        data.rx >= world->size || data.rx < 0 ||
-        data.ry >= world->size || data.ry < 0 ||
-        data.rz >= world->size || data.rz < 0)
-        return NULL;
-
-    *x = data.rx;
-    *y = data.ry;
-    *z = data.rz;
-    return sc_world_get_block(world, data.rx, data.ry, data.rz);
-}
-
-static void
 walk_chunk(sc_world_t *world, const struct chunk_node **children,
            sc_blocktype_t block, int x, int y, int z, size_t size,
            sc_chunk_walk_cb cb, void *closure)
@@ -328,7 +240,7 @@ walk_chunk(sc_world_t *world, const struct chunk_node **children,
     int i;
     const struct chunk_node *child, **inner_children;
 
-    if (!cb(world, sc_get_block(block), x, y, z, size, closure) ||
+    if (!cb(world, sc_get_block(block), x, z, y, size, closure) ||
         (size /= 2) < 1)
         return;
 
@@ -370,7 +282,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
         node->vbo = sc_new_vbo();
 
 #define IS_AIR(X, Y, Z) \
-    (sc_world_get_block(world, X, Y, Z)->type == SC_BLOCK_AIR)
+    (get_block(world, X, Y, Z)->type == SC_BLOCK_AIR)
 
 #define ADD_PLANE(Side) do { \
     sc_cube_add_##Side##_plane(node->vbo, SC_BLOCK_SIZE, x * SC_BLOCK_SIZE, \
@@ -384,7 +296,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
     for (z = min_z; z < max_z; z++)
         for (y = min_y; y < max_y; y++)
             for (x = min_x; x < max_x; x++) {
-                block = sc_world_get_block(world, x, y, z);
+                block = get_block(world, x, y, z);
                 if (block->type == SC_BLOCK_AIR)
                     continue;
 
@@ -414,26 +326,29 @@ get_vbo(sc_world_t *world, int x, int y, int z)
 }
 
 static int
-contents_visible(const sc_frustum_t *frustum, int x, int y, int z, size_t size)
-{
-    sc_vec3_t vec1, vec2;
-    make_block_aabb(&vec1, &vec2, x, y, z, size);
-    return sc_frustum_test_aabb(frustum, &vec1, &vec2) >= 0;
-}
-
-static int
 draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
                 int z, size_t size, void *closure)
 {
+    sc_vec3_t vec1, vec2;
     const sc_frustum_t *frustum = closure;
-    if (!contents_visible(frustum, x, y, z, size))
+
+    /* if we are not visible, abort early and do not recurse */
+    sc_vec3_set(&vec1, SC_BLOCK_SIZE * x - SC_BLOCK_SIZE / 2,
+                       SC_BLOCK_SIZE * z - SC_BLOCK_SIZE / 2,
+                       SC_BLOCK_SIZE * y - SC_BLOCK_SIZE / 2);
+    sc_vec3_set(&vec2, SC_BLOCK_SIZE * size,
+                       SC_BLOCK_SIZE * size,
+                       SC_BLOCK_SIZE * size);
+    sc_vec3_add(&vec2, &vec2, &vec1);
+    if (sc_frustum_test_aabb(frustum, &vec1, &vec2) < 0)
         return 0;
 
     /* we reached the level of the octree where vbos are stored.  Draw
        that and stop recursing.  get_vbo will automatically
        update the vbo if necessary. */
     if (size == SC_CHUNK_VBO_SIZE) {
-        const sc_vbo_t *vbo = get_vbo(world, x, y, z);
+        /* get_vbo operates on flipped coordinates */
+        const sc_vbo_t *vbo = get_vbo(world, x, z, y);
         /* in case a piece of world is still completely empty, we won't
            have a vbo so far.  In that case, just ignore that */
         if (vbo) {
@@ -446,10 +361,44 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
     return 1;
 }
 
+
+sc_world_t *
+sc_new_world(uint32_t size)
+{
+    sc_world_t *world = sc_xalloc(sc_world_t);
+    world->root = new_chunk_node(SC_CHUNK_VBO_SIZE);
+    world->size = size;
+    assert(sc_is_power_of_two(world->size));
+    assert(world->size % SC_CHUNK_VBO_SIZE == 0);
+    generate_world(world);
+    return world;
+}
+
+void
+sc_free_world(sc_world_t *world)
+{
+    if (!world)
+        return;
+    free_chunk_node(world->root);
+}
+
 void
 sc_world_draw(sc_world_t *world)
 {
     sc_frustum_t frustum;
     sc_get_current_frustum(&frustum);
     sc_walk_world(world, draw_if_visible, &frustum);
+}
+
+const sc_block_t *
+sc_world_get_block(sc_world_t *world, int x, int y, int z)
+{
+    return get_block(world, x, z, y);
+}
+
+int
+sc_world_set_block(sc_world_t *world, int x, int y, int z,
+                   const sc_block_t *block)
+{
+    return set_block(world, x, z, y, block);
 }

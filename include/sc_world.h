@@ -1,6 +1,22 @@
 /* the storage type for the world.
 
-   The world itself is an octree with a resolution of 128x128x128. */
+   The world itself is an octree with a resolution specified at world
+   creation time.
+   
+   Extra care has to be taken on the coordinate system.  In OpenGL and
+   this engine, the ground plane has the y vector as normal.  Because
+   this is awkward when thinking in terms of blocks in the world, the
+   world itself uses a different coordinate system.
+
+   The normal to the ground is the z vector and the ground spans x and y.
+   Internally however the whole world is based on the OpenGL coordinate
+   system.  The translation between these two coordinate systems happens
+   on the public API here.
+
+   All functions that deal with coordinates have the world coordinate
+   system here and will dynamically calculate the transformation as
+   necessary.  This is usually fine but might be a little bit confusing
+   in the actual implementation where y and z sometimes change place. */
 #ifndef _INC_SC_WORLD_H_
 #define _INC_SC_WORLD_H_
 
@@ -42,11 +58,6 @@ const sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
    is referenced, 0 is returned, 1 otherwise. */
 int sc_world_set_block(sc_world_t *world, int x, int y, int z,
                        const sc_block_t *block);
-
-/* returns a block by screen position. */
-const sc_block_t *sc_world_get_block_by_pixel(sc_world_t *world, int sx, int sy,
-                                              int *x, int *y, int *z);
-
 
 /* draws the world.  The OpenGL projection and model matrices are used
    to calculate the visbility for the block of the world.  The camera has

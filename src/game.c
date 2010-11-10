@@ -100,8 +100,6 @@ sc_game_handle_event(SDL_Event *evt)
 void
 sc_game_update(void)
 {
-    int width, height;
-    const sc_block_t *block;
     const float move_factor = sc_gametime.delta * 0.5f;
 
     /* camera movement */
@@ -113,13 +111,6 @@ sc_game_update(void)
         sc_camera_move_backward(cam, move_factor);
     if (keysdown.d)
         sc_camera_strafe_right(cam, move_factor);
-
-    /* selecting of blocks */
-    sc_engine_get_dimensions(&width, &height);
-    block = sc_world_get_block_by_pixel(world, width / 2, height / 2,
-                                        &selected_block.x,
-                                        &selected_block.y,
-                                        &selected_block.z);
 }
 
 void
