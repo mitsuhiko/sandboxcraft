@@ -4,6 +4,7 @@
 #include "sc_engine.h"
 #include "sc_vec4.h"
 #include "sc_error.h"
+#include "sc_rnd.h"
 #include "sc_debug.h"
 
 /* TODO: move to config */
@@ -83,6 +84,8 @@ sc_engine_init(void)
     /* init glut too for the time being because it's helpful during
        development. */
     init_glut();
+
+    sc_init_default_rnd();
 
     init_graphics();
 

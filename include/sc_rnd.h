@@ -22,7 +22,16 @@ void sc_fast_rnd_seed_time(sc_fast_rnd_t *rnd);
 /* returns a new random number */
 uint32_t sc_fast_rnd_next(sc_fast_rnd_t *rnd);
 
-/* returns a new random integer */
+/* returns a new random positive integer */
 size_t sc_fast_rnd_next_index(sc_fast_rnd_t *rnd, size_t max);
+
+/* initializes the default rnd.  This happens at engine initialization time */
+void sc_init_default_rnd();
+
+/* returns a new random number from the default rnd */
+uint32_t sc_rnd_next(void);
+
+/* returns a new random positive integer from the default rnd */
+size_t sc_rnd_next_index(size_t max);
 
 #endif
