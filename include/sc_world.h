@@ -57,10 +57,6 @@ const sc_block_t *sc_world_get_block_by_pixel(sc_world_t *world, int sx, int sy,
    */
 void sc_world_draw(sc_world_t *world);
 
-/* returns a vbo.  If the vbo does not exist so far or is outdated, a new
-   one is created. */
-const sc_vbo_t *sc_world_get_vbo(sc_world_t *world, int x, int y, int z);
-
 /* traverses the world.  This will execute the given callback with
    the following information:
     - the block that for a specific node if the size is 1, otherwise the

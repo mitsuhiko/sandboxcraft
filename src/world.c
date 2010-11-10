@@ -354,39 +354,6 @@ sc_walk_world(sc_world_t *world, sc_chunk_walk_cb cb, void *closure)
                SC_BLOCK_AIR, 0, 0, 0, world->size, cb, closure);
 }
 
-static int
-contents_visible(const sc_frustum_t *frustum, int x, int y, int z, size_t size)
-{
-    sc_vec3_t vec1, vec2;
-    make_block_aabb(&vec1, &vec2, x, y, z, size);
-    return sc_frustum_test_aabb(frustum, &vec1, &vec2) >= 0;
-}
-
-static int
-draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
-                int z, size_t size, void *closure)
-{
-    const sc_frustum_t *frustum = closure;
-    if (!contents_visible(frustum, x, y, z, size))
-        return 0;
-
-    /* we reached the level of the octree where vbos are stored.  Draw
-       that and stop recursing.  sc_world_get_vbo will automatically
-       update the vbo if necessary. */
-    if (size == SC_CHUNK_VBO_SIZE) {
-        const sc_vbo_t *vbo = sc_world_get_vbo(world, x, y, z);
-        /* in case a piece of world is still completely empty, we won't
-           have a vbo so far.  In that case, just ignore that */
-        if (vbo) {
-            sc_bind_texture(sc_blocks_get_atlas_texture());
-            sc_vbo_draw(vbo);
-        }
-        return 0;
-    }
-
-    return 1;
-}
-
 static void
 update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
            int min_y, int min_z, size_t size)
@@ -434,7 +401,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
 }
 
 const sc_vbo_t *
-sc_world_get_vbo(sc_world_t *world, int x, int y, int z)
+get_vbo(sc_world_t *world, int x, int y, int z)
 {
     struct chunk_node_vbo *node = find_vbo_node(world, x, y, z);
     if (!node)
@@ -444,6 +411,39 @@ sc_world_get_vbo(sc_world_t *world, int x, int y, int z)
                    y - y % SC_CHUNK_VBO_SIZE, z - z % SC_CHUNK_VBO_SIZE,
                    SC_CHUNK_VBO_SIZE);
     return node->vbo;
+}
+
+static int
+contents_visible(const sc_frustum_t *frustum, int x, int y, int z, size_t size)
+{
+    sc_vec3_t vec1, vec2;
+    make_block_aabb(&vec1, &vec2, x, y, z, size);
+    return sc_frustum_test_aabb(frustum, &vec1, &vec2) >= 0;
+}
+
+static int
+draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
+                int z, size_t size, void *closure)
+{
+    const sc_frustum_t *frustum = closure;
+    if (!contents_visible(frustum, x, y, z, size))
+        return 0;
+
+    /* we reached the level of the octree where vbos are stored.  Draw
+       that and stop recursing.  get_vbo will automatically
+       update the vbo if necessary. */
+    if (size == SC_CHUNK_VBO_SIZE) {
+        const sc_vbo_t *vbo = get_vbo(world, x, y, z);
+        /* in case a piece of world is still completely empty, we won't
+           have a vbo so far.  In that case, just ignore that */
+        if (vbo) {
+            sc_bind_texture(sc_blocks_get_atlas_texture());
+            sc_vbo_draw(vbo);
+        }
+        return 0;
+    }
+
+    return 1;
 }
 
 void
