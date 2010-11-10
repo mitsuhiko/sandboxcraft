@@ -6,13 +6,20 @@
 #include "sc_path.h"
 #include "sc_mat4.h"
 
+/* if we want to clean up, clean up on shutdown, otherwise do nothing */
+#ifndef SC_DONT_FREE_ON_SHUTDOWN
+#  define FREE_ON_SHUTDOWN(x) atexit(x)
+#else
+#  define FREE_ON_SHUTDOWN(x) (void)0
+#endif
+
 static int
 run_game_controlled(int argc, char **argv)
 {
     sc_engine_init();
-    atexit(sc_engine_shutdown);
+    FREE_ON_SHUTDOWN(sc_engine_shutdown);
     sc_game_early_init();
-    atexit(sc_game_shutdown);
+    FREE_ON_SHUTDOWN(sc_game_shutdown);
     sc_game_mainloop();
     return 0;
 }

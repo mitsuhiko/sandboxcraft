@@ -164,7 +164,8 @@ sc_game_late_init(void)
         return;
     sc_init_blocks();
 
-    world = sc_new_world(512);
+    world = sc_new_world(256);
+    sc_world_flush_vbos(world);
     cam = sc_new_camera();
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);

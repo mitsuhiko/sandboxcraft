@@ -82,5 +82,11 @@ void sc_world_draw(sc_world_t *world);
    otherwise it will stop at that point. */
 void sc_walk_world(sc_world_t *world, sc_chunk_walk_cb cb, void *closure);
 
+/* builds the vbos from the current state of the world.  When many changes
+   occur in the world at once (such as when the game starts up) it makes
+   sense to halt the render loop and show a loading screen and then call
+   this method to update the vbos at once. */
+void sc_world_flush_vbos(sc_world_t *world);
+
 
 #endif

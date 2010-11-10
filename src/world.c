@@ -152,7 +152,7 @@ find_node(sc_world_t *world, int x, int y, int z, size_t limit)
     return node;
 }
 
-const sc_block_t *
+static const sc_block_t *
 get_block(sc_world_t *world, int x, int y, int z)
 {
     struct chunk_node *node = find_node(world, x, y, z, 1);
@@ -172,7 +172,7 @@ find_vbo_node(sc_world_t *world, int x, int y, int z)
     return (struct chunk_node_vbo *)node;
 }
 
-int
+static int
 set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
 {
     int size;
@@ -361,6 +361,15 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
     return 1;
 }
 
+static int
+flush_vbos(sc_world_t *world, const sc_block_t *block, int x, int y, int z,
+           size_t size, void *closure)
+{
+    if (size != SC_CHUNK_VBO_SIZE)
+        return 1;
+    get_vbo(world, x, z, y);
+    return 0;
+}
 
 sc_world_t *
 sc_new_world(uint32_t size)
@@ -382,14 +391,6 @@ sc_free_world(sc_world_t *world)
     free_chunk_node(world->root);
 }
 
-void
-sc_world_draw(sc_world_t *world)
-{
-    sc_frustum_t frustum;
-    sc_get_current_frustum(&frustum);
-    sc_walk_world(world, draw_if_visible, &frustum);
-}
-
 const sc_block_t *
 sc_world_get_block(sc_world_t *world, int x, int y, int z)
 {
@@ -401,4 +402,18 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
                    const sc_block_t *block)
 {
     return set_block(world, x, z, y, block);
+}
+
+void
+sc_world_draw(sc_world_t *world)
+{
+    sc_frustum_t frustum;
+    sc_get_current_frustum(&frustum);
+    sc_walk_world(world, draw_if_visible, &frustum);
+}
+
+void 
+sc_world_flush_vbos(sc_world_t *world)
+{
+    sc_walk_world(world, flush_vbos, NULL);
 }

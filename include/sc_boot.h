@@ -50,6 +50,7 @@
 #endif
 
 /* make sure we have the error system and our allocators */
+#include "sc_config.h"
 #include "sc_error.h"
 #include "sc_alloc.h"
 
