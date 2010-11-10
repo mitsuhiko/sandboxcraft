@@ -8,9 +8,6 @@
 #include "sc_blocks.h"
 #include "sc_camera.h"
 
-/* number of chunks in our octree */
-#define SC_CHUNK_RESOLUTION 512
-
 /* where the vbos are stored.  chunk_resolution % vbo_size === 0! */
 #define SC_CHUNK_VBO_SIZE   16
 
@@ -19,7 +16,9 @@
 
 /* the world is an opaque type */
 #ifndef _SC_DONT_DEFINE_WORLD
-typedef struct {} sc_world_t;
+typedef struct {
+    uint32_t size;
+} sc_world_t;
 #endif
 
 /* callbacks for chunk traversing.  For more information have a look
@@ -29,7 +28,7 @@ typedef int (*sc_chunk_walk_cb)(sc_world_t *world, const sc_block_t *block,
                                 void *closure);
 
 /* creates a new world */
-sc_world_t *sc_new_world(uint32_t seed);
+sc_world_t *sc_new_world(uint32_t size);
 
 /* frees the world from memory again.  At that point care must be taken
    that nothing references it any more. */

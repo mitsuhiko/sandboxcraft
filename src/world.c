@@ -5,8 +5,8 @@
    we introduce other information there */
 struct chunk_node;
 typedef struct {
+    uint32_t size;                      /* the size is public */
     struct chunk_node *root;            /* the root node of the octree */
-    uint32_t seed;
 } sc_world_t;
 
 #include <assert.h>
@@ -48,10 +48,10 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
 #define CHUNK_GET_BLOCK(C) sc_get_block(CHUNK_GET_BLOCK_TYPE(C))
 
 /* helper check to see if any of the arguments is outside of the world */
-#define OUT_OF_BOUNDS(X, Y, Z) \
-    ((x) >= SC_CHUNK_RESOLUTION || (x) < 0 || \
-     (y) >= SC_CHUNK_RESOLUTION || (y) < 0 || \
-     (z) >= SC_CHUNK_RESOLUTION || (z) < 0)
+#define OUT_OF_BOUNDS(World, X, Y, Z) \
+    ((x) >= (World)->size || (x) < 0 || \
+     (y) >= (World)->size || (y) < 0 || \
+     (z) >= (World)->size || (z) < 0)
 
 
 struct ray_query_data {
@@ -68,23 +68,23 @@ generate_world(sc_world_t *world)
 {
     int x, y, z, height;
     sc_blocktype_t block;
-    sc_perlin_t *perlin = sc_new_perlin(world->seed);
+    sc_perlin_t *perlin = sc_new_perlin(42);
 
-    for (x = 0; x < SC_CHUNK_RESOLUTION; x++)
-        for (y = 0; y < SC_CHUNK_RESOLUTION; y++) {
+    for (x = 0; x < world->size; x++)
+        for (y = 0; y < world->size; y++) {
             height = (int)(sc_perlin_noise2(perlin,
-                x / (float)SC_CHUNK_RESOLUTION * 4.0f,
-                y / (float)SC_CHUNK_RESOLUTION * 4.0f) * 200) + 1;
+                x / (float)world->size * 4.0f,
+                y / (float)world->size * 4.0f) * 200) + 1;
             for (z = 0; z < height; z++) {
                 block = z == height - 1 ? SC_BLOCK_GRASS0
                       : z == height - 2 ? SC_BLOCK_GRASS1
                       : z == height - 3 ? SC_BLOCK_GRASS2
                       : SC_BLOCK_GRASS3;
-                sc_world_set_block(world, x, z, y, sc_get_block(block));
+                sc_world_set_block(world, x, y, z, sc_get_block(block));
             }
             if (height <= 0) {
                 block = SC_BLOCK_COBBLESTONE1;
-                sc_world_set_block(world, x, 0, y, sc_get_block(block));
+                sc_world_set_block(world, x, y, z, sc_get_block(block));
             }
         }
 
@@ -131,13 +131,13 @@ free_chunk_node(struct chunk_node *node)
 }
 
 sc_world_t *
-sc_new_world(uint32_t seed)
+sc_new_world(uint32_t size)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
     world->root = new_chunk_node(SC_CHUNK_VBO_SIZE);
-    world->seed = seed;
-    assert(sc_is_power_of_two(SC_CHUNK_RESOLUTION));
-    assert(SC_CHUNK_RESOLUTION % SC_CHUNK_VBO_SIZE == 0);
+    world->size = size;
+    assert(sc_is_power_of_two(world->size));
+    assert(world->size % SC_CHUNK_VBO_SIZE == 0);
     generate_world(world);
     return world;
 }
@@ -157,11 +157,11 @@ find_node(sc_world_t *world, int x, int y, int z, size_t limit)
     struct chunk_node *node, *child;
     struct chunk_node_children *nodec;
 
-    if (OUT_OF_BOUNDS(x, y, z))
+    if (OUT_OF_BOUNDS(world, x, y, z))
         return NULL;
 
     node = world->root;
-    size = SC_CHUNK_RESOLUTION;
+    size = world->size;
     while (1) {
         size_t idx;
         size /= 2;
@@ -209,14 +209,14 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
     struct chunk_node *node, *child;
     struct chunk_node_children *cnode;
 
-    if (OUT_OF_BOUNDS(x, y, z))
+    if (OUT_OF_BOUNDS(world, x, y, z))
         return 0;
     else if (sc_world_get_block(world, x, y, z)->type == block->type)
         return 1;
 
     /* Find the block in the octree */
     node = world->root;
-    size = SC_CHUNK_RESOLUTION;
+    size = world->size;
     while (size != 1) {
         size_t idx;
         size /= 2;
@@ -249,12 +249,12 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
        extra careful and update the dirty flags of the blocks nearby. */
     if ((CHUNK_GET_BLOCK_TYPE(node) == SC_BLOCK_AIR) !=
         (block->type == SC_BLOCK_AIR)) {
-        if ((x + 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x + 1, y, z);
-        if ((x - 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x - 1, y, z);
-        if ((y + 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y + 1, z);
-        if ((y - 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y - 1, z);
-        if ((z + 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y, z + z);
-        if ((z - 1) % SC_CHUNK_RESOLUTION == 0) MARK_DIRTY(x, y, z - 1);
+        if ((x + 1) % world->size == 0) MARK_DIRTY(x + 1, y, z);
+        if ((x - 1) % world->size == 0) MARK_DIRTY(x - 1, y, z);
+        if ((y + 1) % world->size == 0) MARK_DIRTY(x, y + 1, z);
+        if ((y - 1) % world->size == 0) MARK_DIRTY(x, y - 1, z);
+        if ((z + 1) % world->size == 0) MARK_DIRTY(x, y, z + z);
+        if ((z - 1) % world->size == 0) MARK_DIRTY(x, y, z - 1);
     }
 
     assert(CHUNK_IS_LEAF(node));
@@ -309,9 +309,9 @@ sc_world_get_block_by_pixel(sc_world_t *world, int sx, int sy,
 
     sc_walk_world(world, ray_walk_check, &data);
     if (!data.found ||
-        data.rx >= SC_CHUNK_RESOLUTION || data.rx < 0 ||
-        data.ry >= SC_CHUNK_RESOLUTION || data.ry < 0 ||
-        data.rz >= SC_CHUNK_RESOLUTION || data.rz < 0)
+        data.rx >= world->size || data.rx < 0 ||
+        data.ry >= world->size || data.ry < 0 ||
+        data.rz >= world->size || data.rz < 0)
         return NULL;
 
     *x = data.rx;
@@ -351,7 +351,7 @@ sc_walk_world(sc_world_t *world, sc_chunk_walk_cb cb, void *closure)
 {
     walk_chunk(world, (const struct chunk_node **)((struct
                    chunk_node_children *)world->root)->children,
-               SC_BLOCK_AIR, 0, 0, 0, SC_CHUNK_RESOLUTION, cb, closure);
+               SC_BLOCK_AIR, 0, 0, 0, world->size, cb, closure);
 }
 
 static int
