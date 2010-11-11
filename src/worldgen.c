@@ -1,11 +1,11 @@
 #include "sc_worldgen.h"
 #include "sc_rnd.h"
 
-#define DEFAULT_STRETCH         0.5f
+#define DEFAULT_STRETCH         0.6f
 #define DEFAULT_WATER_LEVEL     0.2f
 #define DEFAULT_LOW_BEACH       0.015f
 #define DEFAULT_HIGH_BEACH      0.01f
-#define DEFAULT_MAX_ELEVATION   0.5f
+#define DEFAULT_MAX_ELEVATION   0.4f
 
 #define REG_UNDERWATER      0
 #define REG_BEACH           1
@@ -68,13 +68,15 @@ sc_worldgen_fill_world(const sc_worldgen_t *worldgen, sc_world_t *world)
     sc_blocktype_t block;
     size_t h;
     size_t water_level = (size_t)(worldgen->water_level * world->size);
-    size_t beach_low = (size_t)(water_level - worldgen->beach_thresholds[0] * world->size);
-    size_t beach_high = (size_t)(water_level + worldgen->beach_thresholds[1] * world->size);
+    size_t beach_l = (size_t)(water_level -
+                              worldgen->beach_thresholds[0] * world->size);
+    size_t beach_h = (size_t)(water_level +
+                              worldgen->beach_thresholds[1] * world->size);
 
     for (x = 0; x < world->size; x++)
         for (y = 0; y < world->size; y++) {
             h = get_height(worldgen, x, y, world->size);
-            if (h >= beach_low && h <= beach_high)
+            if (h >= beach_l && h <= beach_h)
                 region = REG_BEACH;
             else if (h < water_level)
                 region = REG_UNDERWATER;
