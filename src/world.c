@@ -53,6 +53,10 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
      (y) >= (World)->size || (y) < 0 || \
      (z) >= (World)->size || (z) < 0)
 
+/* returns a 3 bit address for the given block coords */
+#define CHUNK_ADDR(X, Y, Z, Size) \
+    (!!((X) & (Size)) << 2 | !!((Y) & (Size)) << 1 | !!((Z) & (Size)))
+
 
 static struct chunk_node *
 new_chunk_node(size_t size)
@@ -106,13 +110,11 @@ find_node(sc_world_t *world, int x, int y, int z, size_t limit)
     node = world->root;
     size = world->size;
     while (1) {
-        size_t idx;
         size /= 2;
         if (CHUNK_IS_LEAF(node))
             break;
         nodec = (struct chunk_node_children *)node;
-        idx = !!(x & size) << 2 | !!(y & size) << 1 | !!(z & size);
-        child = nodec->children[idx];
+        child = nodec->children[CHUNK_ADDR(x, y, z, size)];
         if (!child)
             break;
         node = child;
@@ -162,7 +164,7 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
     while (size != 1) {
         size_t idx;
         size /= 2;
-        idx = !!(x & size) << 2 | !!(y & size) << 1 | !!(z & size);
+        idx = CHUNK_ADDR(x, y, z, size);
         assert(!CHUNK_IS_LEAF(node));
         cnode = (struct chunk_node_children *)node;
         child = cnode->children[idx];
