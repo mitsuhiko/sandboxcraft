@@ -25,6 +25,9 @@ uint32_t sc_fast_rnd_next(sc_fast_rnd_t *rnd);
 /* returns a new random positive integer */
 size_t sc_fast_rnd_next_index(sc_fast_rnd_t *rnd, size_t max);
 
+/* returns a random floating point number between 0.0f and 1.0f */
+float sc_fast_rnd_next_float(sc_fast_rnd_t *rnd);
+
 /* initializes the default rnd.  This happens at engine initialization time */
 void sc_init_default_rnd();
 
@@ -33,5 +36,8 @@ uint32_t sc_rnd_next(void);
 
 /* returns a new random positive integer from the default rnd */
 size_t sc_rnd_next_index(size_t max);
+
+/* returns a random floating point number between 0.0f and 1.0f */
+float sc_rnd_next_float(void);
 
 #endif

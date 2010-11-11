@@ -36,6 +36,12 @@ sc_fast_rnd_next_index(sc_fast_rnd_t *rnd, size_t max)
     return (size_t)(sc_fast_rnd_next(rnd) / (SC_FAST_RND_MAX / max + 1));
 }
 
+float
+sc_fast_rnd_next_float(sc_fast_rnd_t *rnd)
+{
+    return sc_fast_rnd_next(rnd) / (float)SC_FAST_RND_MAX;
+}
+
 void
 sc_init_default_rnd(void)
 {
@@ -51,4 +57,10 @@ sc_rnd_next(void)
 size_t sc_rnd_next_index(size_t max)
 {
     return sc_fast_rnd_next_index(&default_rnd, max);
+}
+
+float
+sc_rnd_next_float(void)
+{
+    return sc_fast_rnd_next_float(&default_rnd);
 }

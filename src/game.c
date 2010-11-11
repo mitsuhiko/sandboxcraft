@@ -5,6 +5,7 @@
 #include "sc_camera.h"
 #include "sc_primitives.h"
 #include "sc_vbo.h"
+#include "sc_worldgen.h"
 
 static int running;
 static int late_initialized;
@@ -94,7 +95,7 @@ sc_game_handle_event(SDL_Event *evt)
                                 evt->motion.yrel * 0.25f);
     else if (evt->type == SDL_MOUSEBUTTONUP)
         sc_world_set_block(world, selected_block.x, selected_block.y,
-                           selected_block.z, sc_get_block(SC_BLOCK_COBBLESTONE0));
+                           selected_block.z, sc_get_block(SC_BLOCK_WATER));
 }
 
 void
@@ -164,7 +165,7 @@ sc_game_late_init(void)
         return;
     sc_init_blocks();
 
-    world = sc_new_world(256);
+    world = sc_create_random_world(256);
     sc_world_flush_vbos(world);
     cam = sc_new_camera();
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);

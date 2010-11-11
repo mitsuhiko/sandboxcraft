@@ -29,17 +29,15 @@ sc_init_blocks(void)
     memset(&blocks[SC_BLOCK_AIR], 0, sizeof(sc_block_t));
     assert(SC_BLOCK_AIR == 0);
 
+    /* an indestructable foundation block */
+    ADD_BLOCK(SC_BLOCK_BEDROCK, "bedrock.png", 0, 0.0f);
+
     /* regular blocks */
-    ADD_BLOCK(SC_BLOCK_GRASS0, "grass0.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_GRASS1, "grass1.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_GRASS2, "grass2.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_GRASS3, "grass3.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_DEADGRASS0, "deadgrass0.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_DEADGRASS1, "deadgrass1.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_COBBLESTONE0, "cobblestone0.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_COBBLESTONE1, "cobblestone1.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_COBBLESTONE2, "cobblestone2.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_CLAY, "clay.png", 0, 0.0f);
+    ADD_BLOCK(SC_BLOCK_GRASS, "grass.png", 0, 0.0f);
+    ADD_BLOCK(SC_BLOCK_STONE, "stone.png", 0, 0.0f);
+    ADD_BLOCK(SC_BLOCK_WATER, "water.png", 0, 0.4f);
+    ADD_BLOCK(SC_BLOCK_SAND, "sand.png", 0, 0.0f);
+    ADD_BLOCK(SC_BLOCK_DIRT, "dirt.png", 1, 0.0f);
 
     if (!sc_finalize_atlas(block_atlas))
         sc_error_make_critical();
@@ -50,16 +48,12 @@ sc_get_block_name(const sc_block_t *block)
 {
     switch (block->type) {
     case SC_BLOCK_AIR:          return "Air";
-    case SC_BLOCK_GRASS0:
-    case SC_BLOCK_GRASS1:
-    case SC_BLOCK_GRASS2:
-    case SC_BLOCK_GRASS3:       return "Grass";
-    case SC_BLOCK_DEADGRASS0:
-    case SC_BLOCK_DEADGRASS1:   return "Dead Grass";
-    case SC_BLOCK_COBBLESTONE0:
-    case SC_BLOCK_COBBLESTONE1:
-    case SC_BLOCK_COBBLESTONE2: return "Cobblestone";
-    case SC_BLOCK_CLAY:         return "Clay";
+    case SC_BLOCK_BEDROCK:      return "Bedrock";
+    case SC_BLOCK_WATER:        return "Water";
+    case SC_BLOCK_GRASS:        return "Grass";
+    case SC_BLOCK_STONE:        return "Stone";
+    case SC_BLOCK_SAND:         return "Sand";
+    case SC_BLOCK_DIRT:         return "Dirt";
     default:                    return "Unknown";
     }
 }

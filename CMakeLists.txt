@@ -30,6 +30,7 @@ set(LIB_SOURCES
     src/debug.c
     src/rnd.c
     src/perlin.c
+    src/worldgen.c
 
     deps/GLee/GLee.c
 )
@@ -61,6 +62,7 @@ set(LIB_HEADERS
     include/sc_debug.h
     include/sc_rnd.h
     include/sc_perlin.h
+    include/sc_worldgen.h
 
     deps/GLee/GLee.h
 )

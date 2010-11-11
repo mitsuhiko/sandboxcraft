@@ -54,34 +54,6 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
      (z) >= (World)->size || (z) < 0)
 
 
-static void
-generate_world(sc_world_t *world)
-{
-    int x, y, z, height;
-    sc_blocktype_t block;
-    sc_perlin_t *perlin = sc_new_perlin(42);
-
-    for (x = 0; x < world->size; x++)
-        for (y = 0; y < world->size; y++) {
-            height = (int)(sc_perlin_noise2(perlin,
-                x / (float)world->size * 4.0f,
-                y / (float)world->size * 4.0f) * 200) + 1;
-            for (z = 0; z < height; z++) {
-                block = z == height - 1 ? SC_BLOCK_GRASS0
-                      : z == height - 2 ? SC_BLOCK_GRASS1
-                      : z == height - 3 ? SC_BLOCK_GRASS2
-                      : SC_BLOCK_GRASS3;
-                sc_world_set_block(world, x, y, z, sc_get_block(block));
-            }
-            if (height <= 0) {
-                block = SC_BLOCK_COBBLESTONE1;
-                sc_world_set_block(world, x, y, z, sc_get_block(block));
-            }
-        }
-
-    sc_free_perlin(perlin);
-}
-
 static struct chunk_node *
 new_chunk_node(size_t size)
 {
@@ -379,7 +351,6 @@ sc_new_world(uint32_t size)
     world->size = size;
     assert(sc_is_power_of_two(world->size));
     assert(world->size % SC_CHUNK_VBO_SIZE == 0);
-    generate_world(world);
     return world;
 }
 

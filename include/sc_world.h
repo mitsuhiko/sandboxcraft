@@ -33,7 +33,7 @@
 /* the world is an opaque type */
 #ifndef _SC_DONT_DEFINE_WORLD
 typedef struct {
-    uint32_t size;
+    size_t size;
 } sc_world_t;
 #endif
 
