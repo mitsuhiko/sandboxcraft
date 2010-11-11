@@ -1,7 +1,7 @@
 #include "sc_worldgen.h"
 #include "sc_rnd.h"
 
-#define DEFAULT_STRETCH         0.6f
+#define DEFAULT_STRETCH         0.2f
 #define DEFAULT_WATER_LEVEL     0.2f
 #define DEFAULT_LOW_BEACH       0.015f
 #define DEFAULT_HIGH_BEACH      0.01f

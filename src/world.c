@@ -57,13 +57,21 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
 #define CHUNK_ADDR(X, Y, Z, Size) \
     (!!((X) & (Size)) << 2 | !!((Y) & (Size)) << 1 | !!((Z) & (Size)))
 
+/* maximum size of the free lists for chunks */
+#define FREELIST_SIZE 32
+
+static struct chunk_node *free_leaf_nodes[FREELIST_SIZE];
+static size_t free_leaf_nodes_count;
 
 static struct chunk_node *
 new_chunk_node(size_t size)
 {
     struct chunk_node *rv;
     if (size == 1) {
-        rv = sc_xalloc(struct chunk_node_leaf);
+        if (free_leaf_nodes_count)
+            rv = free_leaf_nodes[--free_leaf_nodes_count];
+        else
+            rv = sc_xalloc(struct chunk_node_leaf);
         rv->flags = CHUNK_FLAG_LEAF;
         return rv;
     }
@@ -87,13 +95,20 @@ free_chunk_node(struct chunk_node *node)
     size_t i;
     if (!node)
         return;
-    if (!CHUNK_IS_LEAF(node)) {
+    if (CHUNK_IS_LEAF(node)) {
+        /* remember up to FREELIST_SIZE leaf nodes and don't free them */
+        if (free_leaf_nodes_count < FREELIST_SIZE) {
+            free_leaf_nodes[free_leaf_nodes_count++] = node;
+            return;
+        }
+    }
+    else {
         struct chunk_node_children *cn = (struct chunk_node_children *)node;
         for (i = 0; i < 8; i++)
             free_chunk_node(cn->children[i]);
+        if (CHUNK_HAS_VBO(node))
+            sc_free_vbo(((struct chunk_node_vbo *)node)->vbo);
     }
-    if (CHUNK_HAS_VBO(node))
-        sc_free_vbo(((struct chunk_node_vbo *)node)->vbo);
     sc_free(node);
 }
 
@@ -158,7 +173,15 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
     else if (get_block(world, x, y, z)->type == block->type)
         return 1;
 
-    /* Find the block in the octree */
+    /* Find the block in the octree
+
+       TODO: if the size of the node is smaller than the vbo chunk size
+             we should be able to optimize the case where all 8 children
+             store the same block type.  Right now that's not possible
+             because have some assumptions of never hitting leaf nodes
+             at a size > 1.  Also this would require us to free a bunch
+             of nodes along the way where it would make sense to keep
+             a freelist of leaf nodes around. */
     node = world->root;
     size = world->size;
     while (size != 1) {
