@@ -63,7 +63,9 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
 #define MAX_RELATIONS 32
 
 static struct chunk_node *free_leaf_nodes[FREELIST_SIZE];
+static struct chunk_node *free_children_nodes[FREELIST_SIZE];
 static size_t free_leaf_nodes_count;
+static size_t free_children_nodes_count;
 
 struct chunk_relation {
     struct chunk_node *parent;
@@ -94,7 +96,11 @@ new_chunk_node_with_children(sc_blocktype_t block_type, int with_vbo)
         ((struct chunk_node_vbo *)rv)->vbo = NULL;
     }
     else {
-        rv = sc_xalloc(struct chunk_node_children);
+        if (free_children_nodes_count)
+            rv = (struct chunk_node_children *)
+                free_children_nodes[--free_children_nodes_count];
+        else
+            rv = sc_xalloc(struct chunk_node_children);
         rv->flags = 0;
     }
     rv->block = block_type;
@@ -108,19 +114,27 @@ free_chunk_node(struct chunk_node *node)
     size_t i;
     if (!node)
         return;
-    if (CHUNK_IS_LEAF(node)) {
-        /* remember up to FREELIST_SIZE leaf nodes and don't free them */
-        if (free_leaf_nodes_count < FREELIST_SIZE) {
-            free_leaf_nodes[free_leaf_nodes_count++] = node;
-            return;
-        }
-    }
+
+    /* helper macro that attempts to add the given node to one of the
+       two free lists.  If it succeeds it will return from the function
+       without further code execution */
+#define TRY_PUT_ON_FREELIST(List, Node) do { \
+    if (free_##List##_nodes_count < FREELIST_SIZE) { \
+        free_##List##_nodes[free_##List##_nodes_count++] = node; \
+        return; \
+    } \
+} while (0)
+
+    if (CHUNK_IS_LEAF(node))
+        TRY_PUT_ON_FREELIST(leaf, node);
     else {
+        if (!CHUNK_HAS_VBO(node))
+            TRY_PUT_ON_FREELIST(children, node);
+        else
+            sc_free_vbo(((struct chunk_node_vbo *)node)->vbo);
         struct chunk_node_children *cn = (struct chunk_node_children *)node;
         for (i = 0; i < 8; i++)
             free_chunk_node(cn->children[i]);
-        if (CHUNK_HAS_VBO(node))
-            sc_free_vbo(((struct chunk_node_vbo *)node)->vbo);
     }
     sc_free(node);
 }
