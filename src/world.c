@@ -29,10 +29,9 @@ typedef struct {
 
 /* defines the different structs for the octree nodes.  The flags above
    tell which version of the struct we're dealing with. */
-#define CHUNK_NODE_BASE char flags
+#define CHUNK_NODE_BASE char flags; sc_blocktype_t block
 #define CHUNK_NODE_CHILDREN CHUNK_NODE_BASE; struct chunk_node *children[8]
 struct chunk_node { CHUNK_NODE_BASE; };
-struct chunk_node_leaf { CHUNK_NODE_BASE; sc_blocktype_t block; };
 struct chunk_node_children { CHUNK_NODE_CHILDREN; };
 struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
 
@@ -43,8 +42,7 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
 
 /* returns the block type for a node if that node contains block information
    or SC_BLOCK_AIR if it does not carry any block info */
-#define CHUNK_GET_BLOCK_TYPE(C) \
-    (CHUNK_IS_LEAF(C) ? ((struct chunk_node_leaf *)C)->block : SC_BLOCK_AIR)
+#define CHUNK_GET_BLOCK_TYPE(C) (((struct chunk_node *)C)->block)
 #define CHUNK_GET_BLOCK(C) sc_get_block(CHUNK_GET_BLOCK_TYPE(C))
 
 /* helper check to see if any of the arguments is outside of the world */
@@ -60,22 +58,37 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
 /* maximum size of the free lists for chunks */
 #define FREELIST_SIZE 32
 
+/* maximum depth of an octree below the chunk size.  This has to be at
+   least log(SC_CHUNK_VBO_SIZE) large. */
+#define MAX_RELATIONS 32
+
 static struct chunk_node *free_leaf_nodes[FREELIST_SIZE];
 static size_t free_leaf_nodes_count;
 
+struct chunk_relation {
+    struct chunk_node *parent;
+    struct chunk_node *node;
+};
+
+
 static struct chunk_node *
-new_chunk_node(size_t size)
+new_leaf_chunk_node(sc_blocktype_t block_type)
 {
     struct chunk_node *rv;
-    if (size == 1) {
-        if (free_leaf_nodes_count)
-            rv = free_leaf_nodes[--free_leaf_nodes_count];
-        else
-            rv = sc_xalloc(struct chunk_node_leaf);
-        rv->flags = CHUNK_FLAG_LEAF;
-        return rv;
-    }
-    if (size == SC_CHUNK_VBO_SIZE) {
+    if (free_leaf_nodes_count)
+        rv = free_leaf_nodes[--free_leaf_nodes_count];
+    else
+        rv = sc_xalloc(struct chunk_node);
+    rv->flags = CHUNK_FLAG_LEAF;
+    rv->block = block_type;
+    return rv;
+}
+
+static struct chunk_node *
+new_chunk_node_with_children(sc_blocktype_t block_type, int with_vbo)
+{
+    struct chunk_node_children *rv;
+    if (with_vbo) {
         rv = sc_xalloc(struct chunk_node_vbo);
         rv->flags = CHUNK_FLAG_VBO | CHUNK_FLAG_DIRTY;
         ((struct chunk_node_vbo *)rv)->vbo = NULL;
@@ -84,9 +97,9 @@ new_chunk_node(size_t size)
         rv = sc_xalloc(struct chunk_node_children);
         rv->flags = 0;
     }
-    memset(((struct chunk_node_children *)rv)->children, 0,
-           sizeof(struct chunk_node *) * 8);
-    return rv;
+    rv->block = block_type;
+    memset(rv->children, 0, sizeof(struct chunk_node *) * 8);
+    return (struct chunk_node *)rv;
 }
 
 static void
@@ -145,8 +158,7 @@ static const sc_block_t *
 get_block(sc_world_t *world, int x, int y, int z)
 {
     struct chunk_node *node = find_node(world, x, y, z, 1);
-    /* out of bounds or all air so far */
-    if (node == NULL || !CHUNK_IS_LEAF(node))
+    if (node == NULL)
         return sc_get_block(SC_BLOCK_AIR);
     return CHUNK_GET_BLOCK(node);
 }
@@ -162,50 +174,127 @@ find_vbo_node(sc_world_t *world, int x, int y, int z)
 }
 
 static int
+any_children_set(const struct chunk_node_children *node)
+{
+    size_t i;
+    for (i = 0; i < 8; i++)
+        if (node->children[i])
+            return 1;
+    return 0;
+}
+
+static void
+compress_partial_tree(struct chunk_node **relations, size_t count)
+{
+    struct chunk_node *node;
+    struct chunk_node_children *cnode, *parent;
+    size_t i, j, k, found_block;
+    sc_blocktype_t block;
+
+    for (i = count - 1; i > 0; i--) {
+        node = relations[i];
+
+        if (CHUNK_IS_LEAF(node))
+            continue;
+        cnode = (struct chunk_node_children *)node;
+
+        /* check the simple case where all children are not yet set */
+        if (!any_children_set(cnode))
+            block = cnode->block;
+
+        /* the case where we completely ignore the node's block value
+           and check if all nodes have the same type */
+        else {
+            found_block = 0;
+            for (j = 0; j < 8; j++) {
+                sc_blocktype_t actual_block = !cnode->children[j]
+                    ? cnode->block : cnode->children[j]->block;
+                if (!found_block) {
+                    block = actual_block;
+                    found_block = 1;
+                }
+                else if (actual_block != block)
+                    return;
+            }
+        }
+
+        parent = (struct chunk_node_children *)relations[i - 1];
+        assert(!CHUNK_IS_LEAF(parent));
+
+        for (k = 0; k < 8; k++)
+            if (parent->children[k] == node)
+                break;
+        assert(k < 8);
+        parent->children[k] = new_leaf_chunk_node(block);
+        free_chunk_node(node);
+    }
+}
+
+static int
 set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
 {
-    int size;
+    size_t size, idx, last_relation = 0;
     struct chunk_node *node, *child;
     struct chunk_node_children *cnode;
+    struct chunk_node *relations[MAX_RELATIONS];
 
     if (OUT_OF_BOUNDS(world, x, y, z))
         return 0;
     else if (get_block(world, x, y, z)->type == block->type)
         return 1;
 
-    /* Find the block in the octree
-
-       TODO: if the size of the node is smaller than the vbo chunk size
-             we should be able to optimize the case where all 8 children
-             store the same block type.  Right now that's not possible
-             because have some assumptions of never hitting leaf nodes
-             at a size > 1.  Also this would require us to free a bunch
-             of nodes along the way where it would make sense to keep
-             a freelist of leaf nodes around. */
+    /* Find the block in the octree and modify it */
     node = world->root;
     size = world->size;
-    while (size != 1) {
-        size_t idx;
+    while (1) {
         size /= 2;
-        idx = CHUNK_ADDR(x, y, z, size);
+
+        /* things below the vbo size may be optimized into a single leaf
+           node if necessary.  This saves some memory if we repeat the
+           same pattern all over again */
+        if (size < SC_CHUNK_VBO_SIZE)
+            relations[last_relation++] = node;
+
         assert(!CHUNK_IS_LEAF(node));
         cnode = (struct chunk_node_children *)node;
+        idx = CHUNK_ADDR(x, y, z, size);
         child = cnode->children[idx];
-        if (!child) {
-            child = new_chunk_node(size);
+
+        /* at size 1 we just set the child and that's pretty much it */
+        if (size == 1) {
+            if (!child) {
+                child = new_leaf_chunk_node(block->type);
+                cnode->children[idx] = child;
+            }
+            else
+                child->block = block->type;
+            relations[last_relation++] = child;
+            break;
+        }
+
+        /* this chunk is a leaf.  That's unfortunate because we have to
+           further recurse to set this child.  Split up that node and
+           prepare the children for value setting. */
+        if (!child || CHUNK_IS_LEAF(child)) {
+            int is_vbo = size == SC_CHUNK_VBO_SIZE;
+            struct chunk_node *old_child = child;
+            child = new_chunk_node_with_children(old_child
+                ? old_child->block : node->block, is_vbo);
+            free_chunk_node(old_child);
             cnode->children[idx] = child;
         }
-        if (size == SC_CHUNK_VBO_SIZE)
+
+        if (CHUNK_HAS_VBO(child))
             child->flags |= CHUNK_FLAG_DIRTY;
         node = child;
     }
 
-    /* helper macro to mark other vbos as dirty.
+    /* at that point we have the information stored, but we can attempt
+       to compress it.  This will collapse child nodes to leaf nodes
+       if all children have the same information stored. */
+    compress_partial_tree(relations, last_relation);
 
-       TODO: one could speed this up by remembering the parents for each
-             node.  This however would require 4 additional bytes for
-             each node, so it has some memory limitations.  If this ever
-             becomes a performance problem, we know where to fix it. */
+    /* helper macro to mark other vbos as dirty. */
 #define MARK_DIRTY(X, Y, Z) do { \
     struct chunk_node_vbo *node = find_vbo_node(world, X, Y, Z); \
     if (node) \
@@ -224,8 +313,6 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
         if ((z - 1) % world->size == 0) MARK_DIRTY(x, y, z - 1);
     }
 
-    assert(CHUNK_IS_LEAF(node));
-    ((struct chunk_node_leaf *)node)->block = block->type;
     return 1;
 }
 
@@ -372,7 +459,7 @@ sc_world_t *
 sc_new_world(uint32_t size)
 {
     sc_world_t *world = sc_xalloc(sc_world_t);
-    world->root = new_chunk_node(SC_CHUNK_VBO_SIZE);
+    world->root = new_chunk_node_with_children(SC_BLOCK_AIR, 0);
     world->size = size;
     assert(sc_is_power_of_two(world->size));
     assert(world->size % SC_CHUNK_VBO_SIZE == 0);
