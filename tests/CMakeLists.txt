@@ -1,6 +1,7 @@
 set(TESTS
     test_vec3
     test_mat4
+    test_list
 )
 
 foreach(TEST ${TESTS})

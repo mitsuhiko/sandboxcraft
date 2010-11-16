@@ -9,4 +9,4 @@
 /* helper macros to declare types and methods */
 #define _SC_LIST_PREFIX SC_PP_UCAT(sc, _SC_LIST_NAME)
 #define _SC_LIST_TYPENAME SC_PP_UCAT(_SC_LIST_PREFIX, t)
-#define _SC_LIST_METHOD(Rv, Name) Rv SC_PP_UCAT(_SC_LIST_PREFIX, Name)
+#define _SC_LIST_METHOD(Name) SC_PP_UCAT(_SC_LIST_PREFIX, Name)
