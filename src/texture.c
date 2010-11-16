@@ -1,5 +1,3 @@
-#include "assert.h"
-
 #include "sc_texture.h"
 #include "sc_path.h"
 #include "sc_error.h"

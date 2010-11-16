@@ -1,4 +1,3 @@
-#include <assert.h>
 #include "sc_vec2.h"
 #include "sc_vec3.h"
 

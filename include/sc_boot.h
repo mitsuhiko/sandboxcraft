@@ -26,6 +26,14 @@
 #  error "Unsupported platform"
 #endif
 #include <stdint.h>
+#include <assert.h>
+
+/* what does the compiler use to mark functions as inline? */
+#ifdef _MSC_VER
+#  define sc_inline __inline
+#else
+#  define sc_inline inline
+#endif
 
 /* handy little helper to trigger a segfault */
 #define SC_SEGFAULT { int *x = 0; *x = 42; }

@@ -9,7 +9,6 @@ typedef struct {
     struct chunk_node *root;            /* the root node of the octree */
 } sc_world_t;
 
-#include <assert.h>
 #include <stdlib.h>
 
 #define _SC_DONT_DEFINE_WORLD

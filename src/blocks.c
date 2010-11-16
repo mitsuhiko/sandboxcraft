@@ -1,5 +1,3 @@
-#include <assert.h>
-
 #include "sc_blocks.h"
 #include "sc_atlas.h"
 #include "sc_primitives.h"

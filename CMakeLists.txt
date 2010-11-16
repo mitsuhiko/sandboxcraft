@@ -31,6 +31,8 @@ set(LIB_SOURCES
     src/rnd.c
     src/perlin.c
     src/worldgen.c
+    src/list.c
+    src/_list_impl.inc
 
     deps/GLee/GLee.c
 )
@@ -63,6 +65,10 @@ set(LIB_HEADERS
     include/sc_rnd.h
     include/sc_perlin.h
     include/sc_worldgen.h
+    include/sc_list.h
+    include/_sc_list.h
+    include/_sc_list_pre.inc
+    include/_sc_list_post.inc
 
     deps/GLee/GLee.h
 )
