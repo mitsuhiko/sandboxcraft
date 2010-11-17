@@ -1,7 +1,8 @@
 #include "_sc_list_pre.inc"
 #include "sc_utils.h"
 
-_SC_LIST_TYPENAME *_SC_LIST_NEW_METHOD(size_t initial_size)
+_SC_LIST_TYPENAME *
+_SC_LIST_NEW_METHOD(size_t initial_size)
 {
     _SC_LIST_TYPENAME *rv = sc_xalloc(_SC_LIST_TYPENAME);
     if (!initial_size)
@@ -12,7 +13,8 @@ _SC_LIST_TYPENAME *_SC_LIST_NEW_METHOD(size_t initial_size)
     return rv;
 }
 
-void _SC_LIST_FREE_METHOD(_SC_LIST_TYPENAME *list)
+void
+_SC_LIST_FREE_METHOD(_SC_LIST_TYPENAME *list)
 {
     if (!list)
         return;
@@ -20,7 +22,8 @@ void _SC_LIST_FREE_METHOD(_SC_LIST_TYPENAME *list)
     sc_free(list);
 }
 
-void _SC_LIST_METHOD(append)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item)
+void
+_SC_LIST_METHOD(append)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item)
 {
     if (list->size >= list->allocated) {
         size_t new_size = (size_t)(list->allocated * 1.33f);
@@ -32,6 +35,19 @@ void _SC_LIST_METHOD(append)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item)
     list->items[list->size++] = item;
 }
 
+void
+_SC_LIST_METHOD(reverse)(_SC_LIST_TYPENAME *list)
+{
+    size_t i, j;
+    if (list->size <= 1)
+        return;
+    for (i = 0, j = list->size - 1; i < j; i++, j--) {
+        _SC_LIST_TYPE tmp = list->items[i];
+        list->items[i] = list->items[j];
+        list->items[j] = tmp;
+    }
+}
+
 static int
 _SC_LIST_METHOD(default_cmpfunc)(const _SC_LIST_TYPE *v1,
                                  const _SC_LIST_TYPE *v2, void *closure)
@@ -41,9 +57,10 @@ _SC_LIST_METHOD(default_cmpfunc)(const _SC_LIST_TYPE *v1,
     return (a == b) ? 0 : (a < b) ? -1 : 1;
 }
 
-void _SC_LIST_METHOD(sort)(_SC_LIST_TYPENAME *list,
-                           _SC_LIST_METHOD(cmpfunc) cmpfunc,
-                           void *closure)
+void
+_SC_LIST_METHOD(sort)(_SC_LIST_TYPENAME *list,
+                      _SC_LIST_METHOD(cmpfunc) cmpfunc,
+                      void *closure)
 {
     /* if no cmp function is provided we go with the default for this list */
     if (cmpfunc == 0)

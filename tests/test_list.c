@@ -87,6 +87,23 @@ sc_test(sorting_with_custom_compare_func)
     sc_free_list(list);
 }
 
+sc_test(reversing_lists)
+{
+    sc_intlist_t *list = sc_new_intlist(0);
+    sc_intlist_append(list, 1);
+    sc_intlist_append(list, 2);
+    sc_intlist_append(list, 3);
+    sc_intlist_append(list, 4);
+    sc_intlist_append(list, 5);
+    sc_intlist_reverse(list);
+    sc_assert_equal(list->items[0], 5);
+    sc_assert_equal(list->items[1], 4);
+    sc_assert_equal(list->items[2], 3);
+    sc_assert_equal(list->items[3], 2);
+    sc_assert_equal(list->items[4], 1);
+    sc_free_intlist(list);
+}
+
 sc_testsetup()
 {
     sc_testgroup(list) {
@@ -94,5 +111,6 @@ sc_testsetup()
         sc_run_test(sorting_small_integer_lists);
         sc_run_test(sorting_long_integer_lists);
         sc_run_test(sorting_with_custom_compare_func);
+        sc_run_test(reversing_lists);
     }
 }

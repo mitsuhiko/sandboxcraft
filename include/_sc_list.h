@@ -26,6 +26,9 @@ static sc_inline _SC_LIST_TYPE _SC_LIST_METHOD(get)(_SC_LIST_TYPENAME *list, siz
     return list->items[idx];
 }
 
+/* reverses a list in place */
+void _SC_LIST_METHOD(reverse)(_SC_LIST_TYPENAME *list);
+
 /* sort a list */
 void _SC_LIST_METHOD(sort)(_SC_LIST_TYPENAME *list,
                            _SC_LIST_METHOD(cmpfunc) cmpfunc,
