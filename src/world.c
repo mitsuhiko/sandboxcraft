@@ -65,24 +65,24 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
 /* memory to keep for draw information */
 #define VBOINFO_STACK_SIZE (1 << 16)
 
+/* free lists for leaf and children nodes which are frequently allocated
+   and deallocated. */
 static struct chunk_node *free_leaf_nodes[FREELIST_SIZE];
 static struct chunk_node *free_children_nodes[FREELIST_SIZE];
 static size_t free_leaf_nodes_count;
 static size_t free_children_nodes_count;
 
+/* vbo infos are also often created and removed (up to ~5000 times a frame)
+   and because of that are managed by a stack allocator. */
 static char vboinfo_stack[VBOINFO_STACK_SIZE];
 static sc_stackalloc_t vboinfo_stackalloc;
-
-struct chunk_relation {
-    struct chunk_node *parent;
-    struct chunk_node *node;
-};
 
 struct vboinfo {
     const sc_vbo_t *vbo;
     float distance;
 };
 
+/* the closure passed to the draw functions */
 struct chunk_draw_closure {
     const sc_frustum_t *frustum;
     sc_camera_t *camera;
@@ -470,7 +470,9 @@ find_visible_vbos(sc_world_t *world, const sc_block_t *block, int x, int y,
         if (vbo && vbo->vertices > 0) {
             struct vboinfo *info = sc_stackalloc_alloc(&vboinfo_stackalloc,
                                                        sizeof(struct vboinfo));
-            /* run out of memory on the stack, try again with heap */
+            /* run out of memory on the stack, try again with heap.  We
+               make sure that this heap allocated memory is removed at the
+               end of the rendering */
             if (!info)
                 info = sc_xalloc(struct vboinfo);
             sc_vec3_sub(&distance, &vec1, &args->camera->position);

@@ -60,12 +60,12 @@ int sc_world_set_block(sc_world_t *world, int x, int y, int z,
                        const sc_block_t *block);
 
 /* draws the world.  The OpenGL projection and model matrices are used
-   to calculate the visbility for the block of the world.  The camera has
-   to be applied beforehand:
+   to calculate the visbility for the block of the world.
 
-       sc_camera_apply(cam);
-       sc_world_draw(world);
-   */
+   This currently has some internal optimizations applied so that this
+   function is not reentrant.  This is usually not a problem but if it
+   might be necessary in the future to call this function recursively,
+   the implementation has to be adapted. */
 void sc_world_draw(sc_world_t *world);
 
 /* traverses the world.  This will execute the given callback with
