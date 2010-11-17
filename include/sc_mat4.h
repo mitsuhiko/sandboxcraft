@@ -50,12 +50,15 @@ sc_mat4_t *sc_mat4_transpose(sc_mat4_t *mat_out, const sc_mat4_t *mat);
 int sc_mat4_equal(const sc_mat4_t *mat1, const sc_mat4_t *mat2);
 
 /* prints matrix to stderr */
-#define sc_mat4_debug(M) \
-    fprintf(stderr, "[[%f, %f, %f, %f],\n [%f, %f, %f, %f],\n" \
-           " [%f, %f, %f, %f],\n [%f, %f, %f, %f]]\n", \
-           (M)->elms[0], (M)->elms[1], (M)->elms[2], (M)->elms[3], \
-           (M)->elms[4], (M)->elms[5], (M)->elms[6], (M)->elms[7], \
-           (M)->elms[8], (M)->elms[9], (M)->elms[10], (M)->elms[11], \
-           (M)->elms[12], (M)->elms[13], (M)->elms[14], (M)->elms[15])
+static sc_inline void
+sc_mat4_debug(const sc_mat4_t *mat)
+{
+    fprintf(stderr, "[[%f, %f, %f, %f],\n [%f, %f, %f, %f],\n"
+           " [%f, %f, %f, %f],\n [%f, %f, %f, %f]]\n",
+           mat->elms[0], mat->elms[1], mat->elms[2], mat->elms[3],
+           mat->elms[4], mat->elms[5], mat->elms[6], mat->elms[7],
+           mat->elms[8], mat->elms[9], mat->elms[10], mat->elms[11],
+           mat->elms[12], mat->elms[13], mat->elms[14], mat->elms[15]);
+}
 
 #endif

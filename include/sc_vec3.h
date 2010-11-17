@@ -12,8 +12,11 @@ typedef struct _sc_vec3 {
 } sc_vec3_t;
 
 /* is the vector empty? */
-#define sc_vec3_is_zero(vec) ((vec)->x == 0.0f && (vec)->y == 0.0f && \
-                              (vec)->z == 0.0f)
+static sc_inline int
+sc_vec3_is_zero(const sc_vec3_t *vec)
+{
+    return (vec->x == 0.0f && vec->y == 0.0f && vec->z == 0.0f);
+}
 
 /* sets the vector values and returns it */
 sc_vec3_t *sc_vec3_set(sc_vec3_t *vec, float x, float y, float z);
@@ -66,7 +69,10 @@ int sc_vec3_equal(const sc_vec3_t *v1, const sc_vec3_t *v2);
 int sc_vec3_nonzero(const sc_vec3_t *vec);
 
 /* prints the given vector to stderr plus a newline */
-#define sc_vec3_debug(vec) \
-    fprintf(stderr, "vec3(%f, %f, %f)\n", (vec)->x, (vec)->y, (vec)->z)
+static sc_inline void
+sc_vec3_debug(const sc_vec3_t *vec)
+{
+    fprintf(stderr, "vec3(%f, %f, %f)\n", vec->x, vec->y, vec->z);
+}
 
 #endif

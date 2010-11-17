@@ -39,10 +39,13 @@ sc_mat3_t *sc_mat3_scalar_mul(sc_mat3_t *mat_out, const sc_mat3_t *mat, float fa
 sc_mat3_t *sc_mat3_transpose(sc_mat3_t *mat_out, const sc_mat3_t *mat);
 
 /* prints matrix to stderr */
-#define sc_mat3_debug(M) \
-    fprintf(stderr, "[[%f, %f, %f],\n [%f, %f, %f],\n [%f, %f, %f]]\n", \
-           (M)->elms[0], (M)->elms[1], (M)->elms[2], \
-           (M)->elms[3], (M)->elms[4], (M)->elms[5], \
-           (M)->elms[6], (M)->elms[7], (M)->elms[8])
+static sc_inline void
+sc_mat3_debug(const sc_mat3_t *mat)
+{
+    fprintf(stderr, "[[%f, %f, %f],\n [%f, %f, %f],\n [%f, %f, %f]]\n",
+           mat->elms[0], mat->elms[1], mat->elms[2],
+           mat->elms[3], mat->elms[4], mat->elms[5],
+           mat->elms[6], mat->elms[7], mat->elms[8]);
+}
 
 #endif

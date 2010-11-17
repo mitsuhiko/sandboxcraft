@@ -11,10 +11,10 @@
 #   define sc_strdup strdup
 #endif
 
-/* min inline macro */
+/* min and max inline macro.  These have to be macros to support different
+   types.  ALso they can't be implemented without side effects in a
+   compiler independent way, so beware when using them. */
 #define sc_min(a, b) ((a) < (b) ? (a) : (b))
-
-/* max inline macro */
 #define sc_max(a, b) ((a) > (b) ? (a) : (b))
 
 /* sort comparision function */

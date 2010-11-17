@@ -14,8 +14,12 @@ typedef struct _sc_vec4 {
 } sc_vec4_t;
 
 /* is the vector empty? */
-#define sc_vec4_is_zero(vec) ((vec)->x == 0.0f && (vec)->y == 0.0f && \
-                              (vec)->z == 0.0f && (vec)->z == 0.0f)
+static sc_inline int
+sc_vec4_is_zero(const sc_vec4_t *vec)
+{
+    return (vec->x == 0.0f && vec->y == 0.0f &&
+            vec->z == 0.0f && vec->w == 0.0f);
+}
 
 /* sets the vector values and returns it */
 sc_vec4_t *sc_vec4_set(sc_vec4_t *vec, float x, float y, float z, float w);
@@ -64,7 +68,10 @@ int sc_vec4_equal(const sc_vec4_t *v1, const sc_vec4_t *v2);
 int sc_vec4_nonzero(const sc_vec4_t *vec);
 
 /* prints the given vector to stderr plus a newline */
-#define sc_vec4_debug(vec) \
-    fprintf(stderr, "vec4(%f, %f, %f, %f)\n", (vec)->x, (vec)->y, (vec)->z, (vec)->w)
+static sc_inline void
+sc_vec4_debug(const sc_vec4_t *vec)
+{
+    fprintf(stderr, "vec4(%f, %f, %f, %f)\n", vec->x, vec->y, vec->z, vec->w);
+}
 
 #endif
