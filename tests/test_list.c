@@ -16,8 +16,8 @@ static int my_sort_func(const void *v1, const void *v2,
 
 sc_test(basic_interface)
 {
-    sc_intlist_t *list = sc_new_intlist(1);
-    sc_intlist_t *other_list = sc_new_intlist(0);
+    sc_intlist_t *list = sc_new_intlist();
+    sc_intlist_t *other_list = sc_new_intlist();
     sc_intlist_append(list, 10);
     sc_intlist_append(list, 20);
     sc_intlist_append(list, 30);
@@ -52,13 +52,18 @@ sc_test(basic_interface)
     sc_assert_equal(list->size, 4);
 
     sc_free_intlist(list);
+    list = sc_new_intlist();
+    sc_intlist_resize(list, 10);
+    sc_assert_equal(list->size, 10);
+
+    sc_free_intlist(list);
     sc_free_intlist(other_list);
 }
 
 sc_test(list_cloning)
 {
     size_t i;
-    sc_intlist_t *list = sc_new_intlist(10);
+    sc_intlist_t *list = sc_new_intlist();
     sc_intlist_t *list2;
 
     for (i = 0; i < 10; i++)
@@ -72,7 +77,7 @@ sc_test(list_cloning)
 
 sc_test(sorting_small_integer_lists)
 {
-    sc_intlist_t *list = sc_new_intlist(1);
+    sc_intlist_t *list = sc_new_intlist();
     sc_intlist_append(list, 5);
     sc_intlist_append(list, 2);
     sc_intlist_append(list, 1);
@@ -90,7 +95,7 @@ sc_test(sorting_small_integer_lists)
 sc_test(sorting_long_integer_lists)
 {
     int i, last_val = 0;
-    sc_intlist_t *list = sc_new_intlist(20);
+    sc_intlist_t *list = sc_new_intlist();
     for (i = 0; i < 1000; i++)
         sc_intlist_append(list, sc_rnd_next_index(20000));
     sc_intlist_sort(list, 0, 0);
@@ -105,7 +110,7 @@ sc_test(sorting_with_custom_compare_func)
 {
     int i, last_val = 0;
     struct test_tuple *tup;
-    sc_list_t *list = sc_new_list(0);
+    sc_list_t *list = sc_new_list();
 
     for (i = 0; i < 1000; i++) {
         tup = sc_xalloc(struct test_tuple);
@@ -126,7 +131,7 @@ sc_test(sorting_with_custom_compare_func)
 
 sc_test(reversing_lists)
 {
-    sc_intlist_t *list = sc_new_intlist(0);
+    sc_intlist_t *list = sc_new_intlist();
     sc_intlist_append(list, 1);
     sc_intlist_append(list, 2);
     sc_intlist_append(list, 3);

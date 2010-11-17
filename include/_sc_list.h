@@ -9,7 +9,7 @@ typedef struct {
 } _SC_LIST_TYPENAME;
 
 /* creates a new list */
-_SC_LIST_TYPENAME *_SC_LIST_NEW_METHOD(size_t initial_size);
+_SC_LIST_TYPENAME *_SC_LIST_NEW_METHOD();
 
 /* frees the list */
 void _SC_LIST_FREE_METHOD(_SC_LIST_TYPENAME *list);
@@ -47,6 +47,11 @@ _SC_LIST_METHOD(find)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item)
 
 /* trims the list (reallocates the list to strip) */
 void _SC_LIST_METHOD(trim)(_SC_LIST_TYPENAME *list);
+
+/* performs an actual resizing of the list.  Will allocate memory if
+   necessary and set the size to the given one.  Can be used to
+   efficiently fill the list with data of known length */
+void _SC_LIST_METHOD(resize)(_SC_LIST_TYPENAME *list, size_t size);
 
 /* reverses a list in place */
 void _SC_LIST_METHOD(reverse)(_SC_LIST_TYPENAME *list);

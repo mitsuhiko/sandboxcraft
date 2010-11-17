@@ -2,14 +2,12 @@
 
 
 _SC_LIST_TYPENAME *
-_SC_LIST_NEW_METHOD(size_t initial_size)
+_SC_LIST_NEW_METHOD()
 {
     _SC_LIST_TYPENAME *rv = sc_xalloc(_SC_LIST_TYPENAME);
-    if (!initial_size)
-        initial_size = 32;
     rv->size = 0;
-    rv->allocated = initial_size;
-    rv->items = sc_xmalloc(sizeof(_SC_LIST_TYPE) * initial_size);
+    rv->allocated = 32;
+    rv->items = sc_xmalloc(sizeof(_SC_LIST_TYPE) * rv->allocated);
     return rv;
 }
 
@@ -69,6 +67,16 @@ _SC_LIST_METHOD(trim)(_SC_LIST_TYPENAME *list)
         return;
     list->allocated = length;
     list->items = sc_xrealloc(list->items, list->allocated);
+}
+
+void
+_SC_LIST_METHOD(resize)(_SC_LIST_TYPENAME *list, size_t size)
+{
+    list->size = size;
+    if (list->allocated < size) {
+        list->allocated = size;
+        list->items = sc_xrealloc(list->items, sizeof(_SC_LIST_TYPE) * size);
+    }
 }
 
 void
