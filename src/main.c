@@ -1,5 +1,3 @@
-#include <stdlib.h>
-
 #include "sc_boot.h"
 #include "sc_game.h"
 #include "sc_engine.h"

@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "sc_engine.h"
 #include "sc_vec4.h"
 #include "sc_error.h"
