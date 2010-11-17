@@ -73,6 +73,9 @@ sc_test(list_cloning)
     for (i = 0; i < 10; i++)
         sc_assert_equal(list->items[i], list2->items[i]);
     sc_assert(list->items != list2->items);
+
+    sc_free_intlist(list);
+    sc_free_intlist(list2);
 }
 
 sc_test(sorting_small_integer_lists)

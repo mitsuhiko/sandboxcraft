@@ -13,6 +13,12 @@
 sc_gametime_t sc_gametime;
 static int mouse_grabbed;
 
+static struct {
+    sc_ticks_t last_reset;
+    size_t frames;
+    size_t avg;
+} fps_info;
+
 static void
 resize_viewport(void)
 {
@@ -262,14 +268,22 @@ sc_engine_end_frame(void)
     sc_debug_flush();
 #endif
 
-#ifdef FPS_LIMIT
+    /* this is not vsync, this is the limit we need for the update loop
+       or a fast machine will be faster than the SDL timer resolution */
     if (sc_gametime.delta < (1000.0f / FPS_LIMIT))
         sc_engine_delay((sc_ticks_t)((1000.0f / FPS_LIMIT) -
                                      sc_gametime.delta));
-#endif
 
     sc_gametime.end = sc_engine_get_ticks();
     sc_gametime.delta = sc_gametime.end - sc_gametime.start;
+
+    /* do fps counting */
+    fps_info.frames++;
+    if (fps_info.last_reset < sc_gametime.end - 1000) {
+        fps_info.avg = fps_info.frames;
+        fps_info.frames = 0;
+        fps_info.last_reset = sc_gametime.end;
+    }
 
     sc_engine_swap_buffers();
 }
