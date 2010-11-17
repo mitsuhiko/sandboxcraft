@@ -39,7 +39,7 @@
    interface is empty.  So that we don't have to cast things around, we just
    don't define that type and specify it in the struct instead. */
 #ifndef _SC_DONT_DEFINE_ATLAS
-typedef struct {} sc_atlas_t;
+typedef void sc_atlas_t;
 #endif
 
 /* creates a new atlas from a given size and filtering.  The size must
