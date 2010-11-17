@@ -4,8 +4,6 @@
    Software -- Practice and Experience 23 (11), Nov. 1993, pp. 1249-1265. */
 #include "sc_utils.h"
 
-#include <stddef.h>
-
 /* we specify wordsize as what the compiler most likely aligns to.  This
    would be 4 bytes (int) on 32 and 64bit x86 machines */
 typedef int word_t;
