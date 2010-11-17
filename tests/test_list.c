@@ -17,6 +17,7 @@ static int my_sort_func(const void *v1, const void *v2,
 sc_test(basic_interface)
 {
     sc_intlist_t *list = sc_new_intlist(1);
+    sc_intlist_t *other_list = sc_new_intlist(0);
     sc_intlist_append(list, 10);
     sc_intlist_append(list, 20);
     sc_intlist_append(list, 30);
@@ -42,7 +43,31 @@ sc_test(basic_interface)
     sc_assert_equal(sc_intlist_remove(list, 20), 0);
     sc_assert_equal(sc_intlist_pop(list), 30);
 
+    sc_intlist_append(other_list, 42);
+    sc_intlist_append(other_list, 84);
+    sc_intlist_append(other_list, 122);
+
+    sc_intlist_append(list, 11);
+    sc_intlist_extend(list, other_list);
+    sc_assert_equal(list->size, 4);
+
     sc_free_intlist(list);
+    sc_free_intlist(other_list);
+}
+
+sc_test(list_cloning)
+{
+    size_t i;
+    sc_intlist_t *list = sc_new_intlist(10);
+    sc_intlist_t *list2;
+
+    for (i = 0; i < 10; i++)
+        sc_intlist_append(list, i * i);
+
+    list2 = sc_intlist_clone(list);
+    for (i = 0; i < 10; i++)
+        sc_assert_equal(list->items[i], list2->items[i]);
+    sc_assert(list->items != list2->items);
 }
 
 sc_test(sorting_small_integer_lists)
@@ -120,6 +145,7 @@ sc_testsetup()
 {
     sc_testgroup(list) {
         sc_run_test(basic_interface);
+        sc_run_test(list_cloning);
         sc_run_test(sorting_small_integer_lists);
         sc_run_test(sorting_long_integer_lists);
         sc_run_test(sorting_with_custom_compare_func);

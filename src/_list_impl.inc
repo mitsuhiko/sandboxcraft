@@ -68,7 +68,7 @@ _SC_LIST_METHOD(trim)(_SC_LIST_TYPENAME *list)
     if (length > list->allocated)
         return;
     list->allocated = length;
-    list->items = sc_realloc(list->items, list->allocated);
+    list->items = sc_xrealloc(list->items, list->allocated);
 }
 
 void
@@ -101,6 +101,32 @@ _SC_LIST_METHOD(sort)(_SC_LIST_TYPENAME *list, sc_cmpfunc cmpfunc,
     if (cmpfunc == 0)
         cmpfunc = _SC_LIST_METHOD(default_cmpfunc);
     sc_sort(list->items, list->size, sizeof(_SC_LIST_TYPE), closure, cmpfunc);
+}
+
+void
+_SC_LIST_METHOD(extend)(_SC_LIST_TYPENAME *list,
+                        _SC_LIST_TYPENAME *other_list)
+{
+    size_t min_size = (list->size + other_list->size);
+    if (min_size < list->allocated) {
+        list->allocated = min_size;
+        list->items = sc_xrealloc(list->items,
+                                  list->allocated * sizeof(_SC_LIST_TYPE));
+    }
+    memcpy(list->items + list->size, other_list->items,
+           other_list->size * sizeof(_SC_LIST_TYPE));
+    list->size += other_list->size;
+}
+
+_SC_LIST_TYPENAME *
+_SC_LIST_METHOD(clone)(_SC_LIST_TYPENAME *list)
+{
+    _SC_LIST_TYPENAME *rv = sc_alloc(_SC_LIST_TYPENAME);
+    rv->size = list->size;
+    rv->allocated = list->size;
+    rv->items = sc_xmalloc(sizeof(_SC_LIST_TYPE) * rv->size);
+    memcpy(rv->items, list->items, sizeof(_SC_LIST_TYPE) * rv->size);
+    return rv;
 }
 
 #include "_sc_list_post.inc"

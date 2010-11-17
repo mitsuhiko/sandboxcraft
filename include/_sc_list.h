@@ -55,4 +55,11 @@ void _SC_LIST_METHOD(reverse)(_SC_LIST_TYPENAME *list);
 void _SC_LIST_METHOD(sort)(_SC_LIST_TYPENAME *list, sc_cmpfunc cmpfunc,
                            void *closure);
 
+/* extends the list with the contents from another one */
+void _SC_LIST_METHOD(extend)(_SC_LIST_TYPENAME *list,
+                             _SC_LIST_TYPENAME *other_list);
+
+/* creates a clone of the list */
+_SC_LIST_TYPENAME *_SC_LIST_METHOD(clone)(_SC_LIST_TYPENAME *list);
+
 #include "_sc_list_post.inc"
