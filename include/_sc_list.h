@@ -45,6 +45,9 @@ _SC_LIST_METHOD(find)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item)
     return -1;
 }
 
+/* trims the list (reallocates the list to strip) */
+void _SC_LIST_METHOD(trim)(_SC_LIST_TYPENAME *list);
+
 /* reverses a list in place */
 void _SC_LIST_METHOD(reverse)(_SC_LIST_TYPENAME *list);
 

@@ -62,6 +62,16 @@ _SC_LIST_METHOD(delete)(_SC_LIST_TYPENAME *list, size_t idx)
 }
 
 void
+_SC_LIST_METHOD(trim)(_SC_LIST_TYPENAME *list)
+{
+    size_t length = (size_t)(list->size * 1.33f);
+    if (length > list->allocated)
+        return;
+    list->allocated = length;
+    list->items = sc_realloc(list->items, list->allocated);
+}
+
+void
 _SC_LIST_METHOD(reverse)(_SC_LIST_TYPENAME *list)
 {
     size_t i, j;
