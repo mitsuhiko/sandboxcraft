@@ -1,5 +1,5 @@
 #include "_sc_list_pre.inc"
-#include "sc_utils.h"
+
 
 _SC_LIST_TYPENAME *
 _SC_LIST_NEW_METHOD(size_t initial_size)
@@ -49,24 +49,22 @@ _SC_LIST_METHOD(reverse)(_SC_LIST_TYPENAME *list)
 }
 
 static int
-_SC_LIST_METHOD(default_cmpfunc)(const _SC_LIST_TYPE *v1,
-                                 const _SC_LIST_TYPE *v2, void *closure)
+_SC_LIST_METHOD(default_cmpfunc)(const void *v1, const void *v2,
+                                 void *closure)
 {
-    const _SC_LIST_TYPE a = *v1;
-    const _SC_LIST_TYPE b = *v2;
+    const _SC_LIST_TYPE a = *(const _SC_LIST_TYPE *)v1;
+    const _SC_LIST_TYPE b = *(const _SC_LIST_TYPE *)v2;
     return (a == b) ? 0 : (a < b) ? -1 : 1;
 }
 
 void
-_SC_LIST_METHOD(sort)(_SC_LIST_TYPENAME *list,
-                      _SC_LIST_METHOD(cmpfunc) cmpfunc,
+_SC_LIST_METHOD(sort)(_SC_LIST_TYPENAME *list, sc_cmpfunc cmpfunc,
                       void *closure)
 {
     /* if no cmp function is provided we go with the default for this list */
     if (cmpfunc == 0)
         cmpfunc = _SC_LIST_METHOD(default_cmpfunc);
-    sc_sort(list->items, list->size, sizeof(_SC_LIST_TYPE), closure,
-            (sc_cmpfunc)cmpfunc);
+    sc_sort(list->items, list->size, sizeof(_SC_LIST_TYPE), closure, cmpfunc);
 }
 
 #include "_sc_list_post.inc"

@@ -1,14 +1,12 @@
 #include "_sc_list_pre.inc"
 
+#include "sc_utils.h"
+
 typedef struct {
     size_t size;
     size_t allocated;
     _SC_LIST_TYPE *items;
 } _SC_LIST_TYPENAME;
-
-typedef int (*_SC_LIST_METHOD(cmpfunc))(const _SC_LIST_TYPE *v1,
-                                        const _SC_LIST_TYPE *v2,
-                                        void *closure);
 
 /* creates a new list */
 _SC_LIST_TYPENAME *_SC_LIST_NEW_METHOD(size_t initial_size);
@@ -20,18 +18,29 @@ void _SC_LIST_FREE_METHOD(_SC_LIST_TYPENAME *list);
 void _SC_LIST_METHOD(append)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item);
 
 /* gets an item from the list */
-static sc_inline _SC_LIST_TYPE _SC_LIST_METHOD(get)(_SC_LIST_TYPENAME *list, size_t idx)
+static sc_inline _SC_LIST_TYPE
+_SC_LIST_METHOD(get)(_SC_LIST_TYPENAME *list, size_t idx)
 {
     assert(idx < list->size);
     return list->items[idx];
+}
+
+/* finds an item in the list and returns the index or -1 if not found */
+static sc_inline ssize_t
+_SC_LIST_METHOD(find)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item)
+{
+    ssize_t idx;
+    for (idx = 0; idx < list->size; idx++)
+        if (list->items[idx] == item)
+            return idx;
+    return -1;
 }
 
 /* reverses a list in place */
 void _SC_LIST_METHOD(reverse)(_SC_LIST_TYPENAME *list);
 
 /* sort a list */
-void _SC_LIST_METHOD(sort)(_SC_LIST_TYPENAME *list,
-                           _SC_LIST_METHOD(cmpfunc) cmpfunc,
+void _SC_LIST_METHOD(sort)(_SC_LIST_TYPENAME *list, sc_cmpfunc cmpfunc,
                            void *closure);
 
 #include "_sc_list_post.inc"
