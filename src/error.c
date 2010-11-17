@@ -1,7 +1,7 @@
 #include <stdarg.h>
 
 #include "sc_error.h"
-#include "sc_stringutils.h"
+#include "sc_utils.h"
 
 static sc_error_t *last_error;
 

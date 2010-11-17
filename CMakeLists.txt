@@ -8,6 +8,7 @@ project(SandboxCraft)
 set(LIB_SOURCES
     src/alloc.c
     src/error.c
+    src/utils.c
     src/engine.c
     src/game.c
     src/path.c
@@ -41,7 +42,7 @@ set(LIB_HEADERS
     include/sc_alloc.h
     include/sc_engine.h
     include/sc_error.h
-    include/sc_stringutils.h
+    include/sc_utils.h
     include/sc_path.h
     include/sc_engine.h
     include/sc_game.h
