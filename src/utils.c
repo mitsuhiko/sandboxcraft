@@ -1,20 +1,19 @@
+/* sort function adapted from the "Engineering a Sort Function" publication
+   by Jon L. Bentley and M. Douglas McIlroy.
+
+   Software -- Practice and Experience 23 (11), Nov. 1993, pp. 1249-1265. */
 #include "sc_utils.h"
 
 #include <stddef.h>
 
-/* sort:
-   J. L. Bentley and M. D. McIlroy. Engineering a sort function.
-   Software---Practice and Experience, 23(11):1249-1265. */
-
-/* that does not appear to be too reliable.  It will still work on
-   64 bit but it's not the wordsize.  Do I care? */
+/* we specify wordsize as what the compiler most likely aligns to.  This
+   would be 4 bytes (int) on 32 and 64bit x86 machines */
 typedef int word_t;
-
 #define WORD_SIZE sizeof(word_t)
 #define BASIC_SWAP(a, b, t) (t = a, a = b, b = t);
 
 static void
-swapfunc(char *a, char *b, size_t n, int swaptype)
+swapfunc(void *a, void *b, size_t n, int swaptype)
 {
     if (swaptype <= 1) {
         word_t t;
@@ -23,12 +22,12 @@ swapfunc(char *a, char *b, size_t n, int swaptype)
     }
     else {
         char t;
-        for (; n > 0; a += 1, b += 1, n -= 1)
-            BASIC_SWAP(*a, *b, t);
+        for (; n > 0; a++, b++, n--)
+            BASIC_SWAP(*(char *)a, *(char *)b, t);
     }
 }
 
-static char *
+static void *
 med3(void *a, void *b, void *c, sc_cmpfunc cmp, void *closure)
 {
     return cmp(a, b, closure) < 0
@@ -37,11 +36,11 @@ med3(void *a, void *b, void *c, sc_cmpfunc cmp, void *closure)
 }
 
 void
-sort_impl(char *a, size_t n, size_t es, void *closure, sc_cmpfunc cmp)
+sort_impl(void *a, size_t n, size_t es, void *closure, sc_cmpfunc cmp)
 {
-    char *pa, *pb, *pc, *pd, *pl, *pm, *pn, *pv;
-    int r;
-    word_t t, v;
+    void *pa, *pb, *pc, *pd, *pl, *pm, *pn, *partition_value;
+    int rv;
+    word_t t, helper_value;
     size_t s;
  
     /* helpers for swapping */
@@ -77,28 +76,28 @@ sort_impl(char *a, size_t n, size_t es, void *closure, sc_cmpfunc cmp)
         pm = med3(pl, pm, pn, cmp, closure);
     }
 
-    /* pv points to parition value */
+    /* partition_value points to partition value */
     if (swaptype) {
-        pv = a;
-        SWAP(pv, pm);
+        partition_value = a;
+        SWAP(partition_value, pm);
     }
     else {
-        pv = (char *)&v;
-        v = *(word_t *)pm;
+        helper_value = *(word_t *)pm;
+        partition_value = &helper_value;
     }
 
     pa = pb = a;
     pc = pd = a + (n - 1) * es;
     while (1) {
-        while (pb <= pc && (r = cmp(pb, pv, closure)) <= 0) {
-            if (r == 0) {
+        while (pb <= pc && (rv = cmp(pb, partition_value, closure)) <= 0) {
+            if (rv == 0) {
                 SWAP(pa, pb);
                 pa += es;
             }
             pb += es;
         }
-        while (pc >= pb && (r = cmp(pc, pv, closure)) >= 0) {
-            if (r == 0) {
+        while (pc >= pb && (rv = cmp(pc, partition_value, closure)) >= 0) {
+            if (rv == 0) {
                 SWAP(pc, pd);
                 pd -= es;
             }
@@ -123,7 +122,7 @@ sort_impl(char *a, size_t n, size_t es, void *closure, sc_cmpfunc cmp)
     if ((s = pd - pc) > es)
         sort_impl(pn - s, s / es, es, closure, cmp);
 
-    #undef SWAP
+#undef SWAP
 }
 
 void
@@ -132,5 +131,5 @@ sc_sort(void *base, size_t length, size_t size, void *closure,
 {
     if (length <= 1)
         return;
-    sort_impl((char *)base, length, size, closure, cmpfunc);
+    sort_impl(base, length, size, closure, cmpfunc);
 }
