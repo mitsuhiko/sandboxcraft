@@ -39,7 +39,7 @@ sc_vbo_t *sc_new_vbo(void);
 void sc_free_vbo(sc_vbo_t *vbo);
 
 /* finalizes the vbo and moves all the data to the graphics device */
-void sc_finalize_vbo(sc_vbo_t *vbo);
+void sc_finalize_vbo(sc_vbo_t *vbo, int dynamic);
 
 /* reopens the vbo to add new data.  That way the vbo is not deleted
    from the device but replaced by new uploaded data.  vertices are

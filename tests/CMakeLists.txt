@@ -2,6 +2,7 @@ set(TESTS
     test_vec3
     test_mat4
     test_list
+    test_alloc
 )
 
 foreach(TEST ${TESTS})

@@ -54,9 +54,10 @@ sc_free_vbo(sc_vbo_t *vbo)
 }
 
 void
-sc_finalize_vbo(sc_vbo_t *vbo)
+sc_finalize_vbo(sc_vbo_t *vbo, int dynamic)
 {
     ASSERT_NOT_FINALIZED();
+    GLenum mode = dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
 
     if (vbo->_mode == MODE_FRESH)
         glGenBuffers(3, vbo->buffers);
@@ -64,17 +65,17 @@ sc_finalize_vbo(sc_vbo_t *vbo)
     /* vertex data */
     glBindBuffer(GL_ARRAY_BUFFER, vbo->buffers[SC_VERTEX_BUFFER_ID]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vbo->vertices * 3,
-                 vbo->_vertices, GL_STATIC_DRAW);
+                 vbo->_vertices, mode);
 
     /* normal data */
     glBindBuffer(GL_ARRAY_BUFFER, vbo->buffers[SC_NORMAL_BUFFER_ID]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vbo->vertices * 3,
-                 vbo->_normals, GL_STATIC_DRAW);
+                 vbo->_normals, mode);
 
     /* texture coordinates */
     glBindBuffer(GL_ARRAY_BUFFER, vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vbo->vertices * 2,
-                 vbo->_tex_coords, GL_STATIC_DRAW);
+                 vbo->_tex_coords, mode);
 
     sc_free(vbo->_vertices);
     sc_free(vbo->_normals);

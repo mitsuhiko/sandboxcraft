@@ -62,17 +62,23 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
    least log(SC_CHUNK_VBO_SIZE) large. */
 #define MAX_RELATIONS 32
 
+/* memory to keep for draw information */
+#define VBOINFO_STACK_SIZE (1 << 16)
+
 static struct chunk_node *free_leaf_nodes[FREELIST_SIZE];
 static struct chunk_node *free_children_nodes[FREELIST_SIZE];
 static size_t free_leaf_nodes_count;
 static size_t free_children_nodes_count;
+
+static char vboinfo_stack[VBOINFO_STACK_SIZE];
+static sc_stackalloc_t vboinfo_stackalloc;
 
 struct chunk_relation {
     struct chunk_node *parent;
     struct chunk_node *node;
 };
 
-struct vbo_with_distance {
+struct vboinfo {
     const sc_vbo_t *vbo;
     float distance;
 };
@@ -418,7 +424,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
             }
 
     node->flags &= ~CHUNK_FLAG_DIRTY;
-    sc_finalize_vbo(node->vbo);
+    sc_finalize_vbo(node->vbo, 1);
 }
 
 const sc_vbo_t *
@@ -462,7 +468,11 @@ find_visible_vbos(sc_world_t *world, const sc_block_t *block, int x, int y,
            have a vbo so far.  In that case, just ignore that.  We also
            ignore a generated vbo that has not a single vertex */
         if (vbo && vbo->vertices > 0) {
-            struct vbo_with_distance *info = sc_alloc(struct vbo_with_distance);
+            struct vboinfo *info = sc_stackalloc_alloc(&vboinfo_stackalloc,
+                                                       sizeof(struct vboinfo));
+            /* run out of memory on the stack, try again with heap */
+            if (!info)
+                info = sc_xalloc(struct vboinfo);
             sc_vec3_sub(&distance, &vec1, &args->camera->position);
             info->vbo = vbo;
             info->distance = sc_vec3_length2(&distance);
@@ -519,8 +529,8 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
 int
 compare_vbo_by_distance(const void *v1, const void *v2, void *closure)
 {
-    struct vbo_with_distance *a = *(struct vbo_with_distance **)v1;
-    struct vbo_with_distance *b = *(struct vbo_with_distance **)v2;
+    struct vboinfo *a = *(struct vboinfo **)v1;
+    struct vboinfo *b = *(struct vboinfo **)v2;
     return a->distance - b->distance;
 }
 
@@ -530,6 +540,11 @@ sc_world_draw(sc_world_t *world)
     size_t i;
     sc_frustum_t frustum;
     struct chunk_draw_closure closure;
+
+    /* this makes the function not reentrant.  If this ever comes and issue
+       move this into the heap and put it onto the closure */
+    sc_stackalloc_init(&vboinfo_stackalloc, &vboinfo_stack,
+                       VBOINFO_STACK_SIZE);
 
     sc_get_current_frustum(&frustum);
     closure.frustum = &frustum;
@@ -542,9 +557,13 @@ sc_world_draw(sc_world_t *world)
     if (closure.vbos->size > 0) {
         sc_bind_texture(sc_blocks_get_atlas_texture());
         for (i = 0; i < closure.vbos->size; i++) {
-            struct vbo_with_distance *info = closure.vbos->items[i];
+            struct vboinfo *info = closure.vbos->items[i];
             sc_vbo_draw(info->vbo);
-            sc_free(info);
+
+            /* if the pointer was not on the stack it has to be on the heap
+               so we have to free it here before we leave the function */
+            if (!sc_stackalloc_managed(&vboinfo_stackalloc, info))
+                sc_free(info);
         }
     }
 
