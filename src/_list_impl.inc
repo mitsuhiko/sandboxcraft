@@ -35,6 +35,32 @@ _SC_LIST_METHOD(append)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item)
     list->items[list->size++] = item;
 }
 
+int
+_SC_LIST_METHOD(remove)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item)
+{
+    ssize_t idx = _SC_LIST_METHOD(find)(list, item);
+    if (idx < 0)
+        return 0;
+    _SC_LIST_METHOD(delete)(list, idx);
+    return 1;
+}
+
+_SC_LIST_TYPE
+_SC_LIST_METHOD(pop)(_SC_LIST_TYPENAME *list)
+{
+    assert(list->size > 0);
+    return list->items[--list->size];
+}
+
+void
+_SC_LIST_METHOD(delete)(_SC_LIST_TYPENAME *list, size_t idx)
+{
+    assert(idx < list->size);
+    memmove(list->items + idx, list->items + idx + 1,
+            sizeof(_SC_LIST_TYPE) * (list->size - idx - 1));
+    list->size--;
+}
+
 void
 _SC_LIST_METHOD(reverse)(_SC_LIST_TYPENAME *list)
 {

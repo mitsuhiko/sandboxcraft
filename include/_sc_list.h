@@ -17,6 +17,15 @@ void _SC_LIST_FREE_METHOD(_SC_LIST_TYPENAME *list);
 /* adds a new item to the list */
 void _SC_LIST_METHOD(append)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item);
 
+/* removes an item from the list */
+int _SC_LIST_METHOD(remove)(_SC_LIST_TYPENAME *list, _SC_LIST_TYPE item);
+
+/* removes an item by index from the list */
+void _SC_LIST_METHOD(delete)(_SC_LIST_TYPENAME *list, size_t idx);
+
+/* removes the last item and returns it */
+_SC_LIST_TYPE _SC_LIST_METHOD(pop)(_SC_LIST_TYPENAME *list);
+
 /* gets an item from the list */
 static sc_inline _SC_LIST_TYPE
 _SC_LIST_METHOD(get)(_SC_LIST_TYPENAME *list, size_t idx)

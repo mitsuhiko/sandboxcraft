@@ -33,6 +33,15 @@ sc_test(basic_interface)
     sc_assert_equal(sc_intlist_find(list, 10), 0);
     sc_assert_equal(sc_intlist_find(list, 30), 2);
 
+    sc_intlist_delete(list, 0);
+    sc_assert_equal(list->items[0], 20);
+    sc_assert_equal(list->items[1], 30);
+    sc_assert_equal(list->size, 2);
+    sc_assert_equal(sc_intlist_remove(list, 20), 1);
+    sc_assert_equal(list->size, 1);
+    sc_assert_equal(sc_intlist_remove(list, 20), 0);
+    sc_assert_equal(sc_intlist_pop(list), 30);
+
     sc_free_intlist(list);
 }
 
