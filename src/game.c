@@ -118,7 +118,7 @@ void
 sc_game_render(void)
 {
     sc_engine_clear(sc_color(0x93ddefff));
-    sc_camera_apply(cam);
+    sc_apply_current_camera();
     sc_world_draw(world);
 
     glPushMatrix();
@@ -168,6 +168,7 @@ sc_game_late_init(void)
     world = sc_create_random_world(256);
     sc_world_flush_vbos(world);
     cam = sc_new_camera();
+    sc_camera_push(cam);
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
     sc_engine_grab_mouse(1);
@@ -179,6 +180,7 @@ void
 sc_game_shutdown(void)
 {
     sc_engine_grab_mouse(0);
+    sc_camera_pop();
     sc_free_camera(cam);
     sc_free_world(world);
     sc_free_blocks();

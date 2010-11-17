@@ -25,7 +25,17 @@ void sc_camera_move_backward(sc_camera_t *cam, float delta);
 void sc_camera_strafe_left(sc_camera_t *cam, float delta);
 void sc_camera_strafe_right(sc_camera_t *cam, float delta);
 
-/* sends the transformation matrix to the graphics device */
-void sc_camera_apply(const sc_camera_t *cam);
+/* makes this camera the active camera on the camera stack */
+void sc_camera_push(sc_camera_t *cam);
+
+/* pops the topmost camera from the stack */
+sc_camera_t *sc_camera_pop(void);
+
+/* sends the current camera's information to the graphics device. */
+void sc_apply_current_camera(void);
+
+/* returns the topmost camera from the stack or NULL if the stack does
+   not have a managed camera */
+sc_camera_t *sc_get_current_camera(void);
 
 #endif

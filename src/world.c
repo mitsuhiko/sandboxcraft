@@ -20,6 +20,7 @@ typedef struct {
 #include "sc_math.h"
 #include "sc_world.h"
 #include "sc_perlin.h"
+#include "sc_list.h"
 
 /* current set of flags to keep different struct sizes apart */
 #define CHUNK_FLAG_LEAF         1       /* this node has no children */
@@ -69,6 +70,17 @@ static size_t free_children_nodes_count;
 struct chunk_relation {
     struct chunk_node *parent;
     struct chunk_node *node;
+};
+
+struct vbo_with_distance {
+    const sc_vbo_t *vbo;
+    float distance;
+};
+
+struct chunk_draw_closure {
+    const sc_frustum_t *frustum;
+    sc_camera_t *camera;
+    sc_list_t *vbos;
 };
 
 
@@ -423,11 +435,11 @@ get_vbo(sc_world_t *world, int x, int y, int z)
 }
 
 static int
-draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
-                int z, size_t size, void *closure)
+find_visible_vbos(sc_world_t *world, const sc_block_t *block, int x, int y,
+                  int z, size_t size, void *closure)
 {
-    sc_vec3_t vec1, vec2;
-    const sc_frustum_t *frustum = closure;
+    sc_vec3_t vec1, vec2, distance;
+    struct chunk_draw_closure *args = closure;
 
     /* if we are not visible, abort early and do not recurse */
     sc_vec3_set(&vec1, SC_BLOCK_SIZE * x - SC_BLOCK_SIZE / 2,
@@ -437,7 +449,7 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
                        SC_BLOCK_SIZE * size,
                        SC_BLOCK_SIZE * size);
     sc_vec3_add(&vec2, &vec2, &vec1);
-    if (sc_frustum_test_aabb(frustum, &vec1, &vec2) < 0)
+    if (sc_frustum_test_aabb(args->frustum, &vec1, &vec2) < 0)
         return 0;
 
     /* we reached the level of the octree where vbos are stored.  Draw
@@ -447,10 +459,14 @@ draw_if_visible(sc_world_t *world, const sc_block_t *block, int x, int y,
         /* get_vbo operates on flipped coordinates */
         const sc_vbo_t *vbo = get_vbo(world, x, z, y);
         /* in case a piece of world is still completely empty, we won't
-           have a vbo so far.  In that case, just ignore that */
-        if (vbo) {
-            sc_bind_texture(sc_blocks_get_atlas_texture());
-            sc_vbo_draw(vbo);
+           have a vbo so far.  In that case, just ignore that.  We also
+           ignore a generated vbo that has not a single vertex */
+        if (vbo && vbo->vertices > 0) {
+            struct vbo_with_distance *info = sc_alloc(struct vbo_with_distance);
+            sc_vec3_sub(&distance, &vec1, &args->camera->position);
+            info->vbo = vbo;
+            info->distance = sc_vec3_length2(&distance);
+            sc_list_append(args->vbos, info);
         }
         return 0;
     }
@@ -500,12 +516,39 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
     return set_block(world, x, z, y, block);
 }
 
+int
+compare_vbo_by_distance(const void *v1, const void *v2, void *closure)
+{
+    struct vbo_with_distance *a = *(struct vbo_with_distance **)v1;
+    struct vbo_with_distance *b = *(struct vbo_with_distance **)v2;
+    return a->distance - b->distance;
+}
+
 void
 sc_world_draw(sc_world_t *world)
 {
+    size_t i;
     sc_frustum_t frustum;
+    struct chunk_draw_closure closure;
+
     sc_get_current_frustum(&frustum);
-    sc_walk_world(world, draw_if_visible, &frustum);
+    closure.frustum = &frustum;
+    closure.camera = sc_get_current_camera();
+    closure.vbos = sc_new_list();
+
+    sc_walk_world(world, find_visible_vbos, &closure);
+    sc_list_sort(closure.vbos, compare_vbo_by_distance, NULL);
+
+    if (closure.vbos->size > 0) {
+        sc_bind_texture(sc_blocks_get_atlas_texture());
+        for (i = 0; i < closure.vbos->size; i++) {
+            struct vbo_with_distance *info = closure.vbos->items[i];
+            sc_vbo_draw(info->vbo);
+            sc_free(info);
+        }
+    }
+
+    sc_free_list(closure.vbos);
 }
 
 void 
