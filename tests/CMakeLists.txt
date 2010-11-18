@@ -13,7 +13,6 @@ foreach(TEST ${TESTS})
         ${SDLIMAGE_LIBRARY}
         ${OPENGL_LIBRARIES}
         ${GLU_LIBRARY}
-        ${GLUT_glut_LIBRARY}
     )
     set(TEST_EXECUTABLES ${TEST}.bin ${TEST_EXECUTABLES})
 endforeach()
