@@ -351,7 +351,11 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
 
     /* helper macro to mark other vbos as dirty.  This attempts to find
        the vbo in the container first, and if that does not work will
-       try from toplevel again. */
+       try from toplevel again.  If a node does not exist yet it will
+       try again from toplevel and fail there too.  This is currently
+       intentional as for a fully filled world that will not happen
+       that often.  Even nodes of air will have an (albeit empty) vbo
+       attached. */
 #define MARK_DIRTY(X, Y, Z) do { \
     struct chunk_node_vbo *rv = find_vbo_node(world, X, Y, Z, vbo_container, \
                                               SC_CHUNK_VBO_SIZE * 2, NULL); \
