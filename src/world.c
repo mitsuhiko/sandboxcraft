@@ -145,11 +145,12 @@ free_chunk_node(struct chunk_node *node)
     if (CHUNK_IS_LEAF(node))
         TRY_PUT_ON_FREELIST(leaf, node);
     else {
+        struct chunk_node_children *cn;
         if (!CHUNK_HAS_VBO(node))
             TRY_PUT_ON_FREELIST(children, node);
         else
             sc_free_vbo(((struct chunk_node_vbo *)node)->vbo);
-        struct chunk_node_children *cn = (struct chunk_node_children *)node;
+        cn = (struct chunk_node_children *)node;
         for (i = 0; i < 8; i++)
             free_chunk_node(cn->children[i]);
     }
@@ -567,7 +568,11 @@ compare_vbo_by_distance(const void *v1, const void *v2, void *closure)
 {
     struct vboinfo *a = *(struct vboinfo **)v1;
     struct vboinfo *b = *(struct vboinfo **)v2;
-    return a->distance - b->distance;
+    if (a->distance > b->distance)
+        return 1;
+    else if (a->distance < b->distance)
+        return -1;
+    return 0;
 }
 
 void

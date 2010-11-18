@@ -56,8 +56,8 @@ sc_free_vbo(sc_vbo_t *vbo)
 void
 sc_finalize_vbo(sc_vbo_t *vbo, int dynamic)
 {
-    ASSERT_NOT_FINALIZED();
     GLenum mode = dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
+    ASSERT_NOT_FINALIZED();
 
     if (vbo->_mode == MODE_FRESH)
         glGenBuffers(3, vbo->buffers);

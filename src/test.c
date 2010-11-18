@@ -1,4 +1,7 @@
+#include "sc_boot.h"
+#if SC_PLATFORM != SC_PLATFORM_WINDOWS
 #include <unistd.h>
+#endif
 #include <stdarg.h>
 #include "sc_test.h"
 
@@ -64,6 +67,7 @@ sc_test_fail(const int lineno, const char *file, const char *func,
 int
 main(int argc, char **argv)
 {
+#if SC_PLATFORM != SC_PLATFORM_WINDOWS
     int c;
 
     opterr = 0;
@@ -76,6 +80,7 @@ main(int argc, char **argv)
                 fprintf(stderr, "usage: ./test [-s]\n");
                 exit(1);
         }
+#endif
 
     _sc_run_tests();
 

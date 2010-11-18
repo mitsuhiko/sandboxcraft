@@ -42,7 +42,8 @@ void *sc_stackalloc_alloc(sc_stackalloc_t *alloc, size_t size);
 static sc_inline int
 sc_stackalloc_managed(const sc_stackalloc_t *alloc, void *ptr)
 {
-    return ptr >= alloc->mem && ptr < (alloc->mem + alloc->size);
+    return ((uintptr_t)ptr >= (uintptr_t)alloc->mem &&
+            (uintptr_t)ptr < ((uintptr_t)alloc->mem + alloc->size));
 }
 
 /* sets a critical memory error if p is NULL */

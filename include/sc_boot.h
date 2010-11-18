@@ -37,6 +37,11 @@
 #  define sc_inline inline
 #endif
 
+/* msvc does not have a ssize_t.  Add one */
+#ifdef _MSC_VER
+typedef signed long ssize_t;
+#endif
+
 /* handy little helper to trigger a segfault */
 #define SC_SEGFAULT { int *x = 0; *x = 42; }
 

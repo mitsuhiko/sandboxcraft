@@ -139,11 +139,12 @@ sc_new_atlas(size_t width, size_t height, GLint filtering)
 sc_texture_t *
 sc_atlas_add_from_resource(sc_atlas_t *atlas, const char *filename)
 {
-    assert(!atlas->finalized);
     char *path;
     sc_texture_t *rv;
+    SDL_Surface *surface;
+    assert(!atlas->finalized);
     path = sc_path_to_resource("textures", filename);
-    SDL_Surface *surface = IMG_Load(path);
+    surface = IMG_Load(path);
     if (!surface) {
         sc_free(path);
         sc_set_error(SC_EGRAPHIC, path, 0, "Unable to load texture.  "

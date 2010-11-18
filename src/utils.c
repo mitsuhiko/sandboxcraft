@@ -1,7 +1,10 @@
 /* sort function adapted from the "Engineering a Sort Function" publication
    by Jon L. Bentley and M. Douglas McIlroy.
 
-   Software -- Practice and Experience 23 (11), Nov. 1993, pp. 1249-1265. */
+   Software -- Practice and Experience 23 (11), Nov. 1993, pp. 1249-1265.
+   
+   Operating on chars instead of void * is required otherwise visual c
+   compiler complains about unknown sizes. */
 #include "sc_utils.h"
 
 /* we specify wordsize as what the compiler most likely aligns to.  This
@@ -11,7 +14,7 @@ typedef int word_t;
 #define BASIC_SWAP(a, b, t) (t = a, a = b, b = t);
 
 static void
-swapfunc(void *a, void *b, size_t n, int swaptype)
+swapfunc(char *a, char *b, size_t n, int swaptype)
 {
     if (swaptype <= 1) {
         word_t t;
@@ -21,22 +24,22 @@ swapfunc(void *a, void *b, size_t n, int swaptype)
     else {
         char t;
         for (; n > 0; a++, b++, n--)
-            BASIC_SWAP(*(char *)a, *(char *)b, t);
+            BASIC_SWAP(*a, *b, t);
     }
 }
 
-static void *
+static char *
 med3(void *a, void *b, void *c, sc_cmpfunc cmp, void *closure)
 {
-    return cmp(a, b, closure) < 0
+    return (char *)(cmp(a, b, closure) < 0
         ? (cmp(b, c, closure) < 0 ? b : cmp(a, c, closure) < 0 ? c : a)
-        : (cmp(b, c, closure) > 0 ? b : cmp(a, c, closure) > 0 ? c : a);
+        : (cmp(b, c, closure) > 0 ? b : cmp(a, c, closure) > 0 ? c : a));
 }
 
 void
-sort_impl(void *a, size_t n, size_t es, void *closure, sc_cmpfunc cmp)
+sort_impl(char *a, size_t n, size_t es, void *closure, sc_cmpfunc cmp)
 {
-    void *pa, *pb, *pc, *pd, *pl, *pm, *pn, *partition_value;
+    char *pa, *pb, *pc, *pd, *pl, *pm, *pn, *partition_value;
     int rv;
     word_t t, helper_value;
     size_t s;
@@ -81,7 +84,7 @@ sort_impl(void *a, size_t n, size_t es, void *closure, sc_cmpfunc cmp)
     }
     else {
         helper_value = *(word_t *)pm;
-        partition_value = &helper_value;
+        partition_value = (char *)&helper_value;
     }
 
     pa = pb = a;
@@ -129,5 +132,5 @@ sc_sort(void *base, size_t length, size_t size, void *closure,
 {
     if (length <= 1)
         return;
-    sort_impl(base, length, size, closure, cmpfunc);
+    sort_impl((char *)base, length, size, closure, cmpfunc);
 }

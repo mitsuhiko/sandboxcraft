@@ -17,7 +17,7 @@ sc_stackalloc_alloc(sc_stackalloc_t *alloc, size_t size)
         sc_set_error(SC_EOOM, NULL, 0, "out of memory on stack allocation");
         return NULL;
     }
-    rv = alloc->mem + alloc->used;
+    rv = (void *)((uintptr_t)alloc->mem + alloc->used);
     alloc->used += size;
     return rv;
 }
