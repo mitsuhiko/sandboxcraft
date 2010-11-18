@@ -88,7 +88,6 @@ endif()
 find_package(SDL 1.2.7 REQUIRED)
 find_package(SDL_image 1.2 REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
 
 if (NOT WIN32)
     set(CMAKE_C_FLAGS "-g -Wall")
@@ -98,7 +97,6 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${SDL_INCLUDE_DIR}
     ${SDLIMAGE_INCLUDE_DIR}
-    ${GLUT_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/GLee
 )
 
@@ -124,7 +122,6 @@ target_link_libraries(
 	${SDLIMAGE_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${GLU_LIBRARY}
-	${GLUT_glut_LIBRARY}
 )
 
 add_subdirectory(tests)

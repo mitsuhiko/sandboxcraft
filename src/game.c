@@ -120,13 +120,6 @@ sc_game_render(void)
     sc_engine_clear(sc_color(0x93ddefff));
     sc_apply_current_camera();
     sc_world_draw(world);
-
-    glPushMatrix();
-        glTranslatef(selected_block.x * SC_BLOCK_SIZE,
-                     selected_block.y * SC_BLOCK_SIZE,
-                     selected_block.z * SC_BLOCK_SIZE);
-        glutWireCube(22);
-    glPopMatrix();
 }
 
 void

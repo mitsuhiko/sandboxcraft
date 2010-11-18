@@ -48,12 +48,6 @@
 #include "SDL_opengl.h"
 #include "SDL_image.h"
 
-#if SC_PLATFORM == SC_PLATFORM_OSX
-#  include <GLUT/glut.h>
-#else
-#  include <GL/glut.h>
-#endif
-
 /* do not use the main macro.  We take care of that ourselves */
 #ifdef main
 #  undef main
