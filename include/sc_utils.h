@@ -17,6 +17,9 @@
 #define sc_min(a, b) ((a) < (b) ? (a) : (b))
 #define sc_max(a, b) ((a) > (b) ? (a) : (b))
 
+/* helper macro for comparision functions */
+#define sc_cmp(A, B) (((A) > (B)) ? 1 : ((A) < (B)) ? -1 : 0)
+
 /* sort comparision function */
 typedef int (*sc_cmpfunc)(const void *, const void *, void *);
 

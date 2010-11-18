@@ -21,6 +21,7 @@ typedef struct {
 #include "sc_world.h"
 #include "sc_perlin.h"
 #include "sc_list.h"
+#include "sc_utils.h"
 
 /* current set of flags to keep different struct sizes apart */
 #define CHUNK_FLAG_LEAF         1       /* this node has no children */
@@ -299,7 +300,7 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
     while (1) {
         size /= 2;
 
-        /* remember the vbo container */
+        /* remember the vbo containing node */
         if (size == SC_CHUNK_VBO_SIZE)
             vbo_container = node;
 
@@ -348,10 +349,14 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
        if all children have the same information stored. */
     compress_partial_tree(relations, last_relation);
 
-    /* helper macro to mark other vbos as dirty. */
+    /* helper macro to mark other vbos as dirty.  This attempts to find
+       the vbo in the container first, and if that does not work will
+       try from toplevel again. */
 #define MARK_DIRTY(X, Y, Z) do { \
     struct chunk_node_vbo *rv = find_vbo_node(world, X, Y, Z, vbo_container, \
                                               SC_CHUNK_VBO_SIZE * 2, NULL); \
+    if (!rv) \
+        rv = find_vbo_node(world, X, Y, Z, NULL, 0, NULL); \
     if (rv) \
         rv->flags |= CHUNK_FLAG_DIRTY; \
 } while (0)
@@ -568,11 +573,7 @@ compare_vbo_by_distance(const void *v1, const void *v2, void *closure)
 {
     struct vboinfo *a = *(struct vboinfo **)v1;
     struct vboinfo *b = *(struct vboinfo **)v2;
-    if (a->distance > b->distance)
-        return 1;
-    else if (a->distance < b->distance)
-        return -1;
-    return 0;
+    return sc_cmp(a->distance, b->distance);
 }
 
 void
