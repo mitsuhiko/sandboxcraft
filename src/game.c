@@ -117,8 +117,10 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
-    sc_engine_clear(sc_color(0x93ddefff));
     sc_apply_current_camera();
+    GLfloat light_pos[] = {256.0f, 300.0f, 256.0f, 1.0f};
+    glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+    sc_engine_clear(sc_color(0x93ddefff));
     sc_world_draw(world);
 }
 

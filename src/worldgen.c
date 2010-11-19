@@ -96,8 +96,8 @@ try_digg_cave(const sc_worldgen_t *worldgen, sc_blocktype_t old_block,
 
     stretch = worldgen->stretch * world_size;
     noise = sc_perlin_noise3(worldgen->perlin,
-        (x / stretch) + worldgen->off_x,
-        (y / stretch) + worldgen->off_y,
+        (x / stretch * 0.25f) + worldgen->off_x,
+        (y / stretch * 0.25f) + worldgen->off_y,
         (z / stretch) + worldgen->off_z
     ) / 2.0f + 0.5f;
 

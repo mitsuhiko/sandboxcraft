@@ -36,6 +36,25 @@ resize_viewport(void)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
 
+    /* enable basic lighting */
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    //glEnable(GL_COLOR_MATERIAL);
+    glShadeModel(GL_SMOOTH);
+    GLfloat ambient_light[] = {0.3f, 0.3f, 0.3f, 1.0f};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat mat_shininess[] = { 50.0 };
+    GLfloat ambient[] = {0.3f, 0.3f, 0.3f, 1.0f};
+    GLfloat diffuse[] = {0.7f, 0.7f, 0.7f, 1.0f};
+    GLfloat specular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
     /* do backface culling */
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);

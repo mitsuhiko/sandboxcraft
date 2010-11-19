@@ -587,8 +587,9 @@ draw_water(sc_world_t *world, const sc_frustum_t *frustum)
     /* TODO: optimize... heavily.  temporary only */
     float y = world->water_level * SC_BLOCK_SIZE;
     float low = -SC_BLOCK_SIZE / 2;
-    float high = world->size * SC_BLOCK_SIZE;
+    float high = world->size * SC_BLOCK_SIZE + low;
     glEnable(GL_BLEND);
+    glDisable(GL_LIGHTING);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
     glColor4f(0.12f, 0.43f, 0.68f, 0.75f);
@@ -602,6 +603,7 @@ draw_water(sc_world_t *world, const sc_frustum_t *frustum)
         glVertex3f(high, y, low);
     glEnd();
     glDepthMask(GL_TRUE);
+    glEnable(GL_LIGHTING);
     glDisable(GL_BLEND);
     glColor3f(1.0f, 1.0f, 1.0f);
 }
