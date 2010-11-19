@@ -10,8 +10,12 @@ typedef struct {
     float water_level;
     float beach_thresholds[2];
     float max_elevation;
+    float droplet;
+    float cave_level;
+    float cave_thresholds[2];
     float off_x;
     float off_y;
+    float off_z;
 } sc_worldgen_t;
 
 /* generates a random new world */

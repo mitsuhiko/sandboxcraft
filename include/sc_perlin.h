@@ -18,4 +18,7 @@ void sc_free_perlin(sc_perlin_t *perlin);
 /* returns sampled 2D noise in the range -1 and 1 */
 float sc_perlin_noise2(const sc_perlin_t *perlin, float x, float y);
 
+/* returns sampled 3D noise in the range -1 and 1 */
+float sc_perlin_noise3(const sc_perlin_t *perlin, float x, float y, float z);
+
 #endif

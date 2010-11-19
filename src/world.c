@@ -5,7 +5,8 @@
    we introduce other information there */
 struct chunk_node;
 typedef struct {
-    uint32_t size;                      /* the size is public */
+    size_t size;                        /* the size is public */
+    size_t water_level;                 /* where the water is in blocks */
     struct chunk_node *root;            /* the root node of the octree */
 } sc_world_t;
 
@@ -572,12 +573,37 @@ sc_world_set_block(sc_world_t *world, int x, int y, int z,
     return set_block(world, x, z, y, block);
 }
 
-int
+static int
 compare_vbo_by_distance(const void *v1, const void *v2, void *closure)
 {
     struct vboinfo *a = *(struct vboinfo **)v1;
     struct vboinfo *b = *(struct vboinfo **)v2;
     return sc_cmp(a->distance, b->distance);
+}
+
+static void
+draw_water(sc_world_t *world, const sc_frustum_t *frustum)
+{
+    /* TODO: optimize... heavily.  temporary only */
+    float y = world->water_level * SC_BLOCK_SIZE;
+    float low = -SC_BLOCK_SIZE / 2;
+    float high = world->size * SC_BLOCK_SIZE;
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    glColor4f(0.12f, 0.43f, 0.68f, 0.75f);
+    sc_unbind_texture();
+    glBegin(GL_TRIANGLES);
+        glVertex3f(low, y, low);
+        glVertex3f(low, y, high);
+        glVertex3f(high, y, high);
+        glVertex3f(low, y, low);
+        glVertex3f(high, y, high);
+        glVertex3f(high, y, low);
+    glEnd();
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    glColor3f(1.0f, 1.0f, 1.0f);
 }
 
 void
@@ -614,6 +640,7 @@ sc_world_draw(sc_world_t *world)
     }
 
     sc_free_list(closure.vbos);
+    draw_water(world, &frustum);
 }
 
 void 

@@ -45,6 +45,8 @@ static const float gradient_vectors[48] = {
     -1.0f, 1.0f, 0.0f,
     0.0f, -1.0f, -1.0f
 };
+
+#define PT(I) perlin->permutation_table[(I) % perlin->period]
 #define GRAD(I) ((sc_vec3_t *)((float *)gradient_vectors + ((I) * 3)))
 #define F2 (0.5f * (sqrtf(3.0f) - 1.0f))
 #define G2 ((3.0f - sqrtf(3.0f)) / 6.0f)
@@ -90,46 +92,111 @@ sc_free_perlin(sc_perlin_t *perlin)
 float
 sc_perlin_noise2(const sc_perlin_t *perlin, float x, float y)
 {
-#define PT(I) perlin->permutation_table[(I) % perlin->period]
+    int i1, j1, ii, jj, gi0, gi1, gi2;
+    float x1, y1, x2, y2, tt, noise = 0.0f;
     float s = (x + y) * F2;
     int i = (int)floorf(x + s);
     int j = (int)floorf(y + s);
     float t = (i + j) * G2;
     float x0 = x - (i - t);
     float y0 = y - (j - t);
-    int i1 = (x0 > y0) ? 1 : 0;
-    int j1 = (x0 > y0) ? 0 : 1;
-    float x1 = x0 - i1 + G2;
-    float y1 = y0 - j1 + G2;
-    float x2 = x0 + G2 * 2.0f - 1.0f;
-    float y2 = y0 + G2 * 2.0f - 1.0f;
-    int ii = (int)i % perlin->period;
-    int jj = (int)j % perlin->period;
-    int gi0 = PT(ii + PT(jj)) % 12;
-    int gi1 = PT(ii + i1 + PT(jj + j1)) % 12;
-    int gi2 = PT(ii + 1 + PT(jj + 1)) % 12;
-    float tt, noise;
-    const sc_vec3_t *gvec;
 
-    tt = 0.5f - powf(x0, 2.0f) - powf(y0, 2.0f);
-    if (tt > 0.0f) {
-        gvec = GRAD(gi0);
-        noise = powf(tt, 4.0f) * (gvec->x * x0 + gvec->y * y0);
-    }
+#define TRIANGLE(I1, J1) do { \
+    i1 = I1; j1 = J1; \
+} while (0)
+#define ADMIX2(X, Y, G) do { \
+    tt = 0.5f - powf(X, 2.0f) - powf(Y, 2.0f); \
+    if (tt > 0.0f) { \
+        const sc_vec3_t *g = GRAD(G); \
+        noise += powf(tt, 4.0f) * (g->x * X + g->y * Y); \
+    } \
+} while (0)
+
+    if (x0 > y0)
+        TRIANGLE(1, 0);
     else
-        noise = 0.0f;
+        TRIANGLE(0, 1);
 
-    tt = 0.5f - powf(x1, 2.0f) - powf(y1, 2.0f);
-    if (tt > 0.0f) {
-        gvec = GRAD(gi1);
-        noise += powf(tt, 4.0f) * (gvec->x * x1 + gvec->y * y1);
-    }
+    x1 = x0 - i1 + G2;
+    y1 = y0 - j1 + G2;
+    x2 = x0 + G2 * 2.0f - 1.0f;
+    y2 = y0 + G2 * 2.0f - 1.0f;
+    ii = (int)i % perlin->period;
+    jj = (int)j % perlin->period;
+    gi0 = PT(ii + PT(jj)) % 12;
+    gi1 = PT(ii + i1 + PT(jj + j1)) % 12;
+    gi2 = PT(ii + 1 + PT(jj + 1)) % 12;
 
-    tt = 0.5f - powf(x2, 2.0f) - powf(y2, 2.0f);
-    if (tt > 0.0f) {
-        gvec = GRAD(gi2);
-        noise += powf(tt, 4.0f) * (gvec->x * x2 + gvec->y * y2);
-    }
+    ADMIX2(x0, y0, gi0);
+    ADMIX2(x1, y1, gi1);
+    ADMIX2(x2, y2, gi2);
 
     return noise * 70.0f;
+}
+
+float
+sc_perlin_noise3(const sc_perlin_t *perlin, float x, float y, float z)
+{
+    int i1, j1, k1, i2, j2, k2, ii, jj, kk, gi0, gi1, gi2, gi3;
+    float x1, y1, z1, x2, y2, z2, x3, y3, z3, tt, noise = 0.0f;
+    float s = (x + y + z) * F3;
+    int i = (int)floorf(x + s);
+    int j = (int)floorf(y + s);
+    int k = (int)floorf(z + s);
+    float t = (i + j + k) * G3;
+    float x0 = x - (i - t);
+    float y0 = y - (j - t);
+    float z0 = z - (k - t);
+
+#define TETRAHEDRON(I1, J1, K1, I2, J2, K2) do { \
+    i1 = I1; j1 = J1; k1 = K1; i2 = I2; j2 = J2; k2 = K2; \
+} while (0)
+#define ADMIX3(X, Y, Z, G) do { \
+    tt = 0.6f - powf(X, 2.0f) - powf(Y, 2.0f) - powf(Z, 2.0f); \
+    if (tt > 0.0f) { \
+        const sc_vec3_t *g = GRAD(G); \
+        noise += powf(tt, 4.0f) * (g->x * X + g->y * Y + g->z * Z); \
+    } \
+} while (0)
+
+    if (x0 >= y0) {
+        if (y0 >= z0)
+            TETRAHEDRON(1, 0, 0, 1, 1, 0);
+        else if (x0 >= z0)
+            TETRAHEDRON(1, 0, 0, 1, 0, 1);
+        else
+            TETRAHEDRON(0, 0, 1, 1, 0, 1);
+    }
+    else {
+        if (y0 < z0)
+            TETRAHEDRON(0, 0, 1, 0, 1, 1);
+        else if (x0 < z0)
+            TETRAHEDRON(0, 1, 0, 0, 1, 1);
+        else
+            TETRAHEDRON(0, 1, 0, 1, 1, 0);
+    }
+
+    x1 = x0 - i1 + G3;
+    y1 = y0 - j1 + G3;
+    z1 = z0 - k1 + G3;
+    x2 = x0 - i2 + 2.0f * G3;
+    y2 = y0 - j2 + 2.0f * G3;
+    z2 = z0 - k2 + 2.0f * G3;
+    x3 = x0 - 1.0f + 3.0f * G3;
+    y3 = y0 - 1.0f + 3.0f * G3;
+    z3 = z0 - 1.0f + 3.0f * G3;
+    ii = (int)i % perlin->period;
+    jj = (int)j % perlin->period;
+    kk = (int)k % perlin->period;
+    gi0 = PT(ii + PT(jj + PT(kk))) % 12;
+    gi1 = PT(ii + i1 + PT(jj + j1 + PT(kk + k1))) % 12;
+    gi2 = PT(ii + i2 + PT(jj + j2 + PT(kk + k2))) % 12;
+    gi3 = PT(ii + 1 + PT(jj + 1 + PT(kk + 1))) % 12;
+
+    ADMIX3(x0, y0, z0, gi0);
+    ADMIX3(x1, y1, z1, gi1);
+    ADMIX3(x2, y2, z2, gi2);
+    ADMIX3(x3, y3, z3, gi3);
+
+    return noise * 32.0f;
 }

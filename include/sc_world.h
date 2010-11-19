@@ -28,12 +28,13 @@
 #define SC_CHUNK_VBO_SIZE   16
 
 /* the size of a block in the world */
-#define SC_BLOCK_SIZE 20.0f
+#define SC_BLOCK_SIZE 1.0f
 
 /* the world is an opaque type */
 #ifndef _SC_DONT_DEFINE_WORLD
 typedef struct {
     size_t size;
+    size_t water_level;
 } sc_world_t;
 #endif
 

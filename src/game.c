@@ -101,7 +101,7 @@ sc_game_handle_event(SDL_Event *evt)
 void
 sc_game_update(void)
 {
-    const float move_factor = sc_gametime.delta * 0.5f;
+    const float move_factor = sc_gametime.delta * 0.025f;
 
     /* camera movement */
     if (keysdown.w)
