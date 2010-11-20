@@ -17,6 +17,7 @@ struct {
     int x;
     int y;
     int z;
+    int side;
 } selected_block;
 struct {
     int w;
@@ -58,6 +59,18 @@ perform_late_init(void)
     sc_free_texture(loading);
 }
 
+static void
+select_center_block_side(void)
+{
+    sc_ray_t ray;
+    ray.pos = cam->position;
+    ray.dir = cam->forward;
+
+    sc_world_raytest(world, &ray, &selected_block.x,
+                     &selected_block.y, &selected_block.z,
+                     &selected_block.side);
+}
+
 void
 sc_game_handle_events(void)
 {
@@ -90,9 +103,11 @@ sc_game_handle_event(SDL_Event *evt)
         case SDLK_d: keysdown.d = 0; break;
         default:;
         }
-    else if (evt->type == SDL_MOUSEMOTION)
+    else if (evt->type == SDL_MOUSEMOTION) {
+        select_center_block_side();
         sc_camera_rotate_screen(cam, evt->motion.xrel * 0.25f,
                                 evt->motion.yrel * 0.25f);
+    }
     else if (evt->type == SDL_MOUSEBUTTONUP)
         sc_world_set_block(world, selected_block.x, selected_block.y,
                            selected_block.z, sc_get_block(SC_BLOCK_WATER));

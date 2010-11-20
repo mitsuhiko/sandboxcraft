@@ -23,6 +23,7 @@
 #include "sc_boot.h"
 #include "sc_blocks.h"
 #include "sc_camera.h"
+#include "sc_ray.h"
 
 /* where the vbos are stored.  chunk_resolution % vbo_size === 0! */
 #define SC_CHUNK_VBO_SIZE   16
@@ -60,6 +61,13 @@ const sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
 int sc_world_set_block(sc_world_t *world, int x, int y, int z,
                        const sc_block_t *block);
 
+/* sets a block without updating the dirty flag of vbos.  This might only
+   be used before a single vbo was rendered and can be used to faster fill
+   the initial set of the world.  You also must not override a block that
+   was already set. */
+int sc_world_set_block_fast(sc_world_t *world, int x, int y, int z,
+                            const sc_block_t *block);
+
 /* draws the world.  The OpenGL projection and model matrices are used
    to calculate the visbility for the block of the world.
 
@@ -89,5 +97,10 @@ void sc_walk_world(sc_world_t *world, sc_chunk_walk_cb cb, void *closure);
    this method to update the vbos at once. */
 void sc_world_flush_vbos(sc_world_t *world);
 
+/* performs a raycast to check if a side of a block was hit.  Returns 1 if
+   something other than air was hit, or 0 if this was not the case.  The
+   actual coordinates and side of the block hit is passed out as parameter. */
+int sc_world_raytest(sc_world_t *world, const sc_ray_t *ray,
+                     int *x_out, int *y_out, int *z_out, int *side_out);
 
 #endif

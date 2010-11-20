@@ -53,12 +53,23 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
      (y) >= (World)->size || (y) < 0 || \
      (z) >= (World)->size || (z) < 0)
 
+/* helper that creates an aabb for a given block */
+#define MAKE_BLOCK_AABB(V1, V2, X, Y, Z, Size) do { \
+    sc_vec3_set(V1, SC_BLOCK_SIZE * X - SC_BLOCK_SIZE / 2, \
+                    SC_BLOCK_SIZE * Z - SC_BLOCK_SIZE / 2, \
+                    SC_BLOCK_SIZE * Y - SC_BLOCK_SIZE / 2); \
+    sc_vec3_set(V2, SC_BLOCK_SIZE * Size, \
+                    SC_BLOCK_SIZE * Size, \
+                    SC_BLOCK_SIZE * Size); \
+    sc_vec3_add(V2, V2, V1); \
+} while (0)
+
 /* returns a 3 bit address for the given block coords */
 #define CHUNK_ADDR(X, Y, Z, Size) \
     (!!((X) & (Size)) << 2 | !!((Y) & (Size)) << 1 | !!((Z) & (Size)))
 
 /* maximum size of the free lists for chunks */
-#define FREELIST_SIZE 32
+#define FREELIST_SIZE 64
 
 /* maximum depth of an octree below the chunk size.  This has to be at
    least log(SC_CHUNK_VBO_SIZE) large. */
@@ -89,6 +100,18 @@ struct chunk_draw_closure {
     const sc_frustum_t *frustum;
     sc_camera_t *camera;
     sc_list_t *vbos;
+};
+
+/* closure for ray tests */
+struct raytest_closure {
+    sc_camera_t *camera;
+    const sc_ray_t *ray;
+    int x;
+    int y;
+    int z;
+    int side;
+    int hit;
+    float distance;
 };
 
 
@@ -282,7 +305,8 @@ compress_partial_tree(struct chunk_node **relations, size_t count)
 }
 
 static int
-set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
+set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block,
+          int assume_dirty)
 {
     size_t size, idx, last_relation = 0;
     struct chunk_node *node, *child;
@@ -290,8 +314,13 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
     struct chunk_node *relations[MAX_RELATIONS];
     struct chunk_node *vbo_container;
 
+    /* bail out early */
     if (OUT_OF_BOUNDS(world, x, y, z))
         return 0;
+    else if (assume_dirty) {
+        if (block->type == SC_BLOCK_AIR)
+            return 1;
+    }
     else if (get_block(world, x, y, z)->type == block->type)
         return 1;
 
@@ -349,6 +378,10 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block)
        to compress it.  This will collapse child nodes to leaf nodes
        if all children have the same information stored. */
     compress_partial_tree(relations, last_relation);
+
+    /* if we assume the whole world is already dirty we can skip this */
+    if (assume_dirty)
+        return 1;
 
     /* helper macro to mark other vbos as dirty.  This attempts to find
        the vbo in the container first, and if that does not work will
@@ -493,13 +526,7 @@ find_visible_vbos(sc_world_t *world, const sc_block_t *block, int x, int y,
     struct chunk_draw_closure *args = closure;
 
     /* if we are not visible, abort early and do not recurse */
-    sc_vec3_set(&vec1, SC_BLOCK_SIZE * x - SC_BLOCK_SIZE / 2,
-                       SC_BLOCK_SIZE * z - SC_BLOCK_SIZE / 2,
-                       SC_BLOCK_SIZE * y - SC_BLOCK_SIZE / 2);
-    sc_vec3_set(&vec2, SC_BLOCK_SIZE * size,
-                       SC_BLOCK_SIZE * size,
-                       SC_BLOCK_SIZE * size);
-    sc_vec3_add(&vec2, &vec2, &vec1);
+    MAKE_BLOCK_AABB(&vec1, &vec2, x, y, z, size);
     if (sc_frustum_test_aabb(args->frustum, &vec1, &vec2) < 0)
         return 0;
 
@@ -541,6 +568,30 @@ flush_vbos(sc_world_t *world, const sc_block_t *block, int x, int y, int z,
     return 0;
 }
 
+static int
+perform_raytest(sc_world_t *world, const sc_block_t *block, int x, int y,
+                int z, size_t size, void *closure)
+{
+    struct raytest_closure *args = closure;
+    sc_vec3_t vec1, vec2, vec3;
+
+    MAKE_BLOCK_AABB(&vec1, &vec2, x, y, z, size);
+    if (!sc_ray_intersects_aabb(args->ray, &vec1, &vec2, NULL, &args->side))
+        return 0;
+    if (size == 1 && block->type != SC_BLOCK_AIR) {
+        sc_vec3_sub(&vec3, &vec1, &args->camera->position);
+        float distance = sc_vec3_length2(&vec3);
+        if (!args->hit || distance < args->distance) {
+            args->x = x;
+            args->y = y;
+            args->z = z;
+            args->hit = 1;
+            args->distance = distance;
+        }
+    }
+    return 1;
+}
+
 sc_world_t *
 sc_new_world(uint32_t size)
 {
@@ -570,7 +621,14 @@ int
 sc_world_set_block(sc_world_t *world, int x, int y, int z,
                    const sc_block_t *block)
 {
-    return set_block(world, x, z, y, block);
+    return set_block(world, x, z, y, block, 0);
+}
+
+int
+sc_world_set_block_fast(sc_world_t *world, int x, int y, int z,
+                        const sc_block_t *block)
+{
+    return set_block(world, x, z, y, block, 1);
 }
 
 static int
@@ -587,7 +645,7 @@ draw_water(sc_world_t *world, const sc_frustum_t *frustum)
     /* TODO: optimize... heavily.  temporary only */
     float y = world->water_level * SC_BLOCK_SIZE;
     float low = -SC_BLOCK_SIZE / 2;
-    float high = world->size * SC_BLOCK_SIZE;
+    float high = world->size * SC_BLOCK_SIZE + low;
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
@@ -647,4 +705,26 @@ void
 sc_world_flush_vbos(sc_world_t *world)
 {
     sc_walk_world(world, flush_vbos, NULL);
+}
+
+int
+sc_world_raytest(sc_world_t *world, const sc_ray_t *ray,
+                 int *x_out, int *y_out, int *z_out, int *side_out)
+{
+    struct raytest_closure closure;
+    closure.ray = ray;
+    closure.hit = 0;
+    closure.camera = sc_get_current_camera();
+    sc_walk_world(world, perform_raytest, &closure);
+    if (!closure.hit)
+        return 0;
+    *x_out = closure.x;
+    *y_out = closure.y;
+    *z_out = closure.z;
+    *side_out = closure.side;
+
+    char buf[255];
+    sprintf(buf, "Hitting: %d, %d, %d / %d", closure.x, closure.y, closure.z, closure.side);
+    SDL_WM_SetCaption(buf, NULL);
+    return 1;
 }

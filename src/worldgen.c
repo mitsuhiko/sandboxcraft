@@ -157,7 +157,7 @@ sc_worldgen_fill_world(const sc_worldgen_t *worldgen, sc_world_t *world)
             if (block != SC_BLOCK_BEDROCK && z < cave_level)
                 block = try_digg_cave(worldgen, block, x, y, z, world->size);
 
-            sc_world_set_block(world, x, y, z, sc_get_block(block));
+            sc_world_set_block_fast(world, x, y, z, sc_get_block(block));
         }
     }
 
