@@ -6,10 +6,9 @@
 #include "sc_primitives.h"
 #include "sc_vbo.h"
 #include "sc_worldgen.h"
+#include "sc_threads.h"
 
 static int running;
-static int late_initialized;
-
 
 static sc_world_t *world;
 static sc_camera_t *cam;
@@ -27,9 +26,29 @@ struct {
 } keysdown;
 
 
-static void
-perform_late_init(void)
+static int
+init_game_in_thread(void *closure)
 {
+    int *done = closure;
+
+    world = sc_create_random_world(256);
+    cam = sc_new_camera();
+    sc_camera_push(cam);
+    sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);
+    sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
+    sc_engine_grab_mouse(1);
+
+    *done = 1;
+    return 0;
+}
+
+static void
+init_game(void)
+{
+    SDL_Event evt;
+    int done = 0;
+    float angle = 35.0f;
+    sc_thread_t *load_thread;
     sc_texture_t *loading = sc_texture_from_resource("loading.png", GL_NEAREST);
     GLfloat vertices[16] = {
         -10.0f, -10.0f,  10.0f,
@@ -38,25 +57,57 @@ perform_late_init(void)
         -10.0f, -10.0f, -10.0f
     };
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45, sc_engine_get_aspect(), 1.0f, 200.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-        glLoadIdentity();
-        glTranslatef(0.0f, 8.0f, -30.0f);
-        glRotatef(35.0f, 1.0f, 0.0f, 0.0f);
-        glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
-        sc_bind_texture(loading);
-        sc_send_texture_coordinates(loading);
-        glVertexPointer(3, GL_FLOAT, 0, vertices);
-        glDrawArrays(GL_QUADS, 0, 4);
-    glPopMatrix();
+    /* this has to happen in the main thread before anything else */
+    sc_init_blocks();
 
-    sc_engine_swap_buffers();
-    sc_game_late_init();
+    load_thread = sc_new_thread(init_game_in_thread, &done);
+
+    while (!done) {
+        sc_engine_begin_frame();
+
+        /* allow aborting the loading process */
+        while (SDL_PollEvent(&evt))
+            if (evt.type == SDL_QUIT ||
+                (evt.type == SDL_KEYDOWN &&
+                 evt.key.keysym.sym == SDLK_ESCAPE))
+                exit(0);
+
+        angle = (angle + sc_gametime.delta * 0.05f);
+        if (angle > 360.0f)
+            angle = 0.0f;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(45, sc_engine_get_aspect(), 1.0f, 200.0f);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+            glLoadIdentity();
+            glTranslatef(0.0f, 8.0f, -30.0f);
+            glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
+            glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
+            sc_bind_texture(loading);
+            sc_send_texture_coordinates(loading);
+            glRotatef(angle, 0.0f, 1.0f, 0.0f);
+            glVertexPointer(3, GL_FLOAT, 0, vertices);
+            glDrawArrays(GL_QUADS, 0, 4);
+        glPopMatrix();
+        sc_engine_end_frame();
+    }
+
+    /* this has to happen in the main thread after world was created */
+    sc_world_flush_vbos(world);
+
     sc_free_texture(loading);
+}
+
+static void
+shutdown_game(void)
+{
+    sc_engine_grab_mouse(0);
+    sc_camera_pop();
+    sc_free_camera(cam);
+    sc_free_world(world);
+    sc_free_blocks();
 }
 
 static void
@@ -147,49 +198,13 @@ void
 sc_game_mainloop(void)
 {
     running = 1;
+    init_game();
     while (running) {
         sc_engine_begin_frame();
-        if (late_initialized) {
-            sc_game_handle_events();
-            sc_game_update();
-            sc_game_render();
-        }
-        else
-            perform_late_init();
+        sc_game_handle_events();
+        sc_game_update();
+        sc_game_render();
         sc_engine_end_frame();
     }
-}
-
-void
-sc_game_early_init(void)
-{
-    late_initialized = 0;
-}
-
-void
-sc_game_late_init(void)
-{
-    if (late_initialized)
-        return;
-    sc_init_blocks();
-
-    world = sc_create_random_world(256);
-    sc_world_flush_vbos(world);
-    cam = sc_new_camera();
-    sc_camera_push(cam);
-    sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);
-    sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
-    sc_engine_grab_mouse(1);
-
-    late_initialized = 1;
-}
-
-void
-sc_game_shutdown(void)
-{
-    sc_engine_grab_mouse(0);
-    sc_camera_pop();
-    sc_free_camera(cam);
-    sc_free_world(world);
-    sc_free_blocks();
+    shutdown_game();
 }

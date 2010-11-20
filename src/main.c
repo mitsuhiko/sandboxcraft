@@ -16,7 +16,6 @@ run_game_controlled(int argc, char **argv)
 {
     sc_engine_init();
     FREE_ON_SHUTDOWN(sc_engine_shutdown);
-    sc_game_early_init();
     FREE_ON_SHUTDOWN(sc_game_shutdown);
     sc_game_mainloop();
     return 0;

@@ -34,6 +34,7 @@ set(LIB_SOURCES
     src/worldgen.c
     src/list.c
     src/_list_impl.inc
+    src/threads.c
 
     deps/GLee/GLee.c
 )
@@ -70,6 +71,7 @@ set(LIB_HEADERS
     include/_sc_list.h
     include/_sc_list_pre.inc
     include/_sc_list_post.inc
+    include/sc_threads.h
 
     deps/GLee/GLee.h
 )
