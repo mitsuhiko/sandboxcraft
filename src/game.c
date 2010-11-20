@@ -52,8 +52,8 @@ init_game(void)
     sc_texture_t *loading = sc_texture_from_resource("loading.png", GL_NEAREST);
     GLfloat vertices[16] = {
         -10.0f, -10.0f,  10.0f,
-            10.0f, -10.0f,  10.0f,
-            10.0f, -10.0f, -10.0f,
+         10.0f, -10.0f,  10.0f,
+         10.0f, -10.0f, -10.0f,
         -10.0f, -10.0f, -10.0f
     };
 
