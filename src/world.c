@@ -718,13 +718,10 @@ sc_world_raytest(sc_world_t *world, const sc_ray_t *ray,
     sc_walk_world(world, perform_raytest, &closure);
     if (!closure.hit)
         return 0;
+
     *x_out = closure.x;
     *y_out = closure.y;
     *z_out = closure.z;
     *side_out = closure.side;
-
-    char buf[255];
-    sprintf(buf, "Hitting: %d, %d, %d / %d", closure.x, closure.y, closure.z, closure.side);
-    SDL_WM_SetCaption(buf, NULL);
     return 1;
 }
