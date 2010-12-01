@@ -38,9 +38,8 @@
 /* atlas is fragile and 100% implementation detail.  As such, the public
    interface is empty.  So that we don't have to cast things around, we just
    don't define that type and specify it in the struct instead. */
-#ifndef _SC_DONT_DEFINE_ATLAS
-typedef void sc_atlas_t;
-#endif
+struct _sc_atlas;
+typedef struct _sc_atlas sc_atlas_t;
 
 /* creates a new atlas from a given size and filtering.  The size must
    be a power of two, even on systems that support it. */

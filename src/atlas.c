@@ -1,4 +1,4 @@
-#include "sc_boot.h"
+#include "sc_atlas.h"
 #include "sc_texture.h"
 #include "sc_path.h"
 #include "sc_math.h"
@@ -15,17 +15,13 @@ struct atlas_node {
     int in_use;
 };
 
-typedef struct {
+struct _sc_atlas {
     struct atlas_node *root;
     SDL_Surface *surface;
     sc_texture_t *texture;
     GLint filtering;
     int finalized;
-} sc_atlas_t;
-
-/* we know what an atlas is, so don't let the header define it */
-#define _SC_DONT_DEFINE_ATLAS
-#include "sc_atlas.h"
+};
 
 static struct atlas_node *
 new_node(size_t x, size_t y, size_t width, size_t height)
