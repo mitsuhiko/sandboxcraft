@@ -8,6 +8,9 @@
 
 #define SC_PI 3.141592653589794f
 
+#define sc_abs(X) ((X) < 0 ? -(X) : (X))
+#define sc_clamp(V, L, H) ((V) < (L) ? (L) : (V) > (H) ? (H) : (V))
+
 static sc_inline float
 sc_deg2rad(float deg)
 {

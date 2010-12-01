@@ -7,3 +7,4 @@ Makefile
 win_deps
 vs
 tests/*.bin
+doc/_build

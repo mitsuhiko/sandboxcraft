@@ -6,28 +6,23 @@
 
 typedef struct {
     sc_perlin_t *perlin;
-    float stretch;
-    float water_level;
-    float beach_thresholds[2];
-    float max_elevation;
-    float droplet;
-    float cave_level;
-    float cave_thresholds[2];
+    size_t world_size;
+    int water_level;
     float off_x;
     float off_y;
     float off_z;
 } sc_worldgen_t;
 
 /* generates a random new world */
-sc_world_t *sc_create_random_world(size_t size);
+sc_world_t *sc_create_random_world();
 
 /* creates a new world generator */
-sc_worldgen_t *sc_new_worldgen(uint32_t seed);
+sc_worldgen_t *sc_new_worldgen(size_t world_size, uint32_t seed);
 
 /* frees a world generator */
 void sc_free_worldgen(sc_worldgen_t *worldgen);
 
 /* asks the world generator to fill the given world */
-void sc_worldgen_fill_world(const sc_worldgen_t *worldgen, sc_world_t *world);
+sc_world_t *sc_worldgen_new_world(const sc_worldgen_t *worldgen);
 
 #endif
