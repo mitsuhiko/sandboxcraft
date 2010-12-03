@@ -28,6 +28,7 @@ set(LIB_SOURCES
     src/vbo.c
     src/primitives.c
     src/ray.c
+    src/shading.c
     src/debug.c
     src/rnd.c
     src/perlin.c
@@ -63,6 +64,7 @@ set(LIB_HEADERS
     include/sc_vbo.h
     include/sc_primitives.h
     include/sc_ray.h
+    include/sc_shading.h
     include/sc_debug.h
     include/sc_rnd.h
     include/sc_perlin.h

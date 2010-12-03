@@ -21,8 +21,8 @@ sc_texture_from_resource(const char *filename, GLint filtering)
     sc_texture_t *rv;
     SDL_Surface *surface = IMG_Load(path);
     if (!surface) {
+        sc_set_error(SC_ENOENT, path, 0, "Unable to load texture");
         sc_free(path);
-        sc_set_error(SC_EGRAPHIC, path, 0, "Unable to load texture");
         return NULL;
     }
     rv = sc_texture_from_surface(surface, filtering);

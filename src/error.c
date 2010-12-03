@@ -11,6 +11,8 @@ static const char *error_names[] = {
     "SDL error",                                            /* SC_ESDL */
     "Graphic subsystem error",                              /* SC_EGRAPHIC */
     "Threading error",                                      /* SC_ETHREAD */
+    "Shading system error",                                 /* SC_ESHADING */
+    "Missing entity",                                       /* SC_ENOENT */
     NULL
 };
 

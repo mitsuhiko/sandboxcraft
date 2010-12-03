@@ -52,5 +52,7 @@ void sc_critical_error(int code, const char *filename, int lineno,
 #define SC_ESDL             2
 #define SC_EGRAPHIC         3
 #define SC_ETHREAD          4
+#define SC_ESHADING         5
+#define SC_ENOENT           6
 
 #endif
