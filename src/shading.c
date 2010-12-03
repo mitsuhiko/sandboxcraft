@@ -51,7 +51,7 @@ sc_shader_from_file(const char *basename)
     sc_shader_t *rv = sc_new_shader();
     ATTACH(".vert", SC_VERTEX_SHADER);
     ATTACH(".frag", SC_FRAGMENT_SHADER);
-    if (!sc_shader_finalize(rv))
+    if (sc_shader_finalize(rv))
         return rv;
 
 error:

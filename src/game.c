@@ -6,11 +6,13 @@
 #include "sc_primitives.h"
 #include "sc_vbo.h"
 #include "sc_worldgen.h"
+#include "sc_shading.h"
 #include "sc_threads.h"
 
 static int running;
 
 static sc_world_t *world;
+static sc_shader_t *shader;
 static sc_camera_t *cam;
 struct {
     int x;
@@ -59,6 +61,7 @@ init_game(void)
 
     /* this has to happen in the main thread before anything else */
     sc_init_blocks();
+    shader = sc_shader_from_file("simple");
 
     load_thread = sc_new_thread(init_game_in_thread, &done);
 
@@ -105,6 +108,7 @@ shutdown_game(void)
 {
     sc_engine_grab_mouse(0);
     sc_camera_pop();
+    sc_free_shader(shader);
     sc_free_camera(cam);
     sc_free_world(world);
     sc_free_blocks();
@@ -185,6 +189,9 @@ sc_game_render(void)
 {
     sc_engine_clear(sc_color(0x93ddefff));
     sc_apply_current_camera();
+#if 0
+    sc_shader_bind(shader);
+#endif
     sc_world_draw(world);
 }
 

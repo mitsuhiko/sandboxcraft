@@ -47,7 +47,7 @@ sc_shader_t *sc_new_shader(void);
 sc_shader_t *sc_shader_from_file(const char *basename);
 
 /* frees a shader */
-void sc_shader_free(sc_shader_t *shader);
+void sc_free_shader(sc_shader_t *shader);
 
 /* attaches a new shader module */
 int sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
