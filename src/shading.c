@@ -41,8 +41,11 @@ sc_shader_from_file(const char *basename)
     char *buf = sc_xmalloc(bn_len + s_len + 1); \
     strcpy(buf, basename); \
     strcpy(buf + bn_len, Suffix); \
-    if (!sc_shader_attach_from_file(rv, buf, Type)) \
-        goto error; \
+    if (!sc_shader_attach_from_file(rv, buf, Type)) { \
+        if (sc_get_errno() != SC_ENOENT) \
+            goto error; \
+        sc_clear_error(); \
+    } \
 } while (0)
 
     sc_shader_t *rv = sc_new_shader();

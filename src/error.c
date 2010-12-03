@@ -3,6 +3,7 @@
 #include "sc_error.h"
 #include "sc_utils.h"
 
+/* XXX: make this thread local */
 static sc_error_t *last_error;
 
 static const char *error_names[] = {
@@ -76,6 +77,12 @@ sc_set_error(int code, const char *filename, int lineno,
     last_error->description = buf;
     last_error->filename = filename ? sc_strdup(filename) : NULL;
     last_error->lineno = lineno;
+}
+
+int
+sc_get_errno(void)
+{
+    return last_error->code;
 }
 
 void

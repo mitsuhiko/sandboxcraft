@@ -33,6 +33,9 @@ void sc_show_last_error(void);
 void sc_set_error(int code, const char *filename, int lineno,
                   const char *description, ...);
 
+/* returns the current error number or 0 */
+int sc_get_errno(void);
+
 /* clears the current error */
 void sc_clear_error(void);
 

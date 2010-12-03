@@ -37,6 +37,17 @@
 #  define sc_inline inline
 #endif
 
+/* what can we use for thread local storage?  Note that on OS X this is
+   currently not supported at all, so we can't use it yet */
+#ifdef _MSC_VER
+#  define sc_threadlocal __declspec(thread)
+#else
+#  define sc_threadlocal __thread
+#endif
+#if SC_PLATFORM != SC_PLATFORM_OSX
+#  define SC_THREADLOCAL_SUPPORTED
+#endif
+
 /* msvc does not have a ssize_t.  Add one */
 #ifdef _MSC_VER
 typedef signed long ssize_t;
