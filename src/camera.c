@@ -133,6 +133,10 @@ sc_apply_current_camera(void)
                 cam->position.y + cam->forward.y,
                 cam->position.z + cam->forward.z,
               cam->up.x, cam->up.y, cam->up.z);
+
+    /* TODO: apply dynamic light positions here */
+    GLfloat position[] = {-1.5f, 1.0f, -4.0f, 1.0f};
+    glLightfv(GL_LIGHT0, GL_POSITION, position);
 }
 
 void
@@ -140,6 +144,7 @@ sc_camera_push(sc_camera_t *cam)
 {
     assert(stack_size < MAX_STACK);
     stack[stack_size++] = cam;
+    sc_apply_current_camera();
 }
 
 sc_camera_t *

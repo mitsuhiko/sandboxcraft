@@ -312,7 +312,7 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block,
     struct chunk_node *node, *child;
     struct chunk_node_children *cnode;
     struct chunk_node *relations[MAX_RELATIONS];
-    struct chunk_node *vbo_container;
+    struct chunk_node *vbo_container = 0;
 
     /* bail out early */
     if (OUT_OF_BOUNDS(world, x, y, z))
@@ -382,6 +382,9 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block,
     /* if we assume the whole world is already dirty we can skip this */
     if (assume_dirty)
         return 1;
+
+    /* make sure we have found a container */
+    assert(vbo_container);
 
     /* helper macro to mark other vbos as dirty.  This attempts to find
        the vbo in the container first, and if that does not work will
@@ -710,13 +713,15 @@ sc_world_flush_vbos(sc_world_t *world)
 }
 
 int
-sc_world_raytest(sc_world_t *world, const sc_ray_t *ray,
-                 int *x_out, int *y_out, int *z_out, int *side_out)
+sc_world_raytest(sc_world_t *world, const sc_camera_t *cam,
+                 const sc_ray_t *ray, int *x_out, int *y_out, int *z_out,
+                 int *side_out)
 {
     struct raytest_closure closure;
     closure.ray = ray;
+    closure.camera = cam;
     closure.hit = 0;
-    closure.camera = sc_get_current_camera();
+
     sc_walk_world(world, perform_raytest, &closure);
     if (!closure.hit)
         return 0;

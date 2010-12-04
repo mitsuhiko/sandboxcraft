@@ -100,7 +100,8 @@ void sc_world_flush_vbos(sc_world_t *world);
 /* performs a raycast to check if a side of a block was hit.  Returns 1 if
    something other than air was hit, or 0 if this was not the case.  The
    actual coordinates and side of the block hit is passed out as parameter. */
-int sc_world_raytest(sc_world_t *world, const sc_ray_t *ray,
-                     int *x_out, int *y_out, int *z_out, int *side_out);
+int sc_world_raytest(sc_world_t *world, const sc_camera_t *cam,
+                     const sc_ray_t *ray, int *x_out, int *y_out,
+                     int *z_out, int *side_out);
 
 #endif

@@ -33,7 +33,6 @@ init_game_in_thread(void *closure)
 
     world = sc_create_random_world(256);
     cam = sc_new_camera();
-    sc_camera_push(cam);
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
     sc_engine_grab_mouse(1);
@@ -102,7 +101,6 @@ static void
 shutdown_game(void)
 {
     sc_engine_grab_mouse(0);
-    sc_camera_pop();
     sc_free_camera(cam);
     sc_free_world(world);
     sc_free_blocks();
@@ -115,7 +113,7 @@ select_center_block_side(void)
     ray.pos = cam->position;
     ray.dir = cam->forward;
 
-    sc_world_raytest(world, &ray, &selected_block.x,
+    sc_world_raytest(world, cam, &ray, &selected_block.x,
                      &selected_block.y, &selected_block.z,
                      &selected_block.side);
 }
@@ -181,11 +179,10 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
-    GLfloat position[] = {-1.5f, 1.0f, -4.0f, 1.0f};
-    sc_engine_clear(sc_color(0x93ddefff));
-    sc_apply_current_camera();
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
-    sc_world_draw(world);
+    sc_camera_push(cam);
+        sc_engine_clear(sc_color(0x93ddefff));
+        sc_world_draw(world);
+    sc_camera_pop();
 }
 
 void
