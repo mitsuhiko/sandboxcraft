@@ -6,13 +6,11 @@
 #include "sc_primitives.h"
 #include "sc_vbo.h"
 #include "sc_worldgen.h"
-#include "sc_shading.h"
 #include "sc_threads.h"
 
 static int running;
 
 static sc_world_t *world;
-static sc_shader_t *shader;
 static sc_camera_t *cam;
 struct {
     int x;
@@ -50,18 +48,15 @@ init_game(void)
     SDL_Event evt;
     int done = 0;
     float angle = 35.0f;
+    sc_vbo_t *cube;
     sc_thread_t *load_thread;
     sc_texture_t *loading = sc_texture_from_resource("loading.png", GL_NEAREST);
-    GLfloat vertices[16] = {
-        -10.0f, -10.0f,  10.0f,
-         10.0f, -10.0f,  10.0f,
-         10.0f, -10.0f, -10.0f,
-        -10.0f, -10.0f, -10.0f
-    };
+
+    cube = sc_new_cube(10.0f);
+    sc_vbo_finalize(cube, 0);
 
     /* this has to happen in the main thread before anything else */
     sc_init_blocks();
-    shader = sc_shader_from_file("simple");
 
     load_thread = sc_new_thread(init_game_in_thread, &done);
 
@@ -83,16 +78,15 @@ init_game(void)
         glLoadIdentity();
         gluPerspective(45, sc_engine_get_aspect(), 1.0f, 200.0f);
         glMatrixMode(GL_MODELVIEW);
+
         glPushMatrix();
             glLoadIdentity();
-            glTranslatef(0.0f, 8.0f, -30.0f);
+            glTranslatef(0.0f, 0.0f, -30.0f);
             glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
             glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
-            sc_bind_texture(loading);
-            sc_send_texture_coordinates(loading);
             glRotatef(angle, 0.0f, 1.0f, 0.0f);
-            glVertexPointer(3, GL_FLOAT, 0, vertices);
-            glDrawArrays(GL_QUADS, 0, 4);
+            sc_bind_texture(loading);
+            sc_vbo_draw(cube);
         glPopMatrix();
         sc_engine_end_frame();
     }
@@ -101,6 +95,7 @@ init_game(void)
     sc_world_flush_vbos(world);
 
     sc_free_texture(loading);
+    sc_free_vbo(cube);
 }
 
 static void
@@ -108,7 +103,6 @@ shutdown_game(void)
 {
     sc_engine_grab_mouse(0);
     sc_camera_pop();
-    sc_free_shader(shader);
     sc_free_camera(cam);
     sc_free_world(world);
     sc_free_blocks();
@@ -187,11 +181,10 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
+    GLfloat position[] = {-1.5f, 1.0f, -4.0f, 1.0f};
     sc_engine_clear(sc_color(0x93ddefff));
     sc_apply_current_camera();
-#if 0
-    sc_shader_bind(shader);
-#endif
+    glLightfv(GL_LIGHT0, GL_POSITION, position);
     sc_world_draw(world);
 }
 

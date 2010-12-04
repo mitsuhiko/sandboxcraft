@@ -39,12 +39,12 @@ sc_vbo_t *sc_new_vbo(void);
 void sc_free_vbo(sc_vbo_t *vbo);
 
 /* finalizes the vbo and moves all the data to the graphics device */
-void sc_finalize_vbo(sc_vbo_t *vbo, int dynamic);
+void sc_vbo_finalize(sc_vbo_t *vbo, int dynamic);
 
 /* reopens the vbo to add new data.  That way the vbo is not deleted
    from the device but replaced by new uploaded data.  vertices are
    set back to zero count, vbo has to refilled. */
-void sc_reuse_vbo(sc_vbo_t *vbo);
+void sc_vbo_reuse(sc_vbo_t *vbo);
 
 /* adds a new triangle to the vbo */
 void sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,

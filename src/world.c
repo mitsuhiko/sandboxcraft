@@ -459,7 +459,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
     int max_z = min_z + size;
 
     if (node->vbo)
-        sc_reuse_vbo(node->vbo);
+        sc_vbo_reuse(node->vbo);
     else
         node->vbo = sc_new_vbo();
 
@@ -502,7 +502,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
             }
 
     node->flags &= ~CHUNK_FLAG_DIRTY;
-    sc_finalize_vbo(node->vbo, 1);
+    sc_vbo_finalize(node->vbo, 1);
 }
 
 const sc_vbo_t *
@@ -651,6 +651,7 @@ draw_water(sc_world_t *world, const sc_frustum_t *frustum)
     glDepthMask(GL_FALSE);
     glColor4f(0.12f, 0.43f, 0.68f, 0.75f);
     sc_unbind_texture();
+    glDisable(GL_LIGHTING);
     glBegin(GL_TRIANGLES);
         glVertex3f(low, y, low);
         glVertex3f(low, y, high);
@@ -659,6 +660,7 @@ draw_water(sc_world_t *world, const sc_frustum_t *frustum)
         glVertex3f(high, y, high);
         glVertex3f(high, y, low);
     glEnd();
+    glEnable(GL_LIGHTING);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
     glColor3f(1.0f, 1.0f, 1.0f);

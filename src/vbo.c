@@ -54,7 +54,7 @@ sc_free_vbo(sc_vbo_t *vbo)
 }
 
 void
-sc_finalize_vbo(sc_vbo_t *vbo, int dynamic)
+sc_vbo_finalize(sc_vbo_t *vbo, int dynamic)
 {
     GLenum mode = dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
     ASSERT_NOT_FINALIZED();
@@ -88,7 +88,7 @@ sc_finalize_vbo(sc_vbo_t *vbo, int dynamic)
 }
 
 void
-sc_reuse_vbo(sc_vbo_t *vbo)
+sc_vbo_reuse(sc_vbo_t *vbo)
 {
     ASSERT_FINALIZED();
     
