@@ -33,6 +33,8 @@ set(LIB_SOURCES
     src/rnd.c
     src/perlin.c
     src/worldgen.c
+    src/lighting.c
+    src/scenemgr.c
     src/list.c
     src/_list_impl.inc
     src/threads.c
@@ -69,6 +71,8 @@ set(LIB_HEADERS
     include/sc_rnd.h
     include/sc_perlin.h
     include/sc_worldgen.h
+    include/sc_lighting.h
+    include/sc_scenemgr.h
     include/sc_list.h
     include/_sc_list.h
     include/_sc_list_pre.inc
