@@ -179,7 +179,10 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
+    GLfloat position[] = {-1.5f, 1.0f, -4.0f, 1.0f};
+
     sc_camera_push(cam);
+        glLightfv(GL_LIGHT0, GL_POSITION, position);
         sc_engine_clear(sc_color(0x93ddefff));
         sc_world_draw(world);
     sc_camera_pop();

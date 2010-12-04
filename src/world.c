@@ -98,13 +98,13 @@ struct vboinfo {
 /* the closure passed to the draw functions */
 struct chunk_draw_closure {
     const sc_frustum_t *frustum;
-    sc_camera_t *camera;
+    const sc_camera_t *camera;
     sc_list_t *vbos;
 };
 
 /* closure for ray tests */
 struct raytest_closure {
-    sc_camera_t *camera;
+    const sc_camera_t *camera;
     const sc_ray_t *ray;
     int x;
     int y;

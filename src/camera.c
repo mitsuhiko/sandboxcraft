@@ -113,12 +113,8 @@ sc_camera_strafe_right(sc_camera_t *cam, float delta)
 }
 
 void
-sc_apply_current_camera(void)
+sc_apply_camera(const sc_camera_t *cam)
 {
-    sc_camera_t *cam = sc_get_current_camera();
-    if (!cam)
-        return;
-
     /* this currentl uses the opengl matrix functions.  I don't see a point
        in dropping that because it works, especially on older cards and
        one some drivers this actually is caluclated on the GPU, so that is
@@ -133,10 +129,6 @@ sc_apply_current_camera(void)
                 cam->position.y + cam->forward.y,
                 cam->position.z + cam->forward.z,
               cam->up.x, cam->up.y, cam->up.z);
-
-    /* TODO: apply dynamic light positions here */
-    GLfloat position[] = {-1.5f, 1.0f, -4.0f, 1.0f};
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
 }
 
 void
@@ -144,14 +136,18 @@ sc_camera_push(sc_camera_t *cam)
 {
     assert(stack_size < MAX_STACK);
     stack[stack_size++] = cam;
-    sc_apply_current_camera();
+    sc_apply_camera(cam);
 }
 
 sc_camera_t *
 sc_camera_pop(void)
 {
+    sc_camera_t *rv;
     assert(stack_size > 0);
-    return stack[--stack_size];
+    rv = stack[--stack_size];
+    if (stack_size)
+        sc_apply_camera(stack[stack_size - 1]);
+    return rv;
 }
 
 sc_camera_t *
