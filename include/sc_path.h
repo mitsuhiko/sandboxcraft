@@ -7,6 +7,15 @@
 /* returns the path to the resource folder */
 const char *sc_get_resource_path(void);
 
+/* joins two paths */
+char *sc_path_join(const char *a, const char *b);
+
+/* returns the directory name of a path */
+char *sc_path_dirname(const char *path);
+
+/* joins the directory of the given path with another path */
+char *sc_path_join_with_dir(const char *a, const char *b);
+
 /* returns the path to a specific resource of a specific kind.
    The kind corresponds to the folder the resource is located in.
    If subfolders are used, slashes must be used to access a

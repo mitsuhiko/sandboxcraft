@@ -31,20 +31,6 @@ show_error(int code, const char *filename, int lineno, const char *msg)
     fflush(stderr);
 }
 
-static char *
-format_error(va_list argptr, const char *description)
-{
-#if SC_PLATFORM == SC_PLATFORM_WINDOWS
-    size_t bufsize = _vscprintf(description, argptr) + 1;
-    char *buf = (char *)malloc(bufsize);
-    _vsnprintf(buf, bufsize, description, argptr);
-#else
-    char *buf;
-    vasprintf(&buf, description, argptr);
-#endif
-    return buf;
-}
-
 void
 sc_show_last_error(void)
 {
@@ -63,7 +49,7 @@ sc_set_error(int code, const char *filename, int lineno,
     char *buf;
     va_list argptr;
     va_start(argptr, description);
-    buf = format_error(argptr, description);
+    buf = sc_vasprintf(argptr, description);
     va_end(argptr);
 
     if (!last_error) {
@@ -121,7 +107,7 @@ sc_critical_error(int code, const char *filename, int lineno,
     char *buf;
     va_list argptr;
     va_start(argptr, description);
-    buf = format_error(argptr, description);
+    buf = sc_vasprintf(argptr, description);
     va_end(argptr);
     show_error(code, filename, lineno, buf);
     exit(1);

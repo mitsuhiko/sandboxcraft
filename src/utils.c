@@ -134,3 +134,17 @@ sc_sort(void *base, size_t length, size_t size, void *closure,
         return;
     sort_impl((char *)base, length, size, closure, cmpfunc);
 }
+
+char *
+sc_vasprintf(va_list argptr, const char *fmt)
+{
+#if SC_PLATFORM == SC_PLATFORM_WINDOWS
+    size_t bufsize = _vscprintf(fmt, argptr) + 1;
+    char *buf = (char *)sc_xmalloc(bufsize);
+    _vsnprintf(buf, bufsize, fmt, argptr);
+#else
+    char *buf;
+    vasprintf(&buf, fmt, argptr);
+#endif
+    return buf;
+}

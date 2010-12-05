@@ -1,4 +1,5 @@
 #include "sc_path.h"
+#include "sc_utils.h"
 #if SC_PLATFORM == SC_PLATFORM_WINDOWS
 #   pragma comment(lib, "shlwapi")
 #   include "shlobj.h"
@@ -9,7 +10,8 @@
 #   include <unistd.h>
 #endif
 
-const char *sc_get_resource_path(void)
+const char *
+sc_get_resource_path(void)
 {
     static char *path = NULL;
     if (path != NULL)
@@ -56,7 +58,8 @@ const char *sc_get_resource_path(void)
     return path;
 }
 
-char *sc_path_to_resource(const char *kind, const char *resource)
+char *
+sc_path_to_resource(const char *kind, const char *resource)
 {
     const char *path = sc_get_resource_path();
     size_t pathlen = strlen(path);
@@ -70,4 +73,48 @@ char *sc_path_to_resource(const char *kind, const char *resource)
     buf[pathlen + kindlen + 1] = '/';
     strcpy(buf + pathlen + kindlen + 2, resource);
     return buf;
+}
+
+char *
+sc_path_join(const char *a, const char *b)
+{
+    size_t al = strlen(a);
+    size_t bl = strlen(b);
+    char *rv = sc_xmalloc(al + bl + 2);
+    memcpy(rv, a, al);
+    rv[al] = '/';
+    memcpy(rv + al + 1, b, bl + 1);
+    return rv;
+}
+
+char *
+sc_path_dirname(const char *path)
+{
+    const char *last_slash;
+    size_t length;
+    char *rv;
+    last_slash = strrchr(path, '/');
+    if (last_slash)
+        goto strip;
+#if SC_PLATFORM == SC_PLATFORM_WINDOWS
+    last_slash = strrchr(path, '\\');
+    if (last_slash)
+        goto strip;
+#endif
+    return sc_strdup(".");
+
+strip:
+    length = last_slash - path;
+    rv = sc_xmalloc(length + 1);
+    rv[length] = '\0';
+    return rv;
+}
+
+char *
+sc_path_join_with_dir(const char *a, const char *b)
+{
+    char *dirname = sc_path_dirname(a);
+    char *rv = sc_path_join(dirname, b);
+    sc_free(dirname);
+    return rv;
 }

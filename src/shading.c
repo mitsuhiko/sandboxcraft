@@ -1,6 +1,7 @@
 #include "sc_shading.h"
 #include "sc_path.h"
 #include "sc_list.h"
+#include "sc_strbuf.h"
 
 #define ASSERT_FINALIZED(Shader) \
     assert((Shader)->program_id != 0)
@@ -75,27 +76,63 @@ sc_free_shader(sc_shader_t *shader)
 }
 
 static char *
-read_shader_source(sc_shader_t *shader, const char *filename)
+eat_string_literal(char *string)
 {
-    size_t end;
-    char *source;
+    char *start, *ptr = string;
+    while (*ptr == ' ' || *ptr == '\t')
+        ptr++;
+    if (*ptr++ != '"')
+        return NULL;
+    start = ptr;
+    while (1) {
+        if (!*ptr)
+            return NULL;
+        if (*ptr == '"')
+            break;
+        ptr++;
+    }
+    *ptr = '\0';
+    return start;
+}
+
+static int
+read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
+                   const char *filename)
+{
+    size_t lineno = 1;
+    char line[4096], *full_path, *include_file;
     FILE *file = fopen(filename, "r");
+    int start_of_line = 1;
     if (!file) {
         sc_set_error(SC_ENOENT, filename, 0, "Unable to load shader");
         return 0;
     }
 
-    fseek(file, 0, 2);
-    end = ftell(file);
-    fseek(file, 0, 0);
-    source = sc_xmalloc(end + 1);
-    fread(source, 1, end, file);
-    source[end] = 0;
-
-    fclose(file);
     sc_list_append(shader->sources, sc_strdup(filename));
 
-    return source;
+    while (fgets(line, 4096, file)) {
+        if (start_of_line && strncmp(line, "#include", 8) == 0) {
+            include_file = eat_string_literal(line + 8);
+            full_path = sc_path_join_with_dir(filename, include_file);
+            if (!include_file) {
+                sc_set_error(SC_ESHADING, filename, lineno,
+                    "Invalid syntax for file include");
+                return 0;
+            }
+            sc_strbuf_appendf(strbuf, "#line %d %d\n", 0,
+                              shader->sources->size);
+            read_shader_source(strbuf, shader, full_path);
+            sc_free(full_path);
+        }
+        else
+            sc_strbuf_append(strbuf, line);
+        start_of_line = line[strlen(line) - 1] == '\n';
+        if (start_of_line)
+            lineno++;
+    }
+
+    fclose(file);
+    return 1;
 }
 
 int
@@ -105,15 +142,18 @@ sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
     int success;
     char *path;
     char *source;
+    sc_strbuf_t *strbuf = sc_new_strbuf();
     GLuint shader_id;
     ASSERT_NOT_FINALIZED(shader);
 
     path = sc_path_to_resource("shaders", filename);
-    if (!(source = read_shader_source(shader, path))) {
+    if (!read_shader_source(strbuf, shader, path)) {
+        sc_free_strbuf(strbuf);
         sc_free(path);
         return 0;
     }
 
+    source = sc_free_strbuf_and_get_contents(strbuf, NULL);
     shader_id = glCreateShader(convert_shader_type(type));
     glShaderSource(shader_id, 1, (const GLchar **)&source, NULL);
     sc_free(source);

@@ -12,6 +12,8 @@
 #endif
 #define sc_strdup(X) ((char *)sc_memassert((void *)sc_safe_strdup(X)))
 
+/* helper function for variable length string formatting */
+char *sc_vasprintf(va_list argptr, const char *fmt);
 
 /* min and max inline macro.  These have to be macros to support different
    types.  ALso they can't be implemented without side effects in a
