@@ -8,9 +8,6 @@
 
 #define MAX_STACK 32
 
-static sc_camera_t *stack[MAX_STACK];
-static size_t stack_size;
-
 sc_camera_t *
 sc_new_camera(void)
 {
@@ -113,7 +110,7 @@ sc_camera_strafe_right(sc_camera_t *cam, float delta)
 }
 
 void
-sc_apply_camera(const sc_camera_t *cam)
+sc_camera_apply(const sc_camera_t *cam)
 {
     /* this currentl uses the opengl matrix functions.  I don't see a point
        in dropping that because it works, especially on older cards and
@@ -129,31 +126,4 @@ sc_apply_camera(const sc_camera_t *cam)
                 cam->position.y + cam->forward.y,
                 cam->position.z + cam->forward.z,
               cam->up.x, cam->up.y, cam->up.z);
-}
-
-void
-sc_camera_push(sc_camera_t *cam)
-{
-    assert(stack_size < MAX_STACK);
-    stack[stack_size++] = cam;
-    sc_apply_camera(cam);
-}
-
-sc_camera_t *
-sc_camera_pop(void)
-{
-    sc_camera_t *rv;
-    assert(stack_size > 0);
-    rv = stack[--stack_size];
-    if (stack_size)
-        sc_apply_camera(stack[stack_size - 1]);
-    return rv;
-}
-
-sc_camera_t *
-sc_get_current_camera(void)
-{
-    if (stack_size == 0)
-        return NULL;
-    return stack[stack_size - 1];
 }

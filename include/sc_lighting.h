@@ -13,7 +13,6 @@ typedef struct {
     sc_color_t diffuse;
     sc_color_t specular;
     sc_vec4_t position;
-    sc_vec4_t half_vector;
     sc_vec3_t spot_direction;
     float spot_exponent;
     float spot_cutoff;
@@ -28,5 +27,15 @@ sc_light_t *sc_new_light(void);
 
 /* deletes a light again */
 void sc_free_light(sc_light_t *light);
+
+/* sends the light information to the graphics device.  Currently this sends
+   it to the fixed function pipeline, but it could also send it to
+   dedicated uniforms in case shaders are used.  In the hardware the light
+   is represented with the integer light_num */
+void sc_light_apply(const sc_light_t *light, int light_num);
+
+/* disables all light channels again.  This disables all hardware light
+   channels in the fixed function pipeline or later in the shader. */
+void sc_light_disable_all(void);
 
 #endif

@@ -17,5 +17,6 @@ sc_color_t sc_make_color(sc_color_component r, sc_color_component g,
 
 void sc_color_to_float(sc_color_t color, float *r, float *g, float *b,
                        float *a);
+void sc_color_to_floatv(sc_color_t color, float *f);
 
 #endif

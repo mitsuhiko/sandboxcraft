@@ -13,6 +13,9 @@ typedef struct _sc_vec4 {
     float w;
 } sc_vec4_t;
 
+/* return pointer to the first value in the vector */
+#define sc_vec4_ptr(V) (&((V)->x))
+
 /* is the vector empty? */
 static sc_inline int
 sc_vec4_is_zero(const sc_vec4_t *vec)

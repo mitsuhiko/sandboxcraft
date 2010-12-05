@@ -23,7 +23,6 @@
 #include "sc_boot.h"
 #include "sc_blocks.h"
 #include "sc_camera.h"
-#include "sc_ray.h"
 
 /* where the vbos are stored.  chunk_resolution % vbo_size === 0! */
 #define SC_CHUNK_VBO_SIZE   16
@@ -75,7 +74,7 @@ int sc_world_set_block_fast(sc_world_t *world, int x, int y, int z,
    function is not reentrant.  This is usually not a problem but if it
    might be necessary in the future to call this function recursively,
    the implementation has to be adapted. */
-void sc_world_draw(sc_world_t *world);
+void sc_world_draw(sc_world_t *world, const sc_camera_t *cam);
 
 /* traverses the world.  This will execute the given callback with
    the following information:
@@ -96,12 +95,5 @@ void sc_walk_world(sc_world_t *world, sc_chunk_walk_cb cb, void *closure);
    sense to halt the render loop and show a loading screen and then call
    this method to update the vbos at once. */
 void sc_world_flush_vbos(sc_world_t *world);
-
-/* performs a raycast to check if a side of a block was hit.  Returns 1 if
-   something other than air was hit, or 0 if this was not the case.  The
-   actual coordinates and side of the block hit is passed out as parameter. */
-int sc_world_raytest(sc_world_t *world, const sc_camera_t *cam,
-                     const sc_ray_t *ray, int *x_out, int *y_out,
-                     int *z_out, int *side_out);
 
 #endif

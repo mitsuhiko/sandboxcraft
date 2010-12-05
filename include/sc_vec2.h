@@ -9,6 +9,9 @@ typedef struct {
     float y;
 } sc_vec2_t;
 
+/* return pointer to the first value in the vector */
+#define sc_vec2_ptr(V) (&((V)->x))
+
 /* is the vector empty? */
 static sc_inline int
 sc_vec2_is_zero(const sc_vec2_t *vec)

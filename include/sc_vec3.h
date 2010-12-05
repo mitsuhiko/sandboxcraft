@@ -11,6 +11,9 @@ typedef struct _sc_vec3 {
     float z;
 } sc_vec3_t;
 
+/* return pointer to the first value in the vector */
+#define sc_vec3_ptr(V) (&((V)->x))
+
 /* is the vector empty? */
 static sc_inline int
 sc_vec3_is_zero(const sc_vec3_t *vec)

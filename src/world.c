@@ -102,18 +102,6 @@ struct chunk_draw_closure {
     sc_list_t *vbos;
 };
 
-/* closure for ray tests */
-struct raytest_closure {
-    const sc_camera_t *camera;
-    const sc_ray_t *ray;
-    int x;
-    int y;
-    int z;
-    int side;
-    int hit;
-    float distance;
-};
-
 
 static struct chunk_node *
 new_leaf_chunk_node(sc_blocktype_t block_type)
@@ -571,30 +559,6 @@ flush_vbos(sc_world_t *world, const sc_block_t *block, int x, int y, int z,
     return 0;
 }
 
-static int
-perform_raytest(sc_world_t *world, const sc_block_t *block, int x, int y,
-                int z, size_t size, void *closure)
-{
-    struct raytest_closure *args = closure;
-    sc_vec3_t vec1, vec2, vec3;
-
-    MAKE_BLOCK_AABB(&vec1, &vec2, x, y, z, size);
-    if (!sc_ray_intersects_aabb(args->ray, &vec1, &vec2, NULL, &args->side))
-        return 0;
-    if (size == 1 && block->type != SC_BLOCK_AIR) {
-        sc_vec3_sub(&vec3, &vec1, &args->camera->position);
-        float distance = sc_vec3_length2(&vec3);
-        if (!args->hit || distance < args->distance) {
-            args->x = x;
-            args->y = y;
-            args->z = z;
-            args->hit = 1;
-            args->distance = distance;
-        }
-    }
-    return 1;
-}
-
 sc_world_t *
 sc_new_world(uint32_t size)
 {
@@ -670,7 +634,7 @@ draw_water(sc_world_t *world, const sc_frustum_t *frustum)
 }
 
 void
-sc_world_draw(sc_world_t *world)
+sc_world_draw(sc_world_t *world, const sc_camera_t *cam)
 {
     size_t i;
     sc_frustum_t frustum;
@@ -683,7 +647,7 @@ sc_world_draw(sc_world_t *world)
 
     sc_get_current_frustum(&frustum);
     closure.frustum = &frustum;
-    closure.camera = sc_get_current_camera();
+    closure.camera = cam;
     closure.vbos = sc_new_list();
 
     sc_walk_world(world, find_visible_vbos, &closure);
@@ -710,25 +674,4 @@ void
 sc_world_flush_vbos(sc_world_t *world)
 {
     sc_walk_world(world, flush_vbos, NULL);
-}
-
-int
-sc_world_raytest(sc_world_t *world, const sc_camera_t *cam,
-                 const sc_ray_t *ray, int *x_out, int *y_out, int *z_out,
-                 int *side_out)
-{
-    struct raytest_closure closure;
-    closure.ray = ray;
-    closure.camera = cam;
-    closure.hit = 0;
-
-    sc_walk_world(world, perform_raytest, &closure);
-    if (!closure.hit)
-        return 0;
-
-    *x_out = closure.x;
-    *y_out = closure.y;
-    *z_out = closure.z;
-    *side_out = closure.side;
-    return 1;
 }

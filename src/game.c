@@ -5,13 +5,13 @@
 #include "sc_camera.h"
 #include "sc_primitives.h"
 #include "sc_vbo.h"
+#include "sc_scenemgr.h"
 #include "sc_worldgen.h"
 #include "sc_threads.h"
 
 static int running;
 
-static sc_world_t *world;
-static sc_camera_t *cam;
+static sc_scenemgr_t *scenemgr;
 struct {
     int x;
     int y;
@@ -29,13 +29,23 @@ struct {
 static int
 init_game_in_thread(void *closure)
 {
+    sc_camera_t *cam;
+    sc_light_t *light;
     int *done = closure;
 
-    world = sc_create_random_world(256);
-    cam = sc_new_camera();
+    scenemgr = sc_new_scenemgr();
+    sc_scenemgr_set_world(scenemgr, sc_create_random_world(256));
+    cam = sc_scenemgr_get_active_camera(scenemgr);
+
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
     sc_engine_grab_mouse(1);
+
+    light = sc_scenemgr_create_light(scenemgr);
+    light->ambient = sc_color(0x444444ff);
+    light->diffuse = sc_color(0xccccccff);
+    light->specular = sc_color(0x888888ff);
+    sc_vec4_set(&light->position, -1.5f, 1.0f, -4.0f, 1.0f);
 
     *done = 1;
     return 0;
@@ -91,7 +101,7 @@ init_game(void)
     }
 
     /* this has to happen in the main thread after world was created */
-    sc_world_flush_vbos(world);
+    sc_world_flush_vbos(sc_scenemgr_get_world(scenemgr));
 
     sc_free_texture(loading);
     sc_free_vbo(cube);
@@ -101,21 +111,9 @@ static void
 shutdown_game(void)
 {
     sc_engine_grab_mouse(0);
-    sc_free_camera(cam);
-    sc_free_world(world);
+    sc_free_world(sc_scenemgr_get_world(scenemgr));
+    sc_free_scenemgr(scenemgr);
     sc_free_blocks();
-}
-
-static void
-select_center_block_side(void)
-{
-    sc_ray_t ray;
-    ray.pos = cam->position;
-    ray.dir = cam->forward;
-
-    sc_world_raytest(world, cam, &ray, &selected_block.x,
-                     &selected_block.y, &selected_block.z,
-                     &selected_block.side);
 }
 
 void
@@ -151,19 +149,17 @@ sc_game_handle_event(SDL_Event *evt)
         default:;
         }
     else if (evt->type == SDL_MOUSEMOTION) {
-        select_center_block_side();
+        sc_camera_t *cam = sc_scenemgr_get_active_camera(scenemgr);
         sc_camera_rotate_screen(cam, evt->motion.xrel * 0.25f,
                                 evt->motion.yrel * 0.25f);
     }
-    else if (evt->type == SDL_MOUSEBUTTONUP)
-        sc_world_set_block(world, selected_block.x, selected_block.y,
-                           selected_block.z, sc_get_block(SC_BLOCK_WATER));
 }
 
 void
 sc_game_update(void)
 {
-    const float move_factor = sc_gametime.delta * 0.025f;
+    float move_factor = sc_gametime.delta * 0.025f;
+    sc_camera_t *cam = sc_scenemgr_get_active_camera(scenemgr);
 
     /* camera movement */
     if (keysdown.w)
@@ -179,13 +175,7 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
-    GLfloat position[] = {-1.5f, 1.0f, -4.0f, 1.0f};
-
-    sc_camera_push(cam);
-        glLightfv(GL_LIGHT0, GL_POSITION, position);
-        sc_engine_clear(sc_color(0x93ddefff));
-        sc_world_draw(world);
-    sc_camera_pop();
+    sc_scenemgr_draw(scenemgr);
 }
 
 void

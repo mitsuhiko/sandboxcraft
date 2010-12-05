@@ -25,19 +25,8 @@ void sc_camera_move_backward(sc_camera_t *cam, float delta);
 void sc_camera_strafe_left(sc_camera_t *cam, float delta);
 void sc_camera_strafe_right(sc_camera_t *cam, float delta);
 
-/* makes this camera the active camera on the camera stack.  This also
-   automatically applies the camera information. */
-void sc_camera_push(sc_camera_t *cam);
-
-/* pops the topmost camera from the stack */
-sc_camera_t *sc_camera_pop(void);
-
-/* sends the current camera's information to the graphics device.  This
+/* sends the given camera's information to the graphics device.  This
    normally already happens on push */
-void sc_apply_camera(const sc_camera_t *cam);
-
-/* returns the topmost camera from the stack or NULL if the stack does
-   not have a managed camera */
-sc_camera_t *sc_get_current_camera(void);
+void sc_camera_apply(const sc_camera_t *cam);
 
 #endif

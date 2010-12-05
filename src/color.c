@@ -31,3 +31,9 @@ sc_color_to_float(sc_color_t color, float *r, float *g, float *b, float *a)
     *b = color.b / 255.0f;
     *a = color.a / 255.0f;
 }
+
+void
+sc_color_to_floatv(sc_color_t color, float *f)
+{
+    sc_color_to_float(color, &f[0], &f[1], &f[2], &f[3]);
+}
