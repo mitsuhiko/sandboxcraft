@@ -10,6 +10,7 @@
 struct _sc_shader {
     GLuint program_id;
     sc_intlist_t *modules;
+    sc_list_t *sources;
 };
 
 static GLenum
@@ -73,23 +74,14 @@ sc_free_shader(sc_shader_t *shader)
     sc_free(shader);
 }
 
-int
-sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
-                           sc_shadertype_t type)
+static char *
+read_shader_source(sc_shader_t *shader, const char *filename)
 {
-    int success;
-    FILE *file;
-    char *path;
-    char *source;
     size_t end;
-    GLuint shader_id;
-    ASSERT_NOT_FINALIZED(shader);
-
-    path = sc_path_to_resource("shaders", filename);
-    file = fopen(path, "r");
+    char *source;
+    FILE *file = fopen(filename, "r");
     if (!file) {
-        sc_set_error(SC_ENOENT, path, 0, "Unable to load shader");
-        sc_free(path);
+        sc_set_error(SC_ENOENT, filename, 0, "Unable to load shader");
         return 0;
     }
 
@@ -100,10 +92,31 @@ sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
     fread(source, 1, end, file);
     source[end] = 0;
 
+    fclose(file);
+    sc_list_append(shader->sources, sc_strdup(filename));
+
+    return source;
+}
+
+int
+sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
+                           sc_shadertype_t type)
+{
+    int success;
+    char *path;
+    char *source;
+    GLuint shader_id;
+    ASSERT_NOT_FINALIZED(shader);
+
+    path = sc_path_to_resource("shaders", filename);
+    if (!(source = read_shader_source(shader, path))) {
+        sc_free(path);
+        return 0;
+    }
+
     shader_id = glCreateShader(convert_shader_type(type));
     glShaderSource(shader_id, 1, (const GLchar **)&source, NULL);
     sc_free(source);
-    fclose(file);
 
     glCompileShader(shader_id);
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);

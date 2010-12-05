@@ -75,7 +75,7 @@ sc_set_error(int code, const char *filename, int lineno,
     }
     last_error->code = code;
     last_error->description = buf;
-    last_error->filename = filename ? sc_strdup(filename) : NULL;
+    last_error->filename = filename ? sc_safe_strdup(filename) : NULL;
     last_error->lineno = lineno;
 }
 
@@ -101,7 +101,7 @@ sc_augment_error_context(const char *filename, int lineno)
     if (!last_error)
         return;
     sc_free(last_error->filename);
-    last_error->filename = sc_strdup(filename);
+    last_error->filename = sc_safe_strdup(filename);
     last_error->lineno = lineno;
 }
 

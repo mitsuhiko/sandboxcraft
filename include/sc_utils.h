@@ -6,10 +6,12 @@
 
 /* string duplication function */
 #if SC_PLATFORM == SC_PLATFORM_WINDOWS
-#   define sc_strdup _strdup
+#   define sc_safe_strdup(X) sc_strdup
 #else
-#   define sc_strdup strdup
+#   define sc_safe_strdup strdup
 #endif
+#define sc_strdup(X) ((char *)sc_memassert((void *)sc_safe_strdup(X)))
+
 
 /* min and max inline macro.  These have to be macros to support different
    types.  ALso they can't be implemented without side effects in a
