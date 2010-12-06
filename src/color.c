@@ -1,7 +1,7 @@
 #include "sc_color.h"
 
 sc_color_t
-sc_color(int val)
+sc_color(uint32_t val)
 {
     sc_color_t rv;
     rv.r = val >> 24;
@@ -36,4 +36,15 @@ void
 sc_color_to_floatv(sc_color_t color, float *f)
 {
     sc_color_to_float(color, &f[0], &f[1], &f[2], &f[3]);
+}
+
+sc_color_t
+sc_color_from_floatv(float *a)
+{
+    return sc_make_color(
+        (sc_color_component)(a[0] * 255.0f),
+        (sc_color_component)(a[1] * 255.0f),
+        (sc_color_component)(a[2] * 255.0f),
+        (sc_color_component)(a[3] * 255.0f)
+    );
 }

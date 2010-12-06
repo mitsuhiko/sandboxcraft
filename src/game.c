@@ -6,12 +6,14 @@
 #include "sc_primitives.h"
 #include "sc_vbo.h"
 #include "sc_scenemgr.h"
+#include "sc_shading.h"
 #include "sc_worldgen.h"
 #include "sc_threads.h"
 
 static int running;
 
 static sc_scenemgr_t *scenemgr;
+static sc_shader_t *shader;
 struct {
     int x;
     int y;
@@ -66,6 +68,7 @@ init_game(void)
 
     /* this has to happen in the main thread before anything else */
     sc_init_blocks();
+    shader = sc_shader_from_file("simple");
 
     load_thread = sc_new_thread(init_game_in_thread, &done);
 
@@ -114,6 +117,7 @@ shutdown_game(void)
     sc_free_world(sc_scenemgr_get_world(scenemgr));
     sc_free_scenemgr(scenemgr);
     sc_free_blocks();
+    sc_free_shader(shader);
 }
 
 void
@@ -175,6 +179,7 @@ sc_game_update(void)
 void
 sc_game_render(void)
 {
+    sc_shader_bind(shader);
     sc_scenemgr_draw(scenemgr);
 }
 

@@ -12,6 +12,9 @@ typedef struct _sc_mat4 {
     };
 } sc_mat4_t;
 
+/* return pointer to the first value in the matrix */
+#define sc_mat4_ptr(M) (&((M)->elms[0]))
+
 /* sets the values of the matrix */
 sc_mat4_t *sc_mat4_set(sc_mat4_t *mat, float a, float b, float c, float d,
                        float e, float f, float g, float h, float i,

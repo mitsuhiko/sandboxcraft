@@ -3,6 +3,12 @@
 #include "sc_list.h"
 #include "sc_strbuf.h"
 
+#include "sc_vec2.h"
+#include "sc_vec3.h"
+#include "sc_vec4.h"
+#include "sc_mat3.h"
+#include "sc_mat4.h"
+
 #define ASSERT_FINALIZED(Shader) \
     assert((Shader)->program_id != 0)
 #define ASSERT_NOT_FINALIZED(Shader) \
@@ -13,6 +19,8 @@ struct _sc_shader {
     sc_intlist_t *modules;
     sc_list_t *sources;
 };
+
+static const sc_shader_t *current_shader;
 
 static GLenum
 convert_shader_type(sc_shadertype_t type)
@@ -31,6 +39,7 @@ sc_new_shader(void)
     sc_shader_t *rv = sc_alloc(sc_shader_t);
     rv->program_id = 0;
     rv->modules = sc_new_intlist();
+    rv->sources = sc_new_list();
     return rv;
 }
 
@@ -135,6 +144,20 @@ read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
     return 1;
 }
 
+static void
+set_shading_error(const sc_shader_t *shader, const char *info_log,
+                  const char *filename, const char *msg)
+{
+    size_t i;
+    char *source_info;
+    sc_strbuf_t *buf = sc_new_strbuf();
+    for (i = 0; i < shader->sources->size; i++)
+        sc_strbuf_appendf(buf, "  %d: %s\n", i, shader->sources->items[i]);
+    source_info = sc_free_strbuf_and_get_contents(buf, NULL);
+    sc_set_error(SC_ESHADING, filename, 0, "%s:\nSources:\n%s\n%s",
+                 msg, source_info, info_log);
+}
+
 int
 sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
                            sc_shadertype_t type)
@@ -166,8 +189,7 @@ sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
         glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_size);
         info_log = sc_xmalloc(log_size);
         glGetShaderInfoLog(shader_id, log_size, NULL, info_log);
-        sc_set_error(SC_ESHADING, path, 0, "Unable to parse shader:\n%s",
-                     info_log);
+        set_shading_error(shader, info_log, path, "Unable to parse shader");
         sc_free(info_log);
         sc_free(path);
         glDeleteShader(shader_id);
@@ -215,10 +237,268 @@ sc_shader_bind(const sc_shader_t *shader)
 {
     ASSERT_FINALIZED(shader);
     glUseProgram(shader->program_id);
+    current_shader = shader;
 }
 
 void
 sc_shader_unbind(void)
 {
+    current_shader = 0;
     glUseProgram(0);
+}
+
+const sc_shader_t *
+sc_get_current_shader(void)
+{
+    return current_shader;
+}
+
+static int
+get_uniform_location(const sc_shader_t *shader, const char *name)
+{
+    int rv;
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    rv = glGetUniformLocation(shader->program_id, name);
+    if (rv < 0)
+        sc_critical_error(SC_ESHADING, NULL, 0,
+            "Cannot find uniform %s", name);
+    return rv;
+}
+
+static int
+get_attrib_location(const sc_shader_t *shader, const char *name)
+{
+    int rv;
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    rv = glGetAttribLocation(shader->program_id, name);
+    if (rv < 0)
+        sc_critical_error(SC_ESHADING, NULL, 0,
+            "Cannot find attribute %s", name);
+    return rv;
+}
+
+void
+sc_float_uniform(const sc_shader_t *shader, const char *name, float val)
+{
+    glUniform1f(get_uniform_location(shader, name), val);
+}
+
+void
+sc_color_uniform(const sc_shader_t *shader, const char *name, sc_color_t val)
+{
+    float color[4];
+    sc_color_to_floatv(val, color);
+    glUniform4fv(get_uniform_location(shader, name), 1, color);
+}
+
+void
+sc_vec2_uniform(const sc_shader_t *shader, const char *name, const sc_vec2_t *vec)
+{
+    glUniform2fv(get_uniform_location(shader, name), 1, sc_vec2_ptr(vec));
+}
+
+void
+sc_vec3_uniform(const sc_shader_t *shader, const char *name, const sc_vec3_t *vec)
+{
+    glUniform3fv(get_uniform_location(shader, name), 1, sc_vec3_ptr(vec));
+}
+
+void
+sc_vec4_uniform(const sc_shader_t *shader, const char *name, const sc_vec4_t *vec)
+{
+    glUniform4fv(get_uniform_location(shader, name), 1, sc_vec4_ptr(vec));
+}
+
+void
+sc_mat3_uniform(const sc_shader_t *shader, const char *name, const struct _sc_mat3 *mat)
+{
+    glUniformMatrix3fv(get_uniform_location(shader, name), 1, 0, sc_mat3_ptr(mat));
+}
+
+void
+sc_mat4_uniform(const sc_shader_t *shader, const char *name, const struct _sc_mat4 *mat)
+{
+    glUniformMatrix4fv(get_uniform_location(shader, name), 1, 0, sc_mat4_ptr(mat));
+}
+
+float
+sc_get_float_uniform(const sc_shader_t *shader, const char *name)
+{
+    float rv;
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetUniformfv(shader->program_id, get_uniform_location(shader, name), &rv);
+    return rv;
+}
+
+sc_color_t
+sc_get_color_uniform(const sc_shader_t *shader, const char *name)
+{
+    float rv[4];
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetUniformfv(shader->program_id, get_uniform_location(shader, name), rv);
+    return sc_color_from_floatv(rv);
+}
+
+sc_vec2_t *
+sc_get_vec2_uniform(const sc_shader_t *shader, const char *name, sc_vec2_t *vec_out)
+{
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetUniformfv(shader->program_id, get_uniform_location(shader, name),
+                   sc_vec2_ptr(vec_out));
+    return vec_out;
+}
+
+sc_vec3_t *
+sc_get_vec3_uniform(const sc_shader_t *shader, const char *name, sc_vec3_t *vec_out)
+{
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetUniformfv(shader->program_id, get_uniform_location(shader, name),
+                   sc_vec3_ptr(vec_out));
+    return vec_out;
+}
+
+sc_vec4_t *
+sc_get_vec4_uniform(const sc_shader_t *shader, const char *name, sc_vec4_t *vec_out)
+{
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetUniformfv(shader->program_id, get_uniform_location(shader, name),
+                   sc_vec4_ptr(vec_out));
+    return vec_out;
+}
+
+sc_mat3_t *
+sc_get_mat3_uniform(const sc_shader_t *shader, const char *name, sc_mat3_t *mat_out)
+{
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetUniformfv(shader->program_id, get_uniform_location(shader, name),
+                   sc_mat3_ptr(mat_out));
+    return mat_out;
+}
+
+sc_mat4_t *
+sc_get_mat4_uniform(const sc_shader_t *shader, const char *name, sc_mat4_t *mat_out)
+{
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetUniformfv(shader->program_id, get_uniform_location(shader, name),
+                   sc_mat4_ptr(mat_out));
+    return mat_out;
+}
+
+void
+sc_float_attrib(const sc_shader_t *shader, const char *name, float val)
+{
+    glVertexAttrib1f(get_attrib_location(shader, name), val);
+}
+
+void
+sc_color_attrib(const sc_shader_t *shader, const char *name, sc_color_t val)
+{
+    float color[4];
+    sc_color_to_floatv(val, color);
+    glVertexAttrib4fv(get_attrib_location(shader, name), color);
+}
+
+void
+sc_vec2_attrib(const sc_shader_t *shader, const char *name, const sc_vec2_t *vec)
+{
+    glVertexAttrib2fv(get_attrib_location(shader, name), sc_vec2_ptr(vec));
+}
+
+void
+sc_vec3_attrib(const sc_shader_t *shader, const char *name, const sc_vec3_t *vec)
+{
+    glVertexAttrib3fv(get_attrib_location(shader, name), sc_vec3_ptr(vec));
+}
+
+void
+sc_vec4_attrib(const sc_shader_t *shader, const char *name, const sc_vec4_t *vec)
+{
+    glVertexAttrib4fv(get_attrib_location(shader, name), sc_vec4_ptr(vec));
+}
+
+float
+sc_get_float_attrib(const sc_shader_t *shader, const char *name)
+{
+    float rv;
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetVertexAttribfv(shader->program_id, get_attrib_location(shader, name), &rv);
+    return rv;
+}
+
+sc_color_t
+sc_get_color_attrib(const sc_shader_t *shader, const char *name)
+{
+    float rv[4];
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetVertexAttribfv(shader->program_id, get_attrib_location(shader, name), rv);
+    return sc_color_from_floatv(rv);
+}
+
+sc_vec2_t *
+sc_get_vec2_attrib(const sc_shader_t *shader, const char *name, sc_vec2_t *vec_out)
+{
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetVertexAttribfv(shader->program_id, get_attrib_location(shader, name),
+                   sc_vec2_ptr(vec_out));
+    return vec_out;
+}
+
+sc_vec3_t *
+sc_get_vec3_attrib(const sc_shader_t *shader, const char *name, sc_vec3_t *vec_out)
+{
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetVertexAttribfv(shader->program_id, get_attrib_location(shader, name),
+                   sc_vec3_ptr(vec_out));
+    return vec_out;
+}
+
+sc_vec4_t *
+sc_get_vec4_attrib(const sc_shader_t *shader, const char *name, sc_vec4_t *vec_out)
+{
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetVertexAttribfv(shader->program_id, get_attrib_location(shader, name),
+                   sc_vec4_ptr(vec_out));
+    return vec_out;
 }

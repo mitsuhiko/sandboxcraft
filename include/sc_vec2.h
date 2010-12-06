@@ -4,7 +4,7 @@
 
 #include "sc_boot.h"
 
-typedef struct {
+typedef struct _sc_vec2 {
     float x;
     float y;
 } sc_vec2_t;

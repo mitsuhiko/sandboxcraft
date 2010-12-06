@@ -4,12 +4,15 @@
 
 #include "sc_boot.h"
 
-typedef struct {
+typedef struct _sc_mat3 {
     union {
         float elms[9];
         float m[3][3];
     };
 } sc_mat3_t;
+
+/* return pointer to the first value in the matrix */
+#define sc_mat3_ptr(M) (&((M)->elms[0]))
 
 /* sets the values of the matrix */
 sc_mat3_t *sc_mat3_set(sc_mat3_t *mat, float a, float b, float c, float d,
