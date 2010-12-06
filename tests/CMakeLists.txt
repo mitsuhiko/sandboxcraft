@@ -3,6 +3,7 @@ set(TESTS
     test_mat4
     test_list
     test_alloc
+    test_path
 )
 
 foreach(TEST ${TESTS})

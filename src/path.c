@@ -90,22 +90,21 @@ sc_path_join(const char *a, const char *b)
 char *
 sc_path_dirname(const char *path)
 {
-    const char *last_slash;
+    const char *last_slash = strrchr(path, '/');
     size_t length;
     char *rv;
-    last_slash = strrchr(path, '/');
-    if (last_slash)
-        goto strip;
-#if SC_PLATFORM == SC_PLATFORM_WINDOWS
-    last_slash = strrchr(path, '\\');
-    if (last_slash)
-        goto strip;
-#endif
-    return sc_strdup(".");
 
-strip:
+#if SC_PLATFORM == SC_PLATFORM_WINDOWS
+    const char *last_backslash = strrchr(path, '\\');
+    last_slash = (char *)sc_max((uintptr_t)last_slash,
+                                (uintptr_t)last_backslash);
+#endif
+    if (!last_slash)
+        return sc_strdup(".");
+
     length = last_slash - path;
     rv = sc_xmalloc(length + 1);
+    memcpy(rv, path, length);
     rv[length] = '\0';
     return rv;
 }
