@@ -39,6 +39,87 @@ sc_mat4_set_identity(sc_mat4_t *mat)
 }
 
 sc_mat4_t *
+sc_mat4_set_perspective(sc_mat4_t *mat_out, float fovy, float aspect,
+                        float near, float far)
+{
+    float f = 1.0f / tanf(fovy * (SC_PI / 360.0));
+    float *m = mat_out->elms;
+
+    m[0] = f / aspect;
+    m[1] = 0.0;
+    m[2] = 0.0;
+    m[3] = 0.0;
+
+    m[4] = 0.0;
+    m[5] = f;
+    m[6] = 0.0;
+    m[7] = 0.0;
+
+    m[8] = 0.0;
+    m[9] = 0.0;
+    m[10] = (near + far) / (near - far);
+    m[11] = -1.0;
+
+    m[12] = 0.0;
+    m[13] = 0.0;
+    m[14] = 2.0 * near * far / (near - far);
+    m[15] = 0.0;
+
+    return mat_out;
+}
+
+sc_mat4_t *
+sc_mat4_set_translation(sc_mat4_t *mat_out, const sc_vec3_t *vec)
+{
+    sc_mat4_set_identity(mat_out);
+    mat_out->elms[12] = vec->x;
+    mat_out->elms[13] = vec->y;
+    mat_out->elms[14] = vec->z;
+    return mat_out;
+}
+
+sc_mat4_t *
+sc_mat4_look_at(sc_mat4_t *mat_out, const sc_vec3_t *eye,
+                const sc_vec3_t *forward, const sc_vec3_t *up)
+{
+    sc_vec3_t s, u, f, inverse_eye;
+    sc_mat4_t translation;
+    float *m = mat_out->elms;
+
+    f = *forward;
+    sc_vec3_normalize(&f);
+    u = *up;
+
+    sc_vec3_cross(&s, &f, &u);
+    sc_vec3_normalize(&s);
+    sc_vec3_cross(&u, &s, &f);
+
+    m[0] = s.x;
+    m[1] = u.x;
+    m[2] = -forward->x;
+    m[3] = 0.0f;
+    m[4] = s.y;
+    m[5] = u.y;
+    m[6] = -forward->y;
+    m[7] = 0.0f;
+    m[8] = s.z;
+    m[9] = u.z;
+    m[10] = -forward->z;
+    m[11] = 0.0f;
+    m[12] = 0.0f;
+    m[13] = 0.0f;
+    m[14] = 0.0f;
+    m[15] = 1.0f;
+
+    inverse_eye = *eye;
+    sc_vec3_neg(&inverse_eye);
+    sc_mat4_set_translation(&translation, &inverse_eye);
+    sc_mat4_mul(mat_out, &translation, mat_out);
+
+    return mat_out;
+}
+
+sc_mat4_t *
 sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle, const sc_vec3_t *axis)
 {
     float c = cosf(sc_deg2rad(angle));

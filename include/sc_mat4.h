@@ -24,6 +24,18 @@ sc_mat4_t *sc_mat4_set(sc_mat4_t *mat, float a, float b, float c, float d,
 /* sets the matrix to the identity matrix */
 sc_mat4_t *sc_mat4_set_identity(sc_mat4_t *mat);
 
+/* creates a new perspective matrix */
+sc_mat4_t *sc_mat4_set_perspective(sc_mat4_t *mat_out, float fovy,
+                                   float aspect, float near, float far);
+
+/* sets a translation matrix */
+sc_mat4_t *sc_mat4_set_translation(sc_mat4_t *mat_out, const sc_vec3_t *vec);
+
+/* creates a matrix akin to to gluLookAt.  The difference is the second
+   parameter which here is the forward vector instead of center. */
+sc_mat4_t *sc_mat4_look_at(sc_mat4_t *mat_out, const sc_vec3_t *eye,
+                           const sc_vec3_t *forward, const sc_vec3_t *up);
+
 /* sets the matrix to a rotation matrix */
 sc_mat4_t *sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle,
                                       const sc_vec3_t *axis);

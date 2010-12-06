@@ -112,18 +112,12 @@ sc_camera_strafe_right(sc_camera_t *cam, float delta)
 void
 sc_camera_apply(const sc_camera_t *cam)
 {
-    /* this currentl uses the opengl matrix functions.  I don't see a point
-       in dropping that because it works, especially on older cards and
-       one some drivers this actually is caluclated on the GPU, so that is
-       actually quite cool.  Deprecated functionality though. */
+    sc_mat4_t projection, modelview;
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(cam->fov, sc_engine_get_aspect(), NEAR_PLANE, FAR_PLANE);
+    sc_mat4_set_perspective(&projection, cam->fov, sc_engine_get_aspect(),
+                            NEAR_PLANE, FAR_PLANE);
+    glLoadMatrixf(sc_mat4_ptr(&projection));
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(cam->position.x, cam->position.y, cam->position.z,
-                cam->position.x + cam->forward.x,
-                cam->position.y + cam->forward.y,
-                cam->position.z + cam->forward.z,
-              cam->up.x, cam->up.y, cam->up.z);
+    sc_mat4_look_at(&modelview, &cam->position, &cam->forward, &cam->up);
+    glLoadMatrixf(sc_mat4_ptr(&modelview));
 }
