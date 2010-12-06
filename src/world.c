@@ -124,8 +124,7 @@ new_chunk_node_with_children(sc_blocktype_t block_type, int with_vbo)
         rv = sc_xalloc(struct chunk_node_vbo);
         rv->flags = CHUNK_FLAG_VBO | CHUNK_FLAG_DIRTY;
         ((struct chunk_node_vbo *)rv)->vbo = NULL;
-    }
-    else {
+    } else {
         if (free_children_nodes_count)
             rv = (struct chunk_node_children *)
                 free_children_nodes[--free_children_nodes_count];
@@ -261,12 +260,12 @@ compress_partial_tree(struct chunk_node **relations, size_t count)
         cnode = (struct chunk_node_children *)node;
 
         /* check the simple case where all children are not yet set */
-        if (!any_children_set(cnode))
+        if (!any_children_set(cnode)) {
             block = cnode->block;
 
         /* the case where we completely ignore the node's block value
            and check if all nodes have the same type */
-        else {
+        } else {
             found_block = 0;
             for (j = 0; j < 8; j++) {
                 sc_blocktype_t actual_block = !cnode->children[j]
@@ -274,9 +273,9 @@ compress_partial_tree(struct chunk_node **relations, size_t count)
                 if (!found_block) {
                     block = actual_block;
                     found_block = 1;
-                }
-                else if (actual_block != block)
+                } else if (actual_block != block) {
                     return;
+                }
             }
         }
 
@@ -303,14 +302,14 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block,
     struct chunk_node *vbo_container = 0;
 
     /* bail out early */
-    if (OUT_OF_BOUNDS(world, x, y, z))
+    if (OUT_OF_BOUNDS(world, x, y, z)) {
         return 0;
-    else if (assume_dirty) {
+    } else if (assume_dirty) {
         if (block->type == SC_BLOCK_AIR)
             return 1;
-    }
-    else if (get_block(world, x, y, z)->type == block->type)
+    } else if (get_block(world, x, y, z)->type == block->type) {
         return 1;
+    }
 
     /* Find the block in the octree and modify it */
     node = world->root;
@@ -338,9 +337,9 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block,
             if (!child) {
                 child = new_leaf_chunk_node(block->type);
                 cnode->children[idx] = child;
-            }
-            else
+            } else {
                 child->block = block->type;
+            }
             relations[last_relation++] = child;
             break;
         }

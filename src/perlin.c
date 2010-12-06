@@ -166,8 +166,7 @@ sc_perlin_noise3(const sc_perlin_t *perlin, float x, float y, float z)
             TETRAHEDRON(1, 0, 0, 1, 0, 1);
         else
             TETRAHEDRON(0, 0, 1, 1, 0, 1);
-    }
-    else {
+    } else {
         if (y0 < z0)
             TETRAHEDRON(0, 0, 1, 0, 1, 1);
         else if (x0 < z0)

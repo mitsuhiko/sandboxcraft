@@ -135,7 +135,7 @@ sc_game_handle_events(void)
 void
 sc_game_handle_event(SDL_Event *evt)
 {
-    if (evt->type == SDL_KEYDOWN)
+    if (evt->type == SDL_KEYDOWN) {
         switch (evt->key.keysym.sym) {
         case SDLK_ESCAPE: sc_game_stop(); break;
         case SDLK_w: keysdown.w = 1; break;
@@ -144,7 +144,7 @@ sc_game_handle_event(SDL_Event *evt)
         case SDLK_d: keysdown.d = 1; break;
         default:;
         }
-    else if (evt->type == SDL_KEYUP)
+    } else if (evt->type == SDL_KEYUP) {
         switch (evt->key.keysym.sym) {
         case SDLK_w: keysdown.w = 0; break;
         case SDLK_a: keysdown.a = 0; break;
@@ -152,7 +152,7 @@ sc_game_handle_event(SDL_Event *evt)
         case SDLK_d: keysdown.d = 0; break;
         default:;
         }
-    else if (evt->type == SDL_MOUSEMOTION) {
+    } else if (evt->type == SDL_MOUSEMOTION) {
         sc_camera_t *cam = sc_scenemgr_get_active_camera(scenemgr);
         sc_camera_rotate_screen(cam, evt->motion.xrel * 0.25f,
                                 evt->motion.yrel * 0.25f);

@@ -54,8 +54,7 @@ sc_set_error(int code, const char *filename, int lineno,
 
     if (!last_error) {
         last_error = sc_xalloc(sc_error_t);
-    }
-    else {
+    } else {
         sc_free(last_error->description);
         sc_free(last_error->filename);
     }

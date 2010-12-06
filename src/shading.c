@@ -132,9 +132,9 @@ read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
                               shader->sources->size);
             read_shader_source(strbuf, shader, full_path);
             sc_free(full_path);
-        }
-        else
+        } else {
             sc_strbuf_append(strbuf, line);
+        }
         start_of_line = line[strlen(line) - 1] == '\n';
         if (start_of_line)
             lineno++;

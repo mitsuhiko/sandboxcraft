@@ -20,8 +20,7 @@ swapfunc(char *a, char *b, size_t n, int swaptype)
         word_t t;
         for (; n > 0; a += WORD_SIZE, b += WORD_SIZE, n -= WORD_SIZE)
             BASIC_SWAP(*(word_t *)a, *(word_t *)b, t);
-    }
-    else {
+    } else {
         char t;
         for (; n > 0; a++, b++, n--)
             BASIC_SWAP(*a, *b, t);
@@ -81,8 +80,7 @@ sort_impl(char *a, size_t n, size_t es, void *closure, sc_cmpfunc cmp)
     if (swaptype) {
         partition_value = a;
         SWAP(partition_value, pm);
-    }
-    else {
+    } else {
         helper_value = *(word_t *)pm;
         partition_value = (char *)&helper_value;
     }

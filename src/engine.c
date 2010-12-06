@@ -150,8 +150,7 @@ sc_engine_grab_mouse(int value)
         SDL_GetRelativeMouseState(NULL, NULL);
         SDL_ShowCursor(0);
         mouse_grabbed = 1;
-    }
-    else {
+    } else {
         SDL_WM_GrabInput(SDL_GRAB_OFF);
         SDL_ShowCursor(1);
         mouse_grabbed = 0;
