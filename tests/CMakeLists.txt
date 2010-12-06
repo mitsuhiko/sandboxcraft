@@ -4,6 +4,7 @@ set(TESTS
     test_list
     test_alloc
     test_path
+    test_strbuf
 )
 
 foreach(TEST ${TESTS})

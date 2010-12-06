@@ -51,9 +51,21 @@ sc_strbuf_appendf(sc_strbuf_t *strbuf, const char *fmt, ...)
 }
 
 void
+sc_strbuf_appendc(sc_strbuf_t *strbuf, char c)
+{
+    if (strbuf->size + 1 >= strbuf->allocated) {
+        strbuf->allocated = (size_t)(strbuf->allocated * GROWTH_RATE);
+        strbuf->buf = sc_xrealloc(strbuf->buf, strbuf->allocated);
+    }
+    strbuf->buf[strbuf->size++] = c;
+    strbuf->buf[strbuf->size] = 0;
+    strbuf->released = 0;
+}
+
+void
 sc_strbuf_append_bytes(sc_strbuf_t *strbuf, const char *bytes, size_t cnt)
 {
-    while (strbuf->size + cnt < strbuf->allocated) {
+    while (strbuf->size + cnt >= strbuf->allocated) {
         strbuf->allocated = (size_t)(strbuf->allocated * GROWTH_RATE);
         strbuf->buf = sc_xrealloc(strbuf->buf, strbuf->allocated);
     }

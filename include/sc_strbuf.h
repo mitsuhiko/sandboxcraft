@@ -20,6 +20,9 @@ void sc_strbuf_append(sc_strbuf_t *strbuf, const char *str);
 /* appends a new c-string to the buffer with formatting */
 void sc_strbuf_appendf(sc_strbuf_t *strbuf, const char *fmt, ...);
 
+/* appends a character to the buffer */
+void sc_strbuf_appendc(sc_strbuf_t *strbuf, char c);
+
 /* appends arbitrary bytes to the buffer */
 void sc_strbuf_append_bytes(sc_strbuf_t *strbuf, const char *bytes, size_t cnt);
 
