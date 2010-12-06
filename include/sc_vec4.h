@@ -37,7 +37,7 @@ float sc_vec4_length(const sc_vec4_t *vec);
 float sc_vec4_length2(const sc_vec4_t *vec);
 
 /* normalizes a vector in place and returns it. */
-sc_vec4_t *sc_vec4_normalize(sc_vec4_t *vec);
+sc_vec4_t *sc_vec4_normalize(sc_vec4_t *vec_out, const sc_vec4_t *vec);
 
 /* calculates the dot product of two vectors */
 float sc_vec4_dot(const sc_vec4_t *v1, const sc_vec4_t *v2);
@@ -52,7 +52,7 @@ sc_vec4_t *sc_vec4_sub(sc_vec4_t *vec_out, const sc_vec4_t *v1, const sc_vec4_t 
 sc_vec4_t *sc_vec4_mul(sc_vec4_t *vec_out, const sc_vec4_t *v, float factor);
 
 /* negates a vector in place and returns it */
-sc_vec4_t *sc_vec4_neg(sc_vec4_t *vec);
+sc_vec4_t *sc_vec4_neg(sc_vec4_t *vec_out, const sc_vec4_t *vec);
 
 /* transforms the vector by the given matrix */
 sc_vec4_t *sc_vec4_transform(sc_vec4_t *vec_out, const sc_vec4_t *vec,

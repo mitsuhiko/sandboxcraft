@@ -86,12 +86,10 @@ sc_mat4_look_at(sc_mat4_t *mat_out, const sc_vec3_t *eye,
     sc_mat4_t translation;
     float *m = mat_out->elms;
 
-    f = *forward;
-    sc_vec3_normalize(&f);
-    u = *up;
+    sc_vec3_normalize(&f, forward);
 
-    sc_vec3_cross(&s, &f, &u);
-    sc_vec3_normalize(&s);
+    sc_vec3_cross(&s, &f, up);
+    sc_vec3_normalize(&s, &s);
     sc_vec3_cross(&u, &s, &f);
 
     m[0] = s.x;
@@ -111,8 +109,7 @@ sc_mat4_look_at(sc_mat4_t *mat_out, const sc_vec3_t *eye,
     m[14] = 0.0f;
     m[15] = 1.0f;
 
-    inverse_eye = *eye;
-    sc_vec3_neg(&inverse_eye);
+    sc_vec3_neg(&inverse_eye, eye);
     sc_mat4_set_translation(&translation, &inverse_eye);
     sc_mat4_mul(mat_out, &translation, mat_out);
 
@@ -122,10 +119,10 @@ sc_mat4_look_at(sc_mat4_t *mat_out, const sc_vec3_t *eye,
 sc_mat4_t *
 sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle, const sc_vec3_t *axis)
 {
+    sc_vec3_t vec;
     float c = cosf(sc_deg2rad(angle));
     float s = sinf(sc_deg2rad(angle));
-    sc_vec3_t vec = *axis;
-    sc_vec3_normalize(&vec);
+    sc_vec3_normalize(&vec, axis);
 
     mat->elms[0]  = c + vec.x * vec.x * (1 - c);
     mat->elms[1]  = vec.z * s + vec.y * vec.x * (1 - c);

@@ -241,7 +241,7 @@ sc_engine_raycast(sc_ray_t *ray_out, int x, int y)
         !sc_vec4_transform_homogenous(&ray_out->dir, &vec2, &mvp))
         return NULL;
 
-    sc_vec3_normalize(&ray_out->dir);
+    sc_vec3_normalize(&ray_out->dir, &ray_out->dir);
 
     return ray_out;
 }

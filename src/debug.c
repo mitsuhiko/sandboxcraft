@@ -48,8 +48,8 @@ _sc_debug_add_line_with_direction(const sc_vec3_t *start,
                                   const sc_vec3_t *direction,
                                   float length)
 {
-    sc_vec3_t end = *(sc_vec3_t *)direction;
-    sc_vec3_normalize(&end);
+    sc_vec3_t end;
+    sc_vec3_normalize(&end, direction);
     sc_vec3_mul(&end, &end, length);
     sc_vec3_add(&end, start, &end);
     _sc_debug_add_line(start, &end);

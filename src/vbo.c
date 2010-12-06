@@ -125,8 +125,7 @@ sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
     sc_vec3_t normal;
 
     for (i = 0; i < 3; i++) {
-        normal = normals[i];
-        sc_vec3_normalize(&normal);
+        sc_vec3_normalize(&normal, &normals[i]);
         enlarge_if_necessary(vbo);
         memcpy(vbo->_vertices + vbo->vertices, &vertices[i], sizeof(sc_vec3_t));
         memcpy(vbo->_normals + vbo->vertices, &normal, sizeof(sc_vec3_t));

@@ -33,8 +33,8 @@ float sc_vec3_length(const sc_vec3_t *vec);
 /* returns the square length of the vector */
 float sc_vec3_length2(const sc_vec3_t *vec);
 
-/* normalizes a vector in place and returns it. */
-sc_vec3_t *sc_vec3_normalize(sc_vec3_t *vec);
+/* normalizes a vector and returns it. */
+sc_vec3_t *sc_vec3_normalize(sc_vec3_t *vec_out, const sc_vec3_t *vec);
 
 /* calculates the cross product of two vectors, stores it in vec_out
    and returns a pointer to it. */
@@ -53,7 +53,7 @@ sc_vec3_t *sc_vec3_sub(sc_vec3_t *vec_out, const sc_vec3_t *v1, const sc_vec3_t 
 sc_vec3_t *sc_vec3_mul(sc_vec3_t *vec_out, const sc_vec3_t *v, float factor);
 
 /* negates a vector in place and returns it */
-sc_vec3_t *sc_vec3_neg(sc_vec3_t *vec);
+sc_vec3_t *sc_vec3_neg(sc_vec3_t *vec_out, const sc_vec3_t *vec);
 
 /* transforms the vector by the given matrix */
 sc_vec3_t *sc_vec3_transform(sc_vec3_t *vec_out, const sc_vec3_t *vec,

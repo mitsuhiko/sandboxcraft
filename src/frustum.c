@@ -16,7 +16,7 @@ sc_get_current_frustum(sc_frustum_t *frustum_out)
     vec->y = mvp.elms[7] + mvp.elms[4];
     vec->z = mvp.elms[11] + mvp.elms[8];
     vec->w = mvp.elms[15] + mvp.elms[12];
-    sc_vec4_normalize(vec);
+    sc_vec4_normalize(vec, vec);
 
     /* right plane */
     vec = &frustum_out->planes[SC_RIGHT_FRUSTUM_PLANE];
@@ -24,7 +24,7 @@ sc_get_current_frustum(sc_frustum_t *frustum_out)
     vec->y = mvp.elms[7] - mvp.elms[4];
     vec->z = mvp.elms[11] - mvp.elms[8];
     vec->w = mvp.elms[15] - mvp.elms[12];
-    sc_vec4_normalize(vec);
+    sc_vec4_normalize(vec, vec);
 
     /* bottom plane */
     vec = &frustum_out->planes[SC_BOTTOM_FRUSTUM_PLANE];
@@ -32,7 +32,7 @@ sc_get_current_frustum(sc_frustum_t *frustum_out)
     vec->y = mvp.elms[7] + mvp.elms[5];
     vec->z = mvp.elms[11] + mvp.elms[9];
     vec->w = mvp.elms[15] + mvp.elms[13];
-    sc_vec4_normalize(vec);
+    sc_vec4_normalize(vec, vec);
 
     /* top plane */
     vec = &frustum_out->planes[SC_TOP_FRUSTUM_PLANE];
@@ -40,7 +40,7 @@ sc_get_current_frustum(sc_frustum_t *frustum_out)
     vec->y = mvp.elms[7] - mvp.elms[5];
     vec->z = mvp.elms[11] - mvp.elms[9];
     vec->w = mvp.elms[15] - mvp.elms[13];
-    sc_vec4_normalize(vec);
+    sc_vec4_normalize(vec, vec);
 
     /* near plane */
     vec = &frustum_out->planes[SC_NEAR_FRUSTUM_PLANE];
@@ -48,7 +48,7 @@ sc_get_current_frustum(sc_frustum_t *frustum_out)
     vec->y = mvp.elms[7] + mvp.elms[6];
     vec->z = mvp.elms[11] + mvp.elms[10];
     vec->w = mvp.elms[15] + mvp.elms[14];
-    sc_vec4_normalize(vec);
+    sc_vec4_normalize(vec, vec);
 
     /* far plane */
     vec = &frustum_out->planes[SC_FAR_FRUSTUM_PLANE];
@@ -56,7 +56,7 @@ sc_get_current_frustum(sc_frustum_t *frustum_out)
     vec->y = mvp.elms[7] - mvp.elms[6];
     vec->z = mvp.elms[11] - mvp.elms[10];
     vec->w = mvp.elms[15] - mvp.elms[14];
-    sc_vec4_normalize(vec);
+    sc_vec4_normalize(vec, vec);
 
     return frustum_out;
 }

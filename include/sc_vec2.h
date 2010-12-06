@@ -32,7 +32,7 @@ float sc_vec2_length(const sc_vec2_t *vec);
 float sc_vec2_length2(const sc_vec2_t *vec);
 
 /* normalizes a vector in place and returns it. */
-sc_vec2_t *sc_vec2_normalize(sc_vec2_t *vec);
+sc_vec2_t *sc_vec2_normalize(sc_vec2_t *vec_out, const sc_vec2_t *vec);
 
 /* calculates the cross product of two vectors */
 float sc_vec2_cross(const sc_vec2_t *v1, const sc_vec2_t *v2);
@@ -50,7 +50,7 @@ sc_vec2_t *sc_vec2_sub(sc_vec2_t *vec_out, const sc_vec2_t *v1, const sc_vec2_t 
 sc_vec2_t *sc_vec2_mul(sc_vec2_t *vec_out, const sc_vec2_t *v, float factor);
 
 /* negates a vector in place and returns it */
-sc_vec2_t *sc_vec2_neg(sc_vec2_t *vec);
+sc_vec2_t *sc_vec2_neg(sc_vec2_t *vec_out, const sc_vec2_t *vec);
 
 /* checks if two vectors are approximately the same */
 int sc_vec2_equal(const sc_vec2_t *v1, const sc_vec2_t *v2);

@@ -46,7 +46,7 @@ sc_test(math)
     length = sc_vec3_length(&vec1);
     sc_assert_almost_equal(length, 5.656854f * 2);
 
-    sc_vec3_neg(&vec2);
+    sc_vec3_neg(&vec2, &vec2);
     sc_assert_almost_equal(vec2.x, -3.0f);
     sc_assert_almost_equal(vec2.y, -2.0f);
     sc_assert_almost_equal(vec2.z, -1.0f);

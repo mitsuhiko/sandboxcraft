@@ -36,16 +36,16 @@ sc_vec3_length2(const sc_vec3_t *vec)
 }
 
 sc_vec3_t *
-sc_vec3_normalize(sc_vec3_t *vec)
+sc_vec3_normalize(sc_vec3_t *vec_out, const sc_vec3_t *vec)
 {
     float factor, length = sc_vec3_length(vec);
     if (length == 0) /* assertions might cause troubles */
-        return vec;
+        return NULL;
     factor = 1.0f / length;
-    vec->x = vec->x * factor;
-    vec->y = vec->y * factor;
-    vec->z = vec->z * factor;
-    return vec;
+    vec_out->x = vec->x * factor;
+    vec_out->y = vec->y * factor;
+    vec_out->z = vec->z * factor;
+    return vec_out;
 }
 
 sc_vec3_t *
@@ -91,12 +91,12 @@ sc_vec3_mul(sc_vec3_t *vec_out, const sc_vec3_t *v, float factor)
 }
 
 sc_vec3_t *
-sc_vec3_neg(sc_vec3_t *vec)
+sc_vec3_neg(sc_vec3_t *vec_out, const sc_vec3_t *vec)
 {
-    vec->x = -vec->x;
-    vec->y = -vec->y;
-    vec->z = -vec->z;
-    return vec;
+    vec_out->x = -vec->x;
+    vec_out->y = -vec->y;
+    vec_out->z = -vec->z;
+    return vec_out;
 }
 
 sc_vec3_t *

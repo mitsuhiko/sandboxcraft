@@ -45,7 +45,7 @@ void
 sc_camera_look_at_vector(sc_camera_t *cam, const sc_vec3_t *vec)
 {
     sc_vec3_sub(&cam->forward, vec, &cam->position);
-    sc_vec3_normalize(&cam->forward);
+    sc_vec3_normalize(&cam->forward, &cam->forward);
 }
 
 static void
