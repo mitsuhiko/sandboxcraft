@@ -184,7 +184,7 @@ update_cached_matrixes(void)
     if (!matrix_cache_dirty)
         return;
     sc_mat4_mul(&mvp_matrix, &modelview_matrix, &projection_matrix);
-    sc_mat4_inverse(&mat, &mvp_matrix);
+    sc_mat4_inverse(&mat, &modelview_matrix);
     sc_mat4_transpose(&mat, &mat);
     sc_mat3_from_mat4(&normal_matrix, &mat);
     matrix_cache_dirty = 0;
