@@ -91,6 +91,8 @@ init_game(void)
         gluPerspective(45, sc_engine_get_aspect(), 1.0f, 200.0f);
         glMatrixMode(GL_MODELVIEW);
 
+#if 0
+        /* can'd do this here because we no longer support fixed pipeline */
         glPushMatrix();
             glLoadIdentity();
             glTranslatef(0.0f, 0.0f, -30.0f);
@@ -99,6 +101,7 @@ init_game(void)
             glRotatef(angle, 0.0f, 1.0f, 0.0f);
             sc_bind_texture(loading);
             sc_vbo_draw(cube);
+#endif
         glPopMatrix();
         sc_engine_end_frame();
     }

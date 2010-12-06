@@ -1,5 +1,6 @@
 #include "sc_vec2.h"
 #include "sc_vec3.h"
+#include "sc_shading.h"
 
 #define INITIAL_SIZE 255
 #define ASSERT_FINALIZED() assert(vbo->_mode == MODE_FINALIZED)
@@ -180,15 +181,13 @@ sc_vbo_draw(const sc_vbo_t *vbo)
     if (!vbo->vertices)
         return;
 
-    /* vertex data */
-    glBindBuffer(GL_ARRAY_BUFFER, vbo->buffers[SC_VERTEX_BUFFER_ID]);
-    glVertexPointer(3, GL_FLOAT,0,  0);
-    /* normal data */
-    glBindBuffer(GL_ARRAY_BUFFER, vbo->buffers[SC_NORMAL_BUFFER_ID]);
-    glNormalPointer(GL_FLOAT, 0, 0);
-    /* texture coordinates */
-    glBindBuffer(GL_ARRAY_BUFFER, vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
-    glTexCoordPointer(2, GL_FLOAT, 0, 0);
+    sc_floatb_attrib(NULL, "sc_vertex", 3, vbo->buffers[SC_VERTEX_BUFFER_ID]);
+    sc_floatb_attrib(NULL, "sc_normal", 3, vbo->buffers[SC_NORMAL_BUFFER_ID]);
+    sc_floatb_attrib(NULL, "sc_texcoord", 2, vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
 
     glDrawArrays(GL_TRIANGLES, 0, vbo->vertices);
+
+    sc_disable_buffer_attrib(NULL, "sc_texcoord");
+    sc_disable_buffer_attrib(NULL, "sc_normal");
+    sc_disable_buffer_attrib(NULL, "sc_vertex");
 }

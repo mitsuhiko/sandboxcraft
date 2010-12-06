@@ -96,6 +96,8 @@ void sc_color_attrib(const sc_shader_t *shader, const char *name, sc_color_t val
 void sc_vec2_attrib(const sc_shader_t *shader, const char *name, const struct _sc_vec2 *vec);
 void sc_vec3_attrib(const sc_shader_t *shader, const char *name, const struct _sc_vec3 *vec);
 void sc_vec4_attrib(const sc_shader_t *shader, const char *name, const struct _sc_vec4 *vec);
+void sc_floatb_attrib(const sc_shader_t *shader, const char *name, int size, unsigned buffer);
+void sc_disable_buffer_attrib(const sc_shader_t *shader, const char *name);
 
 /* queries all kinds of attributes */
 float sc_get_float_attrib(const sc_shader_t *shader, const char *name);

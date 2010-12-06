@@ -38,9 +38,11 @@ resize_viewport(void)
     /* activate opengl features */
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
+#if 0
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
+#endif
 
     /* do backface culling */
     glEnable(GL_CULL_FACE);

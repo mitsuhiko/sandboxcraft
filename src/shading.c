@@ -109,7 +109,8 @@ static int
 read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
                    const char *filename)
 {
-    size_t lineno = 1;
+    int source;
+    int lineno = 1;
     char line[4096], *full_path, *include_file;
     FILE *file = fopen(filename, "r");
     int start_of_line = 1;
@@ -118,7 +119,9 @@ read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
         return 0;
     }
 
+    source = shader->sources->size;
     sc_list_append(shader->sources, sc_strdup(filename));
+    sc_strbuf_appendf(strbuf, "#line %d %d\n", 0, source);
 
     while (fgets(line, 4096, file)) {
         if (start_of_line && strncmp(line, "#include", 8) == 0) {
@@ -129,9 +132,8 @@ read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
                     "Invalid syntax for file include");
                 return 0;
             }
-            sc_strbuf_appendf(strbuf, "#line %d %d\n", 0,
-                              shader->sources->size);
             read_shader_source(strbuf, shader, full_path);
+            sc_strbuf_appendf(strbuf, "#line %d %d\n", lineno, source);
             sc_free(full_path);
         } else {
             sc_strbuf_append(strbuf, line);
@@ -480,6 +482,31 @@ sc_vec4_attrib(const sc_shader_t *shader, const char *name, const sc_vec4_t *vec
     int loc = get_attrib_location(shader, name, 0);
     if (loc >= 0)
         glVertexAttrib4fv(loc, sc_vec4_ptr(vec));
+}
+
+void
+sc_floatb_attrib(const sc_shader_t *shader, const char *name, int size,
+                 unsigned buffer)
+{
+    int loc = get_attrib_location(shader, name, 0);
+    if (loc < 0)
+        return;
+    if (!buffer) {
+        glDisableVertexAttribArray(loc);
+        return;
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glVertexAttribPointer(loc, size, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(loc);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void
+sc_disable_buffer_attrib(const sc_shader_t *shader, const char *name)
+{
+    int loc = get_attrib_location(shader, name, 0);
+    if (loc >= 0)
+        glDisableVertexAttribArray(loc);
 }
 
 float
