@@ -5,6 +5,7 @@
 #include "sc_boot.h"
 #include "sc_color.h"
 #include "sc_vec3.h"
+#include "sc_mat3.h"
 #include "sc_mat4.h"
 #include "sc_ray.h"
 
@@ -53,13 +54,22 @@ int sc_engine_mouse_grabbed(void);
 void sc_engine_clear(sc_color_t color);
 
 /* returns the current model-view matrix */
-sc_mat4_t *sc_engine_get_model_matrix(sc_mat4_t *mat_out);
+sc_mat4_t *sc_engine_get_modelview_matrix(sc_mat4_t *mat_out);
+
+/* sets a new model-view matrix */
+void sc_engine_set_modelview_matrix(const sc_mat4_t *mat);
 
 /* returns the current projection matrix */
 sc_mat4_t *sc_engine_get_projection_matrix(sc_mat4_t *mat_out);
 
+/* sets a new projection matrix */
+void sc_engine_set_projection_matrix(const sc_mat4_t *mat);
+
 /* returns the current model-view-projection matrix */
 sc_mat4_t *sc_engine_get_mvp_matrix(sc_mat4_t *mat_out);
+
+/* returns the normal matrix */
+sc_mat3_t *sc_engine_get_normal_matrix(sc_mat3_t *mat_out);
 
 /* unprojects screen coordinates into 3d space.  It will use the z buffer
    information to reference the forcemost vertex. */

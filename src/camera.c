@@ -113,11 +113,9 @@ void
 sc_camera_apply(const sc_camera_t *cam)
 {
     sc_mat4_t projection, modelview;
-    glMatrixMode(GL_PROJECTION);
     sc_mat4_set_perspective(&projection, cam->fov, sc_engine_get_aspect(),
                             NEAR_PLANE, FAR_PLANE);
-    glLoadMatrixf(sc_mat4_ptr(&projection));
-    glMatrixMode(GL_MODELVIEW);
+    sc_engine_set_projection_matrix(&projection);
     sc_mat4_look_at(&modelview, &cam->position, &cam->forward, &cam->up);
-    glLoadMatrixf(sc_mat4_ptr(&modelview));
+    sc_engine_set_modelview_matrix(&modelview);
 }

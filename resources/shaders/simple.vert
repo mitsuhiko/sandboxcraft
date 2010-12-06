@@ -1,10 +1,11 @@
+#include "common.shader"
 varying vec3 N, L, P;
 
 void
 main(void)
 {
-    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+    gl_Position = sc_mvp_matrix * gl_Vertex;
     P = gl_Position.xyz;
-    N = gl_NormalMatrix * gl_Normal;
-    L = gl_NormalMatrix * vec3(0.3, 0.8, -0.7);
+    N = sc_normal_matrix * gl_Normal;
+    L = sc_normal_matrix * vec3(0.3, 0.8, -0.7);
 }

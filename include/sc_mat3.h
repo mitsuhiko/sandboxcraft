@@ -4,6 +4,7 @@
 
 #include "sc_boot.h"
 
+struct _sc_mat4;
 typedef struct _sc_mat3 {
     union {
         float elms[9];
@@ -18,6 +19,9 @@ typedef struct _sc_mat3 {
 sc_mat3_t *sc_mat3_set(sc_mat3_t *mat, float a, float b, float c, float d,
                        float e, float f, float g, float h, float i);
 
+/* makes a matrix3 from the top left corner of the matrix4 */
+sc_mat3_t *sc_mat3_from_mat4(sc_mat3_t *mat_out, const struct _sc_mat4 *mat);
+
 /* sets the matrix to the identity matrix */
 sc_mat3_t *sc_mat3_set_identity(sc_mat3_t *mat);
 
@@ -25,7 +29,7 @@ sc_mat3_t *sc_mat3_set_identity(sc_mat3_t *mat);
 float sc_mat3_determinant(const sc_mat3_t *mat);
 
 /* returns the adjugate matrix */
-sc_mat3_t * sc_mat3_adjugate(sc_mat3_t *mat_out, const sc_mat3_t *mat);
+sc_mat3_t *sc_mat3_adjugate(sc_mat3_t *mat_out, const sc_mat3_t *mat);
 
 /* calculate the inverse if possible.  NULL is returned if calculation
    is not possible. */

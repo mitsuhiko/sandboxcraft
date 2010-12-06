@@ -87,7 +87,6 @@ sc_mat4_look_at(sc_mat4_t *mat_out, const sc_vec3_t *eye,
     float *m = mat_out->elms;
 
     sc_vec3_normalize(&f, forward);
-
     sc_vec3_cross(&s, &f, up);
     sc_vec3_normalize(&s, &s);
     sc_vec3_cross(&u, &s, &f);

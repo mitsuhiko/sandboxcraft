@@ -115,7 +115,7 @@ sc_scenemgr_begin(const sc_scenemgr_t *mgr)
 {
     int i, light_num = 0;
 
-    sc_engine_clear(sc_color(0x336699ff));
+    sc_engine_clear(sc_color(0x103B47ff));
 
     if (mgr->active_cam)
         sc_camera_apply(mgr->active_cam);

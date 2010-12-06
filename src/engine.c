@@ -12,6 +12,11 @@
 
 sc_gametime_t sc_gametime;
 static int mouse_grabbed;
+static int matrix_cache_dirty;
+static sc_mat4_t modelview_matrix;
+static sc_mat4_t projection_matrix;
+static sc_mat4_t mvp_matrix;
+static sc_mat3_t normal_matrix;
 
 static struct {
     sc_ticks_t last_reset;
@@ -172,27 +177,61 @@ sc_engine_clear(sc_color_t color)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-sc_mat4_t *
-sc_engine_get_model_matrix(sc_mat4_t *mat_out)
+static void
+update_cached_matrixes(void)
 {
-    glGetFloatv(GL_MODELVIEW_MATRIX, mat_out->elms);
+    sc_mat4_t mat;
+    if (!matrix_cache_dirty)
+        return;
+    sc_mat4_mul(&mvp_matrix, &modelview_matrix, &projection_matrix);
+    sc_mat4_inverse(&mat, &mvp_matrix);
+    sc_mat4_transpose(&mat, &mat);
+    sc_mat3_from_mat4(&normal_matrix, &mat);
+    matrix_cache_dirty = 0;
+}
+
+sc_mat4_t *
+sc_engine_get_modelview_matrix(sc_mat4_t *mat_out)
+{
+    *mat_out = modelview_matrix;
     return mat_out;
+}
+
+void
+sc_engine_set_modelview_matrix(const sc_mat4_t *mat)
+{
+    modelview_matrix = *mat;
+    matrix_cache_dirty = 1;
 }
 
 sc_mat4_t *
 sc_engine_get_projection_matrix(sc_mat4_t *mat_out)
 {
-    glGetFloatv(GL_PROJECTION_MATRIX, mat_out->elms);
+    *mat_out = projection_matrix;
     return mat_out;
+}
+
+void
+sc_engine_set_projection_matrix(const sc_mat4_t *mat)
+{
+    projection_matrix = *mat;
+    matrix_cache_dirty = 1;
 }
 
 sc_mat4_t *
 sc_engine_get_mvp_matrix(sc_mat4_t *mat_out)
 {
-    sc_mat4_t m, p;
-    sc_engine_get_model_matrix(&m);
-    sc_engine_get_projection_matrix(&p);
-    return sc_mat4_mul(mat_out, &m, &p);
+    update_cached_matrixes();
+    *mat_out = mvp_matrix;
+    return mat_out;
+}
+
+sc_mat3_t *
+sc_engine_get_normal_matrix(sc_mat3_t *mat_out)
+{
+    update_cached_matrixes();
+    *mat_out = normal_matrix;
+    return mat_out;
 }
 
 sc_vec3_t *

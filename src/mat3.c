@@ -1,4 +1,5 @@
 #include "sc_mat3.h"
+#include "sc_mat4.h"
 #include "sc_math.h"
 
 sc_mat3_t *
@@ -15,6 +16,16 @@ sc_mat3_set(sc_mat3_t *mat, float a, float b, float c, float d, float e,
     mat->m[2][1] = h;
     mat->m[2][2] = i;
     return mat;
+}
+
+sc_mat3_t *
+sc_mat3_from_mat4(sc_mat3_t *mat_out, const struct _sc_mat4 *mat)
+{
+    int i, j;
+    for (i = 0; i < 3; i++)
+        for (j = 0; j < 3; j++)
+            mat_out->m[i][j] = mat->m[i][j];
+    return mat_out;
 }
 
 sc_mat3_t *
