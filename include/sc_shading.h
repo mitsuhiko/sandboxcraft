@@ -41,10 +41,8 @@ struct _sc_mat4;
 struct _sc_shader;
 typedef struct _sc_shader sc_shader_t;
 
-typedef enum {
-    SC_VERTEX_SHADER,
-    SC_FRAGMENT_SHADER
-} sc_shadertype_t;
+#define SC_VERTEX_SHADER        1
+#define SC_FRAGMENT_SHADER      2
 
 /* creates a new shader */
 sc_shader_t *sc_new_shader(void);
@@ -57,7 +55,7 @@ void sc_free_shader(sc_shader_t *shader);
 
 /* attaches a new shader module */
 int sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
-                               sc_shadertype_t type);
+                               int type);
 
 /* links all modules in the shader */
 int sc_shader_finalize(sc_shader_t *shader);

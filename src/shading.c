@@ -24,7 +24,7 @@ struct _sc_shader {
 static const sc_shader_t *current_shader;
 
 static GLenum
-convert_shader_type(sc_shadertype_t type)
+convert_shader_type(int type)
 {
     switch (type) {
     case SC_VERTEX_SHADER:      return GL_VERTEX_SHADER;
@@ -107,8 +107,9 @@ eat_string_literal(char *string)
 
 static int
 read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
-                   const char *filename)
+                   const char *filename, int type)
 {
+    size_t i;
     int source;
     int lineno = 1;
     char line[4096], *full_path, *include_file;
@@ -119,8 +120,19 @@ read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
         return 0;
     }
 
+    for (i = 0; i < shader->sources->size; i++)
+        if (strcmp(shader->sources->items[i], filename) == 0) {
+            source = i;
+            goto source_found;
+        }
     source = shader->sources->size;
     sc_list_append(shader->sources, sc_strdup(filename));
+
+source_found:
+    if (type == SC_VERTEX_SHADER)
+        sc_strbuf_appendf(strbuf, "#define SC_VERTEX_SHADER\n");
+    else if (type == SC_FRAGMENT_SHADER)
+        sc_strbuf_appendf(strbuf, "#define SC_FRAGMENT_SHADER\n");
     sc_strbuf_appendf(strbuf, "#line %d %d\n", 0, source);
 
     while (fgets(line, 4096, file)) {
@@ -132,7 +144,7 @@ read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
                     "Invalid syntax for file include");
                 return 0;
             }
-            read_shader_source(strbuf, shader, full_path);
+            read_shader_source(strbuf, shader, full_path, 0);
             sc_strbuf_appendf(strbuf, "#line %d %d\n", lineno, source);
             sc_free(full_path);
         } else {
@@ -163,7 +175,7 @@ set_shading_error(const sc_shader_t *shader, const char *info_log,
 
 int
 sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
-                           sc_shadertype_t type)
+                           int type)
 {
     int success;
     char *path;
@@ -173,7 +185,7 @@ sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
     ASSERT_NOT_FINALIZED(shader);
 
     path = sc_path_to_resource("shaders", filename);
-    if (!read_shader_source(strbuf, shader, path)) {
+    if (!read_shader_source(strbuf, shader, path, type)) {
         sc_free_strbuf(strbuf);
         sc_free(path);
         return 0;
