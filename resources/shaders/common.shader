@@ -4,7 +4,10 @@
 #ifndef _SC_SHADER_COMMON_
 #define _SC_SHADER_COMMON_
 
-/* common uniforms for the matrices.  These are always sent to the shader */
+/* common uniforms for the matrices.  These are always sent to the shader by
+   various parts in the pipeline.  The matrices are set when the shader is
+   bound, the sc_texture is set when a texture is bound.  Due to the nature
+   of how this works, the texture must be bound after the shader was bound. */
 uniform mat4 sc_model_matrix;
 uniform mat4 sc_view_matrix;
 uniform mat4 sc_modelview_matrix;
