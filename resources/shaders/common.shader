@@ -1,4 +1,6 @@
-/* this include is added automatically to all vertex and fragment shaders */
+/* this include is added automatically to all vertex and fragment shaders.  You
+   don't have to include it, but it also doesn't do any damage due to the
+   include guard here. */
 #ifndef _SC_SHADER_COMMON_
 #define _SC_SHADER_COMMON_
 
