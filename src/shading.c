@@ -245,6 +245,10 @@ sc_shader_bind(const sc_shader_t *shader)
     /* together with the shader, bind common uniforms from common.shader */
     sc_engine_get_modelview_matrix(&mat4);
     sc_mat4_uniform(shader, "sc_modelview_matrix", &mat4);
+    sc_engine_get_model_matrix(&mat4);
+    sc_mat4_uniform(shader, "sc_model_matrix", &mat4);
+    sc_engine_get_view_matrix(&mat4);
+    sc_mat4_uniform(shader, "sc_view_matrix", &mat4);
     sc_engine_get_projection_matrix(&mat4);
     sc_mat4_uniform(shader, "sc_projection_matrix", &mat4);
     sc_engine_get_mvp_matrix(&mat4);

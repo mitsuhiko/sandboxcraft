@@ -29,7 +29,10 @@ sc_mat4_t *sc_mat4_set_perspective(sc_mat4_t *mat_out, float fovy,
                                    float aspect, float near, float far);
 
 /* sets a translation matrix */
-sc_mat4_t *sc_mat4_set_translation(sc_mat4_t *mat_out, const sc_vec3_t *vec);
+sc_mat4_t *sc_mat4_set_translation(sc_mat4_t *mat_out, float x, float y, float z);
+
+/* sets a translation matrix */
+sc_mat4_t *sc_mat4_set_translation_vector(sc_mat4_t *mat_out, const sc_vec3_t *vec);
 
 /* creates a matrix akin to to gluLookAt.  The difference is the second
    parameter which here is the forward vector instead of center. */
@@ -38,7 +41,11 @@ sc_mat4_t *sc_mat4_look_at(sc_mat4_t *mat_out, const sc_vec3_t *eye,
 
 /* sets the matrix to a rotation matrix */
 sc_mat4_t *sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle,
-                                      const sc_vec3_t *axis);
+                                      float x, float y, float z);
+
+/* sets the matrix to a rotation matrix */
+sc_mat4_t *sc_mat4_from_axis_rotation_vector(sc_mat4_t *mat, float angle,
+                                             const sc_vec3_t *axis);
 
 /* returns the determinant of the matrix */
 float sc_mat4_determinant(const sc_mat4_t *mat);

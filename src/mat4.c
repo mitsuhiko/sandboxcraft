@@ -69,7 +69,14 @@ sc_mat4_set_perspective(sc_mat4_t *mat_out, float fovy, float aspect,
 }
 
 sc_mat4_t *
-sc_mat4_set_translation(sc_mat4_t *mat_out, const sc_vec3_t *vec)
+sc_mat4_set_translation(sc_mat4_t *mat_out, float x, float y, float z)
+{
+    sc_vec3_t vec = {x, y, z};
+    return sc_mat4_set_translation_vector(mat_out, &vec);
+}
+
+sc_mat4_t *
+sc_mat4_set_translation_vector(sc_mat4_t *mat_out, const sc_vec3_t *vec)
 {
     sc_mat4_set_identity(mat_out);
     mat_out->elms[12] = vec->x;
@@ -109,14 +116,21 @@ sc_mat4_look_at(sc_mat4_t *mat_out, const sc_vec3_t *eye,
     m[15] = 1.0f;
 
     sc_vec3_neg(&inverse_eye, eye);
-    sc_mat4_set_translation(&translation, &inverse_eye);
+    sc_mat4_set_translation_vector(&translation, &inverse_eye);
     sc_mat4_mul(mat_out, &translation, mat_out);
 
     return mat_out;
 }
 
 sc_mat4_t *
-sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle, const sc_vec3_t *axis)
+sc_mat4_from_axis_rotation(sc_mat4_t *mat, float angle, float x, float y, float z)
+{
+    sc_vec3_t axis = {x, y, z};
+    return sc_mat4_from_axis_rotation_vector(mat, angle, &axis);
+}
+
+sc_mat4_t *
+sc_mat4_from_axis_rotation_vector(sc_mat4_t *mat, float angle, const sc_vec3_t *axis)
 {
     sc_vec3_t vec;
     float c = cosf(sc_deg2rad(angle));

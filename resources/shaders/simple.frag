@@ -1,4 +1,4 @@
-varying vec3 N, L, P;
+varying vec3 N, L;
 
 void
 main(void)

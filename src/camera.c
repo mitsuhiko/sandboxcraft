@@ -52,7 +52,7 @@ static void
 rotate_screen_x(sc_camera_t *cam, float angle)
 {
     sc_mat4_t rotmat;
-    sc_mat4_from_axis_rotation(&rotmat, -angle, &cam->up);
+    sc_mat4_from_axis_rotation_vector(&rotmat, -angle, &cam->up);
     sc_vec3_transform(&cam->forward, &cam->forward, &rotmat);
 }
 
@@ -62,7 +62,7 @@ rotate_screen_y(sc_camera_t *cam, float angle)
     sc_vec3_t cross;
     sc_mat4_t rotmat;
     sc_vec3_cross(&cross, &cam->up, &cam->forward);
-    sc_mat4_from_axis_rotation(&rotmat, angle, &cross);
+    sc_mat4_from_axis_rotation_vector(&rotmat, angle, &cross);
     sc_vec3_transform(&cam->forward, &cam->forward, &rotmat);
 }
 
@@ -112,10 +112,12 @@ sc_camera_strafe_right(sc_camera_t *cam, float delta)
 void
 sc_camera_apply(const sc_camera_t *cam)
 {
-    sc_mat4_t projection, modelview;
+    sc_mat4_t projection, modelview, identity;
     sc_mat4_set_perspective(&projection, cam->fov, sc_engine_get_aspect(),
                             NEAR_PLANE, FAR_PLANE);
     sc_engine_set_projection_matrix(&projection);
     sc_mat4_look_at(&modelview, &cam->position, &cam->forward, &cam->up);
-    sc_engine_set_modelview_matrix(&modelview);
+    sc_engine_set_view_matrix(&modelview);
+    sc_mat4_set_identity(&identity);
+    sc_engine_set_model_matrix(&identity);
 }

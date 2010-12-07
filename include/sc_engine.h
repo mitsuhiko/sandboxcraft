@@ -53,17 +53,26 @@ int sc_engine_mouse_grabbed(void);
 /* clears the screen.  This clears depth buffer and color. */
 void sc_engine_clear(sc_color_t color);
 
-/* returns the current model-view matrix */
-sc_mat4_t *sc_engine_get_modelview_matrix(sc_mat4_t *mat_out);
+/* returns the current model matrix */
+sc_mat4_t *sc_engine_get_model_matrix(sc_mat4_t *mat_out);
 
-/* sets a new model-view matrix */
-void sc_engine_set_modelview_matrix(const sc_mat4_t *mat);
+/* sets a new model matrix */
+void sc_engine_set_model_matrix(const sc_mat4_t *mat);
+
+/* returns the current view matrix */
+sc_mat4_t *sc_engine_get_view_matrix(sc_mat4_t *mat_out);
+
+/* sets a new view matrix */
+void sc_engine_set_view_matrix(const sc_mat4_t *mat);
 
 /* returns the current projection matrix */
 sc_mat4_t *sc_engine_get_projection_matrix(sc_mat4_t *mat_out);
 
 /* sets a new projection matrix */
 void sc_engine_set_projection_matrix(const sc_mat4_t *mat);
+
+/* returns the current model-view matrix */
+sc_mat4_t *sc_engine_get_modelview_matrix(sc_mat4_t *mat_out);
 
 /* returns the current model-view-projection matrix */
 sc_mat4_t *sc_engine_get_mvp_matrix(sc_mat4_t *mat_out);

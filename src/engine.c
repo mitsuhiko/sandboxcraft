@@ -13,6 +13,8 @@
 sc_gametime_t sc_gametime;
 static int mouse_grabbed;
 static int matrix_cache_dirty;
+static sc_mat4_t view_matrix;
+static sc_mat4_t model_matrix;
 static sc_mat4_t modelview_matrix;
 static sc_mat4_t projection_matrix;
 static sc_mat4_t mvp_matrix;
@@ -27,6 +29,7 @@ static struct {
 static void
 resize_viewport(void)
 {
+    sc_mat4_t identity;
     Uint32 flags = SDL_OPENGL;
     if (FULLSCREEN)
         flags |= SDL_FULLSCREEN;
@@ -38,11 +41,6 @@ resize_viewport(void)
     /* activate opengl features */
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
-#if 0
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_VERTEX_ARRAY);
-#endif
 
     /* do backface culling */
     glEnable(GL_CULL_FACE);
@@ -57,6 +55,13 @@ resize_viewport(void)
 
     /* setup viewport */
     glViewport(0, 0, WIDTH, HEIGHT);
+
+    /* matrix defaults */
+    sc_mat4_set_identity(&identity);
+    model_matrix = identity;
+    view_matrix = identity;
+    projection_matrix = identity;
+    matrix_cache_dirty = 1;
 }
 
 static void
@@ -185,24 +190,39 @@ update_cached_matrixes(void)
     sc_mat4_t mat;
     if (!matrix_cache_dirty)
         return;
+    sc_mat4_mul(&modelview_matrix, &model_matrix, &view_matrix);
     sc_mat4_mul(&mvp_matrix, &modelview_matrix, &projection_matrix);
-    sc_mat4_inverse(&mat, &modelview_matrix);
+    sc_mat4_inverse(&mat, &model_matrix);
     sc_mat4_transpose(&mat, &mat);
     sc_mat3_from_mat4(&normal_matrix, &mat);
     matrix_cache_dirty = 0;
 }
 
 sc_mat4_t *
-sc_engine_get_modelview_matrix(sc_mat4_t *mat_out)
+sc_engine_get_view_matrix(sc_mat4_t *mat_out)
 {
-    *mat_out = modelview_matrix;
+    *mat_out = view_matrix;
     return mat_out;
 }
 
 void
-sc_engine_set_modelview_matrix(const sc_mat4_t *mat)
+sc_engine_set_view_matrix(const sc_mat4_t *mat)
 {
-    modelview_matrix = *mat;
+    view_matrix = *mat;
+    matrix_cache_dirty = 1;
+}
+
+sc_mat4_t *
+sc_engine_get_model_matrix(sc_mat4_t *mat_out)
+{
+    *mat_out = model_matrix;
+    return mat_out;
+}
+
+void
+sc_engine_set_model_matrix(const sc_mat4_t *mat)
+{
+    model_matrix = *mat;
     matrix_cache_dirty = 1;
 }
 
@@ -218,6 +238,14 @@ sc_engine_set_projection_matrix(const sc_mat4_t *mat)
 {
     projection_matrix = *mat;
     matrix_cache_dirty = 1;
+}
+
+sc_mat4_t *
+sc_engine_get_modelview_matrix(sc_mat4_t *mat_out)
+{
+    update_cached_matrixes();
+    *mat_out = modelview_matrix;
+    return mat_out;
 }
 
 sc_mat4_t *

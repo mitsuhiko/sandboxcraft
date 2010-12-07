@@ -56,21 +56,29 @@ init_game_in_thread(void *closure)
 static void
 init_game(void)
 {
+    sc_mat4_t mat;
     SDL_Event evt;
     int done = 0;
     float angle = 35.0f;
     sc_vbo_t *cube;
     sc_thread_t *load_thread;
-    sc_texture_t *loading = sc_texture_from_resource("loading.png", GL_NEAREST);
+    sc_camera_t *cam;
 
-    cube = sc_new_cube(10.0f);
+    cube = sc_new_cube(30.0f);
     sc_vbo_finalize(cube, 0);
+
+    cam = sc_new_camera();
+    sc_vec3_set(&cam->position, 0.0f, 30.0f, 100.0f);
+    sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
 
     /* this has to happen in the main thread before anything else */
     sc_init_blocks();
     shader = sc_shader_from_file("simple");
 
     load_thread = sc_new_thread(init_game_in_thread, &done);
+
+    sc_mat4_set_perspective(&mat, 45.0f, sc_engine_get_aspect(), 1.0f, 200.0f);
+    sc_engine_set_projection_matrix(&mat);
 
     while (!done) {
         sc_engine_begin_frame();
@@ -82,35 +90,27 @@ init_game(void)
                  evt.key.keysym.sym == SDLK_ESCAPE))
                 exit(0);
 
+        sc_engine_clear(sc_color(0x222222ff));
+        sc_camera_apply(cam);
+
+        /* rotation of the cube */
         angle = (angle + sc_gametime.delta * 0.05f);
         if (angle > 360.0f)
             angle = 0.0f;
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        gluPerspective(45, sc_engine_get_aspect(), 1.0f, 200.0f);
-        glMatrixMode(GL_MODELVIEW);
+        sc_mat4_from_axis_rotation(&mat, angle, 0.0f, 1.0f, 0.0f);
+        sc_engine_set_model_matrix(&mat);
 
-#if 0
-        /* can'd do this here because we no longer support fixed pipeline */
-        glPushMatrix();
-            glLoadIdentity();
-            glTranslatef(0.0f, 0.0f, -30.0f);
-            glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
-            glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
-            glRotatef(angle, 0.0f, 1.0f, 0.0f);
-            sc_bind_texture(loading);
-            sc_vbo_draw(cube);
-#endif
-        glPopMatrix();
+        sc_shader_bind(shader);
+        sc_vbo_draw(cube);
+
         sc_engine_end_frame();
     }
 
     /* this has to happen in the main thread after world was created */
     sc_world_flush_vbos(sc_scenemgr_get_world(scenemgr));
 
-    sc_free_texture(loading);
     sc_free_vbo(cube);
+    sc_free_camera(cam);
 }
 
 static void
