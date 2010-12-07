@@ -26,13 +26,11 @@ sc_texture_t *sc_texture_from_surface(SDL_Surface *img, GLint filtering);
 /* frees a texture.  Should be unbound */
 void sc_free_texture(sc_texture_t *texture);
 
-/* binds a texture.  Does not send the coords */
+/* binds a texture to texture unit 0 and sets the shader uniform
+   appropriately.  When we need more that one unit we have to update this. */
 void sc_texture_bind(const sc_texture_t *texture);
 
 /* unbinds a texture */
 void sc_unbind_texture(void);
-
-/* sends the texture coordinates to the device */
-void sc_send_texture_coordinates(const sc_texture_t *texture);
 
 #endif

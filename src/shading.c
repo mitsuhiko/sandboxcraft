@@ -305,6 +305,14 @@ get_attrib_location(const sc_shader_t *shader, const char *name, int check)
 }
 
 void
+sc_int_uniform(const sc_shader_t *shader, const char *name, int val)
+{
+    int loc = get_uniform_location(shader, name, 0);
+    if (loc >= 0)
+        glUniform1i(loc, val);
+}
+
+void
 sc_float_uniform(const sc_shader_t *shader, const char *name, float val)
 {
     int loc = get_uniform_location(shader, name, 0);
@@ -360,6 +368,18 @@ sc_mat4_uniform(const sc_shader_t *shader, const char *name, const struct _sc_ma
     int loc = get_uniform_location(shader, name, 0);
     if (loc >= 0)
         glUniformMatrix4fv(loc, 1, 0, sc_mat4_ptr(mat));
+}
+
+int
+sc_get_int_uniform(const sc_shader_t *shader, const char *name)
+{
+    int rv;
+    if (!shader) {
+        shader = current_shader;
+        assert(shader);
+    }
+    glGetUniformiv(shader->program_id, get_uniform_location(shader, name, 0), &rv);
+    return rv;
 }
 
 float
@@ -490,7 +510,7 @@ sc_vec4_attrib(const sc_shader_t *shader, const char *name, const sc_vec4_t *vec
 
 void
 sc_floatb_attrib(const sc_shader_t *shader, const char *name, int size,
-                 unsigned buffer)
+                 GLuint buffer)
 {
     int loc = get_attrib_location(shader, name, 0);
     if (loc < 0)

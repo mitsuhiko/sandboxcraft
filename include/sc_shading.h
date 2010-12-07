@@ -73,6 +73,7 @@ void sc_shader_unbind(void);
 const sc_shader_t *sc_get_current_shader(void);
 
 /* sends all kinds of uniforms */
+void sc_int_uniform(const sc_shader_t *shader, const char *name, int val);
 void sc_float_uniform(const sc_shader_t *shader, const char *name, float val);
 void sc_color_uniform(const sc_shader_t *shader, const char *name, sc_color_t val);
 void sc_vec2_uniform(const sc_shader_t *shader, const char *name, const struct _sc_vec2 *vec);
@@ -82,6 +83,7 @@ void sc_mat3_uniform(const sc_shader_t *shader, const char *name, const struct _
 void sc_mat4_uniform(const sc_shader_t *shader, const char *name, const struct _sc_mat4 *mat);
 
 /* queries all kinds of uniforms */
+int sc_get_int_uniform(const sc_shader_t *shader, const char *name);
 float sc_get_float_uniform(const sc_shader_t *shader, const char *name);
 sc_color_t sc_get_color_uniform(const sc_shader_t *shader, const char *name);
 struct _sc_vec2 *sc_get_vec2_uniform(const sc_shader_t *shader, const char *name, struct _sc_vec2 *vec_out);
@@ -96,7 +98,7 @@ void sc_color_attrib(const sc_shader_t *shader, const char *name, sc_color_t val
 void sc_vec2_attrib(const sc_shader_t *shader, const char *name, const struct _sc_vec2 *vec);
 void sc_vec3_attrib(const sc_shader_t *shader, const char *name, const struct _sc_vec3 *vec);
 void sc_vec4_attrib(const sc_shader_t *shader, const char *name, const struct _sc_vec4 *vec);
-void sc_floatb_attrib(const sc_shader_t *shader, const char *name, int size, unsigned buffer);
+void sc_floatb_attrib(const sc_shader_t *shader, const char *name, int size, GLuint buffer);
 void sc_disable_buffer_attrib(const sc_shader_t *shader, const char *name);
 
 /* queries all kinds of attributes */

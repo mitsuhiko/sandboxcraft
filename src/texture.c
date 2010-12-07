@@ -1,4 +1,5 @@
 #include "sc_texture.h"
+#include "sc_shading.h"
 #include "sc_path.h"
 #include "sc_error.h"
 #include "sc_math.h"
@@ -133,6 +134,8 @@ sc_free_texture(sc_texture_t *texture)
 void
 sc_texture_bind(const sc_texture_t *texture)
 {
+    glActiveTexture(GL_TEXTURE0);
+    sc_int_uniform(NULL, "sc_texture", 0);
     glBindTexture(GL_TEXTURE_2D, texture->id);
 }
 
@@ -140,10 +143,4 @@ void
 sc_unbind_texture(void)
 {
     glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void
-sc_send_texture_coordinates(const sc_texture_t *texture)
-{
-    glTexCoordPointer(2, GL_FLOAT, 0, texture->coords);
 }
