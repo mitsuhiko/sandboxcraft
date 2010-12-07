@@ -6,7 +6,6 @@
 #include "sc_boot.h"
 #include "sc_color.h"
 #include "sc_camera.h"
-#include "sc_lighting.h"
 #include "sc_world.h"
 #include "sc_list.h"
 
@@ -18,16 +17,6 @@ sc_scenemgr_t *sc_new_scenemgr(void);
 
 /* frees the scene manager */
 void sc_free_scenemgr(sc_scenemgr_t *mgr);
-
-/* creates a new light in the scene that is then managed in the manager */
-sc_light_t *sc_scenemgr_create_light(sc_scenemgr_t *mgr);
-
-/* removes a light from the scene manager again.  Returns 0 if that light
-   is not managed by the scene manager. */
-int sc_scenemgr_remove_light(sc_scenemgr_t *mgr, sc_light_t *light);
-
-/* returns a constant pointer to the internal list of lights */
-const sc_list_t *sc_scenemgr_get_lights(const sc_scenemgr_t *mgr);
 
 /* creates a new camera.  A default camera is created automatically. */
 sc_camera_t *sc_scenemgr_create_camera(sc_scenemgr_t *mgr);
@@ -52,10 +41,10 @@ void sc_scenemgr_set_world(sc_scenemgr_t *mgr, sc_world_t *world);
 sc_world_t *sc_scenemgr_get_world(sc_scenemgr_t *mgr);
 
 /* begins the scene rendering.  This sends the active camera coordinates to
-   the device, lights and other things. */
+   the engine and other things */
 void sc_scenemgr_begin(const sc_scenemgr_t *mgr);
 
-/* reverses some settings for lights */
+/* reverts some things of begin. */
 void sc_scenemgr_end(const sc_scenemgr_t *mgr);
 
 /* draws the complete scene.  Assumes the world is attached */

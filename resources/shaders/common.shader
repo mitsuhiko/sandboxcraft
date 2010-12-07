@@ -24,4 +24,11 @@ attribute vec3 sc_normal;
 attribute vec2 sc_texcoord;
 #endif
 
+/* the sunlight and global light information from the scene manager.  These
+   are available when the rendering was triggered from the scene manager's
+   draw function */
+uniform vec4 sc_ambient_color;
+uniform vec4 sc_sun_color;
+uniform vec3 sc_sun_direction;
+
 #endif

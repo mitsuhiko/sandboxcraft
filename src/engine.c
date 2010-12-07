@@ -46,13 +46,6 @@ resize_viewport(void)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
-    /* Somewhere in the initialization part of your program */
-    glEnable(GL_LIGHTING);
-
-    /* white material color */
-    float mcolor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mcolor);
-
     /* setup viewport */
     glViewport(0, 0, WIDTH, HEIGHT);
 

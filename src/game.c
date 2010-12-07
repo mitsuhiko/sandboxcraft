@@ -32,7 +32,6 @@ static int
 init_game_in_thread(void *closure)
 {
     sc_camera_t *cam;
-    sc_light_t *light;
     int *done = closure;
 
     scenemgr = sc_new_scenemgr();
@@ -42,12 +41,6 @@ init_game_in_thread(void *closure)
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
     sc_engine_grab_mouse(1);
-
-    light = sc_scenemgr_create_light(scenemgr);
-    light->ambient = sc_color(0x444444ff);
-    light->diffuse = sc_color(0xccccccff);
-    light->specular = sc_color(0x888888ff);
-    sc_vec4_set(&light->position, -1.5f, 1.0f, -4.0f, 1.0f);
 
     *done = 1;
     return 0;
@@ -63,7 +56,8 @@ init_game(void)
     sc_vbo_t *cube;
     sc_thread_t *load_thread;
     sc_camera_t *cam;
-    sc_texture_t *loading;
+    sc_texture_t *loading_texture;
+    sc_shader_t *loading_shader;
 
     cube = sc_new_cube(30.0f);
     sc_vbo_finalize(cube, 0);
@@ -71,7 +65,8 @@ init_game(void)
     cam = sc_new_camera();
     sc_vec3_set(&cam->position, 0.0f, 30.0f, 100.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
-    loading = sc_texture_from_resource("loading.png", GL_LINEAR);
+    loading_texture = sc_texture_from_resource("loading.png", GL_LINEAR);
+    loading_shader = sc_shader_from_file("loading");
 
     /* this has to happen in the main thread before anything else */
     sc_init_blocks();
@@ -102,8 +97,8 @@ init_game(void)
         sc_mat4_from_axis_rotation(&mat, angle, 0.0f, 1.0f, 0.0f);
         sc_engine_set_model_matrix(&mat);
 
-        sc_shader_bind(shader);
-        sc_texture_bind(loading);
+        sc_shader_bind(loading_shader);
+        sc_texture_bind(loading_texture);
         sc_vbo_draw(cube);
 
         sc_engine_end_frame();
@@ -112,7 +107,8 @@ init_game(void)
     /* this has to happen in the main thread after world was created */
     sc_world_flush_vbos(sc_scenemgr_get_world(scenemgr));
 
-    sc_free_texture(loading);
+    sc_free_shader(loading_shader);
+    sc_free_texture(loading_texture);
     sc_free_vbo(cube);
     sc_free_camera(cam);
 }
