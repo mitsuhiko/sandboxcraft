@@ -131,7 +131,7 @@ sc_free_texture(sc_texture_t *texture)
 }
 
 void
-sc_bind_texture(const sc_texture_t *texture)
+sc_texture_bind(const sc_texture_t *texture)
 {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 }

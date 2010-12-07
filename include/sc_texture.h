@@ -27,7 +27,7 @@ sc_texture_t *sc_texture_from_surface(SDL_Surface *img, GLint filtering);
 void sc_free_texture(sc_texture_t *texture);
 
 /* binds a texture.  Does not send the coords */
-void sc_bind_texture(const sc_texture_t *texture);
+void sc_texture_bind(const sc_texture_t *texture);
 
 /* unbinds a texture */
 void sc_unbind_texture(void);

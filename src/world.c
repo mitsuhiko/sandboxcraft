@@ -653,7 +653,7 @@ sc_world_draw(sc_world_t *world, const sc_camera_t *cam)
     sc_list_sort(closure.vbos, compare_vbo_by_distance, NULL);
 
     if (closure.vbos->size > 0) {
-        sc_bind_texture(sc_blocks_get_atlas_texture());
+        sc_texture_bind(sc_blocks_get_atlas_texture());
         for (i = 0; i < closure.vbos->size; i++) {
             struct vboinfo *info = closure.vbos->items[i];
             sc_vbo_draw(info->vbo);
