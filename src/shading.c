@@ -129,10 +129,19 @@ read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
     sc_list_append(shader->sources, sc_strdup(filename));
 
 source_found:
-    if (type == SC_VERTEX_SHADER)
-        sc_strbuf_appendf(strbuf, "#define SC_VERTEX_SHADER\n");
-    else if (type == SC_FRAGMENT_SHADER)
-        sc_strbuf_appendf(strbuf, "#define SC_FRAGMENT_SHADER\n");
+    if (type) {
+        char *common_file = sc_path_to_resource("shaders", "common.shader");
+        switch (type) {
+        case SC_VERTEX_SHADER:
+            sc_strbuf_appendf(strbuf, "#define SC_VERTEX_SHADER\n");
+            break;
+        case SC_FRAGMENT_SHADER:
+            sc_strbuf_appendf(strbuf, "#define SC_FRAGMENT_SHADER\n");
+            break;
+        }
+        read_shader_source(strbuf, shader, common_file, 0);
+        sc_free(common_file);
+    }
     sc_strbuf_appendf(strbuf, "#line %d %d\n", 0, source);
 
     while (fgets(line, 4096, file)) {
