@@ -117,13 +117,17 @@ sc_texture_from_surface(SDL_Surface *img)
     /* upload texture to graphics device */
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture->stored_width,
                  texture->stored_height, 0, format, GL_UNSIGNED_BYTE,
                  data);
+
+    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture->stored_width,
+                      texture->stored_height, format, GL_UNSIGNED_BYTE,
+                      data);
 
     /* remember default texture coordinates */
     for (i = 0; i < 8; i++)
