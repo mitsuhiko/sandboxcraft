@@ -34,22 +34,12 @@ sc_texture_from_resource(const char *filename, GLint filtering)
     return rv;
 }
 
-sc_texture_t *
-sc_texture_from_surface(SDL_Surface *img, GLint filtering)
+uint8_t *
+sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out)
 {
+    int yl, yh;
+    uint8_t *data, *line;
     GLenum format;
-    int i, yl, yh;
-    float scale[2] = {1.0f, 1.0f};
-    GLuint tex;
-    Uint8 *data, *line;
-    SDL_Surface *stored_img = NULL;
-    sc_texture_t *texture = sc_xalloc(sc_texture_t);
-
-    texture->width = img->w;
-    texture->height = img->h;
-    texture->stored_width = power_of_two_if_needed(img->w);
-    texture->stored_height = power_of_two_if_needed(img->h);
-    texture->shared = 0;
 
     /* figure out format */
     switch (img->format->BytesPerPixel) {
@@ -65,8 +55,8 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
     }
 
     /* flip image data because of flipped opengl coordinate system */
-    data = (Uint8 *)img->pixels;
-    line = sc_xmalloc(sizeof(Uint8) * img->pitch);
+    data = (uint8_t *)img->pixels;
+    line = sc_xmalloc(sizeof(uint8_t) * img->pitch);
     yl = 0;
     yh = img->h - 1;
     while (yl < yh) {
@@ -75,6 +65,32 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
         memcpy(data + img->pitch * yh, line, img->pitch);
         yl++, yh--;
     }
+    sc_free(line);
+
+    *format_out = format;
+    return data;
+}
+
+sc_texture_t *
+sc_texture_from_surface(SDL_Surface *img, GLint filtering)
+{
+    GLenum format;
+    int i;
+    float scale[2] = {1.0f, 1.0f};
+    GLuint tex;
+    uint8_t *data;
+    SDL_Surface *stored_img = NULL;
+    sc_texture_t *texture = sc_xalloc(sc_texture_t);
+
+    texture->width = img->w;
+    texture->height = img->h;
+    texture->stored_width = power_of_two_if_needed(img->w);
+    texture->stored_height = power_of_two_if_needed(img->h);
+    texture->shared = 0;
+
+    data = sc_prepare_surface_for_upload(img, &format);
+    if (!data)
+        return NULL;
 
     /* if stored size differ we have to blit the image to a new surface
        with the requested size before uploading */
@@ -93,7 +109,7 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
             goto bailout;
         }
         SDL_BlitSurface(img, &rect, stored_img, &rect);
-        data = (Uint8 *)stored_img->pixels;
+        data = (uint8_t *)stored_img->pixels;
         scale[0] = (float)texture->width / texture->stored_width;
         scale[1] = (float)texture->height / texture->stored_height;
     }
@@ -116,7 +132,8 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
 
 bailout:
     sc_free(stored_img);
-    sc_free(line);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     return texture;
 }
 

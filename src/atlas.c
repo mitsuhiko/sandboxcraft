@@ -19,7 +19,6 @@ struct _sc_atlas {
     struct atlas_node *root;
     SDL_Surface *surface;
     sc_texture_t *texture;
-    GLint filtering;
     int finalized;
 };
 
@@ -118,14 +117,13 @@ free_nodes_recursive(struct atlas_node *node)
 
 
 sc_atlas_t *
-sc_new_atlas(size_t width, size_t height, GLint filtering)
+sc_new_atlas(size_t width, size_t height)
 {
     sc_atlas_t *atlas = sc_xalloc(sc_atlas_t);
     assert(sc_is_power_of_two(width));
     assert(sc_is_power_of_two(height));
     atlas->surface = sc_memassert(SDL_CreateRGBSurface(
         SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0));
-    atlas->filtering = filtering;
     atlas->root = new_node(0, 0, width, height);
     atlas->finalized = 0;
     return atlas;
@@ -222,7 +220,7 @@ sc_finalize_atlas(sc_atlas_t *atlas)
 {
     sc_texture_t *texture;
     assert(!atlas->finalized);
-    texture = sc_texture_from_surface(atlas->surface, atlas->filtering);
+    texture = sc_texture_from_surface(atlas->surface, GL_LINEAR);
     if (!texture)
         return 0;
     atlas->texture = texture;

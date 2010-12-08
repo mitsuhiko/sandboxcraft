@@ -50,7 +50,7 @@ sc_init_blocks(void)
     if (blocks)
         return;
     blocks = sc_memassert(sc_xcalloc(SC_BLOCK_SLOTS, sizeof(sc_block_t)));
-    block_atlas = sc_new_atlas(512, 512, GL_NEAREST);
+    block_atlas = sc_new_atlas(512, 512);
 
     /* air is special, it's not really a block.  This works because the ID
        of the air block is zero. */

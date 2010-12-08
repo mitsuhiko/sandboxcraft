@@ -43,7 +43,7 @@ typedef struct _sc_atlas sc_atlas_t;
 
 /* creates a new atlas from a given size and filtering.  The size must
    be a power of two, even on systems that support it. */
-sc_atlas_t *sc_new_atlas(size_t width, size_t height, GLint filtering);
+sc_atlas_t *sc_new_atlas(size_t width, size_t height);
 
 /* finalizes the atlas and uploads the texture into vram.  This also
    frees memory in the main memory for the surface */
