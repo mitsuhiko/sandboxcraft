@@ -599,33 +599,6 @@ compare_vbo_by_distance(const void *v1, const void *v2, void *closure)
     return sc_cmp(a->distance, b->distance);
 }
 
-static void
-draw_water(sc_world_t *world, const sc_frustum_t *frustum)
-{
-    /* TODO: optimize... heavily.  temporary only */
-    float y = world->water_level * SC_BLOCK_SIZE;
-    float low = -SC_BLOCK_SIZE / 2;
-    float high = world->size * SC_BLOCK_SIZE + low;
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthMask(GL_FALSE);
-    glColor4f(0.12f, 0.43f, 0.68f, 0.75f);
-    sc_unbind_texture();
-    glDisable(GL_LIGHTING);
-    glBegin(GL_TRIANGLES);
-        glVertex3f(low, y, low);
-        glVertex3f(low, y, high);
-        glVertex3f(high, y, high);
-        glVertex3f(low, y, low);
-        glVertex3f(high, y, high);
-        glVertex3f(high, y, low);
-    glEnd();
-    glEnable(GL_LIGHTING);
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
-    glColor3f(1.0f, 1.0f, 1.0f);
-}
-
 void
 sc_world_draw(sc_world_t *world, const sc_camera_t *cam)
 {
@@ -660,7 +633,6 @@ sc_world_draw(sc_world_t *world, const sc_camera_t *cam)
     }
 
     sc_free_list(closure.vbos);
-    draw_water(world, &frustum);
 }
 
 void 
