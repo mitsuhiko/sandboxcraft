@@ -65,7 +65,7 @@ init_game(void)
     cam = sc_new_camera();
     sc_vec3_set(&cam->position, 0.0f, 30.0f, 100.0f);
     sc_camera_look_at(cam, 0.0f, 0.0f, 0.0f);
-    loading_texture = sc_texture_from_resource("loading.png");
+    loading_texture = sc_texture_from_resource("loading.png", GL_TEXTURE_2D);
     loading_shader = sc_shader_from_file("loading");
 
     /* this has to happen in the main thread before anything else */

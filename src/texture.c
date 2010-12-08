@@ -16,7 +16,7 @@ power_of_two_if_needed(size_t value)
 }
 
 sc_texture_t *
-sc_texture_from_resource(const char *filename)
+sc_texture_from_resource(const char *filename, GLenum target)
 {
     char *path = sc_path_to_resource("textures", filename);
     sc_texture_t *rv;
@@ -26,7 +26,7 @@ sc_texture_from_resource(const char *filename)
         sc_free(path);
         return NULL;
     }
-    rv = sc_texture_from_surface(surface);
+    rv = sc_texture_from_surface(surface, target);
     if (!rv)
         sc_augment_error_context(filename, 0);
     sc_free(path);
@@ -72,7 +72,7 @@ sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out)
 }
 
 sc_texture_t *
-sc_texture_from_surface(SDL_Surface *img)
+sc_texture_from_surface(SDL_Surface *img, GLenum target)
 {
     GLenum format;
     int i;
@@ -87,6 +87,7 @@ sc_texture_from_surface(SDL_Surface *img)
     texture->stored_width = power_of_two_if_needed(img->w);
     texture->stored_height = power_of_two_if_needed(img->h);
     texture->shared = 0;
+    texture->target = target;
 
     data = sc_prepare_surface_for_upload(img, &format);
     if (!data)
@@ -116,16 +117,16 @@ sc_texture_from_surface(SDL_Surface *img)
 
     /* upload texture to graphics device */
     glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture->stored_width,
+    glBindTexture(target, tex);
+    glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(target, 0, GL_RGBA8, texture->stored_width,
                  texture->stored_height, 0, format, GL_UNSIGNED_BYTE,
                  data);
 
-    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture->stored_width,
+    gluBuild2DMipmaps(target, GL_RGBA, texture->stored_width,
                       texture->stored_height, format, GL_UNSIGNED_BYTE,
                       data);
 
@@ -136,7 +137,7 @@ sc_texture_from_surface(SDL_Surface *img)
 
 bailout:
     sc_free(stored_img);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(target, 0);
 
     return texture;
 }
@@ -157,11 +158,5 @@ sc_texture_bind(const sc_texture_t *texture)
 {
     glActiveTexture(GL_TEXTURE0);
     sc_int_uniform(NULL, "sc_texture", 0);
-    glBindTexture(GL_TEXTURE_2D, texture->id);
-}
-
-void
-sc_unbind_texture(void)
-{
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(texture->target, texture->id);
 }
