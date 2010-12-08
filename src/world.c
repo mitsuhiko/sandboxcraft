@@ -86,8 +86,6 @@ static size_t free_children_nodes_count;
 
 /* vbo infos are also often created and removed (up to ~5000 times a frame)
    and because of that are managed by a stack allocator. */
-static char vboinfo_stack[VBOINFO_STACK_SIZE];
-static sc_stackalloc_t vboinfo_stackalloc;
 
 struct vboinfo {
     const sc_vbo_t *vbo;
@@ -99,6 +97,7 @@ struct chunk_draw_closure {
     const sc_frustum_t *frustum;
     const sc_camera_t *camera;
     sc_list_t *vbos;
+    sc_stackalloc_t *stackalloc;
 };
 
 
@@ -524,7 +523,7 @@ find_visible_vbos(sc_world_t *world, sc_blocktype_t block, int x, int y,
            have a vbo so far.  In that case, just ignore that.  We also
            ignore a generated vbo that has not a single vertex */
         if (vbo && vbo->vertices > 0) {
-            struct vboinfo *info = sc_stackalloc_alloc(&vboinfo_stackalloc,
+            struct vboinfo *info = sc_stackalloc_alloc(args->stackalloc,
                                                        sizeof(struct vboinfo));
             /* run out of memory on the stack, try again with heap.  We
                make sure that this heap allocated memory is removed at the
@@ -605,16 +604,16 @@ sc_world_draw(sc_world_t *world, const sc_camera_t *cam)
     size_t i;
     sc_frustum_t frustum;
     struct chunk_draw_closure closure;
+    char vboinfo_stack[VBOINFO_STACK_SIZE];
+    sc_stackalloc_t vboinfo_stackalloc;
 
-    /* this makes the function not reentrant.  If this ever comes and issue
-       move this into the heap and put it onto the closure */
     sc_stackalloc_init(&vboinfo_stackalloc, &vboinfo_stack,
                        VBOINFO_STACK_SIZE);
-
     sc_get_current_frustum(&frustum);
     closure.frustum = &frustum;
     closure.camera = cam;
     closure.vbos = sc_new_list();
+    closure.stackalloc = &vboinfo_stackalloc;
 
     sc_walk_world(world, find_visible_vbos, &closure);
     sc_list_sort(closure.vbos, compare_vbo_by_distance, NULL);
