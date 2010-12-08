@@ -210,7 +210,7 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
     rv->texture.height = img->h;
     rv->texture.stored_width = atlas->root->width;
     rv->texture.stored_height = atlas->root->height;
-    rv->texture.target = atlas->root->target;
+    rv->texture.target = GL_TEXTURE_2D;
     update_texture_coords(rv, atlas);
 
     return &rv->texture;
