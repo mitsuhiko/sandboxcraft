@@ -16,7 +16,7 @@ power_of_two_if_needed(size_t value)
 }
 
 sc_texture_t *
-sc_texture_from_resource(const char *filename)
+sc_texture_from_resource(const char *filename, int mipmaps)
 {
     char *path = sc_path_to_resource("textures", filename);
     sc_texture_t *rv;
@@ -26,7 +26,7 @@ sc_texture_from_resource(const char *filename)
         sc_free(path);
         return NULL;
     }
-    rv = sc_texture_from_surface(surface);
+    rv = sc_texture_from_surface(surface, mipmaps);
     if (!rv)
         sc_augment_error_context(filename, 0);
     sc_free(path);
@@ -72,7 +72,7 @@ sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out)
 }
 
 sc_texture_t *
-sc_texture_from_surface(SDL_Surface *img)
+sc_texture_from_surface(SDL_Surface *img, int mipmaps)
 {
     GLenum format;
     int i;
@@ -118,7 +118,8 @@ sc_texture_from_surface(SDL_Surface *img)
     /* upload texture to graphics device */
     glGenTextures(1, &tex);
     glBindTexture(texture->target, tex);
-    glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER,
+        mipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
     glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(texture->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(texture->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -126,9 +127,9 @@ sc_texture_from_surface(SDL_Surface *img)
                  texture->stored_height, 0, format, GL_UNSIGNED_BYTE,
                  data);
 
-    gluBuild2DMipmaps(texture->target, GL_RGBA, texture->stored_width,
-                      texture->stored_height, format, GL_UNSIGNED_BYTE,
-                      data);
+    /* build a bunch of mipmaps */
+    if (mipmaps)
+        glGenerateMipmap(texture->target);
 
     /* remember default texture coordinates */
     for (i = 0; i < 8; i++)
