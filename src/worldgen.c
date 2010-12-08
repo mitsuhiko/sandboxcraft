@@ -52,6 +52,20 @@ positioned_overlay_noise(const sc_worldgen_t *worldgen, int x, int y, int z)
     );
 }
 
+static int
+block_is_solid(const sc_worldgen_t *worldgen, int x, int y, int z)
+{
+    float noise, overlay;
+    if (x < 0 || x >= worldgen->world_size ||
+        y < 0 || y >= worldgen->world_size ||
+        z < 0 || z >= worldgen->world_size)
+        return 0;
+    noise = positioned_base_noise(worldgen, x, y, z);
+    overlay = positioned_overlay_noise(worldgen, x, y, z);
+    noise += overlay * 0.1f;
+    return noise > 0.9f;
+}
+
 void
 sc_free_worldgen(sc_worldgen_t *worldgen)
 {
@@ -64,8 +78,7 @@ sc_free_worldgen(sc_worldgen_t *worldgen)
 sc_world_t *
 sc_worldgen_new_world(const sc_worldgen_t *worldgen)
 {
-    int x, y, z;
-    float noise, overlay;
+    int x, y, z, is_solid;
     sc_blocktype_t block;
     sc_world_t *world = sc_new_world(worldgen->world_size);
     world->water_level = 0;
@@ -73,11 +86,13 @@ sc_worldgen_new_world(const sc_worldgen_t *worldgen)
     for (x = 0; x < worldgen->world_size; x++)
         for (y = 0; y < worldgen->world_size; y++)
             for (z = 0; z < worldgen->world_size; z++) {
-                noise = positioned_base_noise(worldgen, x, y, z);
-                overlay = positioned_overlay_noise(worldgen, x, y, z);
-                noise += overlay * 0.1f;
-                if (noise > 0.9f)
-                    block = SC_BLOCK_GRASS;
+                is_solid = block_is_solid(worldgen, x, y, z);
+                if (is_solid) {
+                    if (!block_is_solid(worldgen, x, y, z + 1))
+                        block = SC_BLOCK_GRASS;
+                    else
+                        block = SC_BLOCK_DIRT;
+                }
                 else
                     block = SC_BLOCK_AIR;
                 sc_world_set_block_fast(world, x, y, z, sc_get_block(block));

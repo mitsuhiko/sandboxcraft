@@ -14,10 +14,10 @@
 sc_vbo_t *sc_new_cube(float size);
 
 /* individual cube creation */
-void sc_cube_add_front_plane(sc_vbo_t *vbo, float size, float off_x,
-                             float off_y, float off_z);
-void sc_cube_add_back_plane(sc_vbo_t *vbo, float size, float off_x,
+void sc_cube_add_near_plane(sc_vbo_t *vbo, float size, float off_x,
                             float off_y, float off_z);
+void sc_cube_add_far_plane(sc_vbo_t *vbo, float size, float off_x,
+                           float off_y, float off_z);
 void sc_cube_add_top_plane(sc_vbo_t *vbo, float size, float off_x,
                            float off_y, float off_z);
 void sc_cube_add_bottom_plane(sc_vbo_t *vbo, float size, float off_x,

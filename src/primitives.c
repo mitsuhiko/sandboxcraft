@@ -6,8 +6,8 @@ sc_new_cube(float size)
 {
     sc_vbo_t *rv = sc_new_vbo();
 
-    sc_cube_add_front_plane(rv, size, 0.0f, 0.0f, 0.0f);
-    sc_cube_add_back_plane(rv, size, 0.0f, 0.0f, 0.0f);
+    sc_cube_add_near_plane(rv, size, 0.0f, 0.0f, 0.0f);
+    sc_cube_add_far_plane(rv, size, 0.0f, 0.0f, 0.0f);
     sc_cube_add_top_plane(rv, size, 0.0f, 0.0f, 0.0f);
     sc_cube_add_bottom_plane(rv, size, 0.0f, 0.0f, 0.0f);
     sc_cube_add_left_plane(rv, size, 0.0f, 0.0f, 0.0f);
@@ -17,7 +17,7 @@ sc_new_cube(float size)
 }
 
 void
-sc_cube_add_front_plane(sc_vbo_t *vbo, float size, float off_x,
+sc_cube_add_near_plane(sc_vbo_t *vbo, float size, float off_x,
                         float off_y, float off_z)
 {
     sc_vec3_t vertices[3];
@@ -49,7 +49,7 @@ sc_cube_add_front_plane(sc_vbo_t *vbo, float size, float off_x,
 }
 
 void
-sc_cube_add_back_plane(sc_vbo_t *vbo, float size, float off_x,
+sc_cube_add_far_plane(sc_vbo_t *vbo, float size, float off_x,
                        float off_y, float off_z)
 {
     sc_vec3_t vertices[3];

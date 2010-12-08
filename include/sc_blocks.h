@@ -14,11 +14,19 @@
 #define SC_BLOCK_SAND           5
 #define SC_BLOCK_DIRT           6
 
+/* block texture indices */
+#define SC_LEFT_BLOCK_SIDE      0
+#define SC_RIGHT_BLOCK_SIDE     1
+#define SC_BOTTOM_BLOCK_SIDE    2
+#define SC_TOP_BLOCK_SIDE       3
+#define SC_NEAR_BLOCK_SIDE      4
+#define SC_FAR_BLOCK_SIDE       5
+
 typedef char sc_blocktype_t;
 
 typedef struct {
-    sc_texture_t *texture;
     sc_blocktype_t type;
+    const sc_texture_t *textures[6];
     int falls_down;
     float destruction_time;
     float movement_factor;

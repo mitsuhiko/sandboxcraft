@@ -2,17 +2,47 @@
 #include "sc_atlas.h"
 #include "sc_primitives.h"
 
-#define ADD_BLOCK(Type, Filename, FallsDown, MovementFactor) do { \
+#define LOAD_TEXTURE(Id, Fn) \
+    const sc_texture_t *Id = sc_atlas_add_from_resource(block_atlas, Fn); \
+    if (!Id) sc_error_make_critical();
+#define DECLARE_BLOCK(Type, Top, Side, Bottom, FallsDown, MovementFactor) do { \
     sc_block_t *block = &blocks[Type]; \
-    block->texture = sc_atlas_add_from_resource(block_atlas, Filename); \
-    if (!block->texture) sc_error_make_critical(); \
     block->type = Type; \
+    block->textures[SC_LEFT_BLOCK_SIDE] = Side; \
+    block->textures[SC_RIGHT_BLOCK_SIDE] = Side; \
+    block->textures[SC_TOP_BLOCK_SIDE] = Top; \
+    block->textures[SC_BOTTOM_BLOCK_SIDE] = Bottom; \
+    block->textures[SC_NEAR_BLOCK_SIDE] = Side; \
+    block->textures[SC_FAR_BLOCK_SIDE] = Side; \
     block->falls_down = FallsDown; \
     block->movement_factor = MovementFactor; \
 } while (0)
+#define DECLARE_SIMPLE_BLOCK(Type, Tex, FallsDown, MovementFactor) \
+    DECLARE_BLOCK(Type, Tex, Tex, Tex, FallsDown, MovementFactor)
 
 static sc_block_t *blocks;
 static sc_atlas_t *block_atlas;
+
+static void
+create_blocks(void)
+{
+    /* load textures first */
+    LOAD_TEXTURE(grass, "grass.png");
+    LOAD_TEXTURE(grass_side, "grass-side.png");
+    LOAD_TEXTURE(bedrock, "bedrock.png");
+    LOAD_TEXTURE(stone, "stone.png");
+    LOAD_TEXTURE(sand, "sand.png");
+    LOAD_TEXTURE(water, "water.png");
+    LOAD_TEXTURE(dirt, "dirt.png");
+
+    /* the blocks */
+    DECLARE_SIMPLE_BLOCK(SC_BLOCK_BEDROCK, bedrock, 0, 0.0f);
+    DECLARE_BLOCK(SC_BLOCK_GRASS, grass, grass_side, dirt, 0, 0.0f);
+    DECLARE_SIMPLE_BLOCK(SC_BLOCK_STONE, stone, 0, 0.0f);
+    DECLARE_SIMPLE_BLOCK(SC_BLOCK_WATER, water, 0, 0.4f);
+    DECLARE_SIMPLE_BLOCK(SC_BLOCK_SAND, sand, 0, 0.0f);
+    DECLARE_SIMPLE_BLOCK(SC_BLOCK_DIRT, dirt, 1, 0.0f);
+}
 
 void
 sc_init_blocks(void)
@@ -26,16 +56,7 @@ sc_init_blocks(void)
        of the air block is zero. */
     memset(&blocks[SC_BLOCK_AIR], 0, sizeof(sc_block_t));
     assert(SC_BLOCK_AIR == 0);
-
-    /* an indestructable foundation block */
-    ADD_BLOCK(SC_BLOCK_BEDROCK, "bedrock.png", 0, 0.0f);
-
-    /* regular blocks */
-    ADD_BLOCK(SC_BLOCK_GRASS, "grass.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_STONE, "stone.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_WATER, "water.png", 0, 0.4f);
-    ADD_BLOCK(SC_BLOCK_SAND, "sand.png", 0, 0.0f);
-    ADD_BLOCK(SC_BLOCK_DIRT, "dirt.png", 1, 0.0f);
+    create_blocks();
 
     if (!sc_finalize_atlas(block_atlas))
         sc_error_make_critical();

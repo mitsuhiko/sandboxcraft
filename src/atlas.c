@@ -131,11 +131,11 @@ sc_new_atlas(size_t width, size_t height, GLint filtering)
     return atlas;
 }
 
-sc_texture_t *
+const sc_texture_t *
 sc_atlas_add_from_resource(sc_atlas_t *atlas, const char *filename)
 {
     char *path;
-    sc_texture_t *rv;
+    const sc_texture_t *rv;
     SDL_Surface *surface;
     assert(!atlas->finalized);
     path = sc_path_to_resource("textures", filename);
@@ -154,7 +154,7 @@ sc_atlas_add_from_resource(sc_atlas_t *atlas, const char *filename)
     return rv;
 }
 
-sc_texture_t *
+const sc_texture_t *
 sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
 {
     SDL_Rect src_rect, dst_rect;

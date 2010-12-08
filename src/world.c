@@ -466,12 +466,12 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
 
     /* calls into the primitive cube functions to add a given side of a
        cube to the vbo with the texture of the block */
-#define ADD_PLANE(Side) do { \
+#define ADD_PLANE(Side, TextureIndex) do { \
     sc_cube_add_##Side##_plane(node->vbo, SC_BLOCK_SIZE, x * SC_BLOCK_SIZE, \
                                y * SC_BLOCK_SIZE, z * SC_BLOCK_SIZE); \
     sc_vbo_update_texcoords_from_texture_range( \
         node->vbo, node->vbo->vertices - 6, node->vbo->vertices, \
-        block->texture); \
+        block->textures[TextureIndex]); \
 } while (0)
 
     /* we add all sides of each cube to the vbo that touch air */
@@ -483,12 +483,12 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
                 if (block->type == SC_BLOCK_AIR)
                     continue;
 
-                if (IS_AIR(x - 1, y, z)) ADD_PLANE(left);
-                if (IS_AIR(x + 1, y, z)) ADD_PLANE(right);
-                if (IS_AIR(x, y - 1, z)) ADD_PLANE(bottom);
-                if (IS_AIR(x, y + 1, z)) ADD_PLANE(top);
-                if (IS_AIR(x, y, z - 1)) ADD_PLANE(back);
-                if (IS_AIR(x, y, z + 1)) ADD_PLANE(front);
+                if (IS_AIR(x - 1, y, z)) ADD_PLANE(left, SC_LEFT_BLOCK_SIDE);
+                if (IS_AIR(x + 1, y, z)) ADD_PLANE(right, SC_RIGHT_BLOCK_SIDE);
+                if (IS_AIR(x, y - 1, z)) ADD_PLANE(bottom, SC_BOTTOM_BLOCK_SIDE);
+                if (IS_AIR(x, y + 1, z)) ADD_PLANE(top, SC_TOP_BLOCK_SIDE);
+                if (IS_AIR(x, y, z - 1)) ADD_PLANE(far, SC_FAR_BLOCK_SIDE);
+                if (IS_AIR(x, y, z + 1)) ADD_PLANE(near, SC_NEAR_BLOCK_SIDE);
             }
 
     node->flags &= ~CHUNK_FLAG_DIRTY;
