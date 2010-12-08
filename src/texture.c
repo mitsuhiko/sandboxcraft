@@ -16,7 +16,7 @@ power_of_two_if_needed(size_t value)
 }
 
 sc_texture_t *
-sc_texture_from_resource(const char *filename, GLint filtering)
+sc_texture_from_resource(const char *filename)
 {
     char *path = sc_path_to_resource("textures", filename);
     sc_texture_t *rv;
@@ -26,7 +26,7 @@ sc_texture_from_resource(const char *filename, GLint filtering)
         sc_free(path);
         return NULL;
     }
-    rv = sc_texture_from_surface(surface, filtering);
+    rv = sc_texture_from_surface(surface);
     if (!rv)
         sc_augment_error_context(filename, 0);
     sc_free(path);
@@ -72,7 +72,7 @@ sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out)
 }
 
 sc_texture_t *
-sc_texture_from_surface(SDL_Surface *img, GLint filtering)
+sc_texture_from_surface(SDL_Surface *img)
 {
     GLenum format;
     int i;
@@ -117,8 +117,8 @@ sc_texture_from_surface(SDL_Surface *img, GLint filtering)
     /* upload texture to graphics device */
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtering);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture->stored_width,

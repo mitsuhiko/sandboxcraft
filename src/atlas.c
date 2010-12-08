@@ -220,7 +220,7 @@ sc_finalize_atlas(sc_atlas_t *atlas)
 {
     sc_texture_t *texture;
     assert(!atlas->finalized);
-    texture = sc_texture_from_surface(atlas->surface, GL_LINEAR);
+    texture = sc_texture_from_surface(atlas->surface);
     if (!texture)
         return 0;
     atlas->texture = texture;
