@@ -8,14 +8,17 @@ typedef GLuint sc_texid_t;
 
 /* represents a texture that was uploaded to graphics device memory */
 typedef struct {
-    sc_texid_t id;
-    size_t stored_width;
-    size_t stored_height;
-    size_t width;
-    size_t height;
-    float coords[8];
-    GLenum target;
-    int shared;
+    sc_texid_t id;          /* id of the texture on the device */
+    size_t stored_width;    /* texture width */
+    size_t stored_height;   /* texture height */
+    size_t width;           /* width of the surface on the texture */
+    size_t height;          /* height of the surface on the texture */
+    float coords[8];        /* texture coordinates that reference the
+                               actual filled surface */
+    GLenum target;          /* the texture target (GL_TEXTURE_2D) */
+    int index;              /* index for 3D textures and arrays */
+    int shared;             /* if this texture is shared with other
+                               texture object on the graphics device */
 } sc_texture_t;
 
 /* loads a 2d texture from a resource.  This might fail */

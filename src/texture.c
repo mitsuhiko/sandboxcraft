@@ -86,8 +86,9 @@ sc_texture_from_surface(SDL_Surface *img, int mipmaps)
     texture->height = img->h;
     texture->stored_width = power_of_two_if_needed(img->w);
     texture->stored_height = power_of_two_if_needed(img->h);
-    texture->shared = 0;
     texture->target = GL_TEXTURE_2D;
+    texture->index = -1;
+    texture->shared = 0;
 
     data = sc_prepare_surface_for_upload(img, &format);
     if (!data)
