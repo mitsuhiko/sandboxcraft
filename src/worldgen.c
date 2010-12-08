@@ -95,7 +95,7 @@ sc_worldgen_new_world(const sc_worldgen_t *worldgen)
                 }
                 else
                     block = SC_BLOCK_AIR;
-                sc_world_set_block_fast(world, x, y, z, sc_get_block(block));
+                sc_world_set_block_fast(world, x, y, z, block);
             }
 
     return world;

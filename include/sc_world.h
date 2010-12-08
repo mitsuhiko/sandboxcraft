@@ -40,7 +40,7 @@ typedef struct {
 
 /* callbacks for chunk traversing.  For more information have a look
    at the sc_walk_chunk function. */
-typedef int (*sc_chunk_walk_cb)(sc_world_t *world, const sc_block_t *block,
+typedef int (*sc_chunk_walk_cb)(sc_world_t *world, sc_blocktype_t block,
                                 int x, int y, int z, size_t size,
                                 void *closure);
 
@@ -52,20 +52,20 @@ sc_world_t *sc_new_world(uint32_t size);
 void sc_free_world(sc_world_t *world);
 
 /* returns a block for a given tripple of world coodinates. */
-const sc_block_t *sc_world_get_block(sc_world_t *world, int x, int y, int z);
+sc_blocktype_t sc_world_get_block(sc_world_t *world, int x, int y, int z);
 
 /* Sets a block in the world.  This will automatically rediscover the
    world if the boundaries are hit.  If something outside the hard limits
    is referenced, 0 is returned, 1 otherwise. */
 int sc_world_set_block(sc_world_t *world, int x, int y, int z,
-                       const sc_block_t *block);
+                       sc_blocktype_t block);
 
 /* sets a block without updating the dirty flag of vbos.  This might only
    be used before a single vbo was rendered and can be used to faster fill
    the initial set of the world.  You also must not override a block that
    was already set. */
 int sc_world_set_block_fast(sc_world_t *world, int x, int y, int z,
-                            const sc_block_t *block);
+                            sc_blocktype_t block);
 
 /* draws the world.  The OpenGL projection and model matrices are used
    to calculate the visbility for the block of the world.

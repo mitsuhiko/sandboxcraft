@@ -44,8 +44,7 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
 
 /* returns the block type for a node if that node contains block information
    or SC_BLOCK_AIR if it does not carry any block info */
-#define CHUNK_GET_BLOCK_TYPE(C) (((struct chunk_node *)C)->block)
-#define CHUNK_GET_BLOCK(C) sc_get_block(CHUNK_GET_BLOCK_TYPE(C))
+#define CHUNK_GET_BLOCK(C) (((struct chunk_node *)C)->block)
 
 /* helper check to see if any of the arguments is outside of the world */
 #define OUT_OF_BOUNDS(World, X, Y, Z) \
@@ -203,23 +202,19 @@ find_node(sc_world_t *world, int x, int y, int z, size_t limit,
     return node;
 }
 
-static const sc_block_t *
+static sc_blocktype_t
 get_block(sc_world_t *world, int x, int y, int z)
 {
-    struct chunk_node *node = find_node(world, x, y, z, 1, NULL, 0, NULL);
-    if (node == NULL)
-        return sc_get_block(SC_BLOCK_AIR);
-    return CHUNK_GET_BLOCK(node);
+    struct chunk_node *rv = find_node(world, x, y, z, 1, NULL, 0, NULL);
+    return (rv == NULL) ? SC_BLOCK_AIR : CHUNK_GET_BLOCK(rv);
 }
 
-static const sc_block_t *
+static sc_blocktype_t
 get_block_below(sc_world_t *world, int x, int y, int z,
                 struct chunk_node *node, size_t size)
 {
     struct chunk_node *rv = find_node(world, x, y, z, 1, node, size, NULL);
-    if (rv == NULL)
-        return sc_get_block(SC_BLOCK_AIR);
-    return CHUNK_GET_BLOCK(rv);
+    return (rv == NULL) ? SC_BLOCK_AIR : CHUNK_GET_BLOCK(rv);
 }
 
 static struct chunk_node_vbo *
@@ -292,7 +287,7 @@ compress_partial_tree(struct chunk_node **relations, size_t count)
 }
 
 static int
-set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block,
+set_block(sc_world_t *world, int x, int y, int z, sc_blocktype_t block,
           int assume_dirty)
 {
     size_t size, idx, last_relation = 0;
@@ -305,9 +300,9 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block,
     if (OUT_OF_BOUNDS(world, x, y, z)) {
         return 0;
     } else if (assume_dirty) {
-        if (block->type == SC_BLOCK_AIR)
+        if (block == SC_BLOCK_AIR)
             return 1;
-    } else if (get_block(world, x, y, z)->type == block->type) {
+    } else if (get_block(world, x, y, z) == block) {
         return 1;
     }
 
@@ -335,10 +330,10 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block,
         /* at size 1 we just set the child and that's pretty much it */
         if (size == 1) {
             if (!child) {
-                child = new_leaf_chunk_node(block->type);
+                child = new_leaf_chunk_node(block);
                 cnode->children[idx] = child;
             } else {
-                child->block = block->type;
+                child->block = block;
             }
             relations[last_relation++] = child;
             break;
@@ -391,8 +386,7 @@ set_block(sc_world_t *world, int x, int y, int z, const sc_block_t *block,
 
     /* in case we replace air for non air at an edge block we have to be
        extra careful and update the dirty flags of the blocks nearby. */
-    if ((CHUNK_GET_BLOCK_TYPE(node) == SC_BLOCK_AIR) !=
-        (block->type == SC_BLOCK_AIR)) {
+    if ((CHUNK_GET_BLOCK(node) == SC_BLOCK_AIR) != (block == SC_BLOCK_AIR)) {
         if ((x + 1) % world->size == 0) MARK_DIRTY(x + 1, y, z);
         if ((x - 1) % world->size == 0) MARK_DIRTY(x - 1, y, z);
         if ((y + 1) % world->size == 0) MARK_DIRTY(x, y + 1, z);
@@ -412,7 +406,7 @@ walk_chunk(sc_world_t *world, const struct chunk_node **children,
     int i;
     const struct chunk_node *child, **inner_children;
 
-    if (!cb(world, sc_get_block(block), x, z, y, size, closure) ||
+    if (!cb(world, block, x, z, y, size, closure) ||
         (size /= 2) < 1)
         return;
 
@@ -422,7 +416,7 @@ walk_chunk(sc_world_t *world, const struct chunk_node **children,
             (const struct chunk_node **)((
                 const struct chunk_node_children *)child)->children : NULL;
         walk_chunk(world, inner_children,
-                   child ? CHUNK_GET_BLOCK_TYPE(child) : SC_BLOCK_AIR,
+                   child ? CHUNK_GET_BLOCK(child) : SC_BLOCK_AIR,
                    x + ((i & 4) ? size : 0),
                    y + ((i & 2) ? size : 0),
                    z + ((i & 1) ? size : 0),
@@ -442,7 +436,7 @@ static void
 update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
            int min_y, int min_z, size_t size)
 {
-    const sc_block_t *block;
+    sc_blocktype_t block;
     int x, y, z;
     int max_x = min_x + size;
     int max_y = min_y + size;
@@ -462,7 +456,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
        (Y) >= min_y && (Y) < (max_y) && \
        (Z) >= min_z && (Z) < (max_z)) \
          ? get_block_below(world, X, Y, Z, (struct chunk_node *)node, size) \
-         : get_block(world, X, Y, Z))->type == SC_BLOCK_AIR)
+         : get_block(world, X, Y, Z)) == SC_BLOCK_AIR)
 
     /* calls into the primitive cube functions to add a given side of a
        cube to the vbo with the texture of the block */
@@ -471,7 +465,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
                                y * SC_BLOCK_SIZE, z * SC_BLOCK_SIZE); \
     sc_vbo_update_texcoords_from_texture_range( \
         node->vbo, node->vbo->vertices - 6, node->vbo->vertices, \
-        block->textures[TextureIndex]); \
+        sc_get_block(block)->textures[TextureIndex]); \
 } while (0)
 
     /* we add all sides of each cube to the vbo that touch air */
@@ -480,7 +474,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
             for (x = min_x; x < max_x; x++) {
                 block = get_block_below(world, x, y, z,
                                         (struct chunk_node *)node, size);
-                if (block->type == SC_BLOCK_AIR)
+                if (block == SC_BLOCK_AIR)
                     continue;
 
                 if (IS_AIR(x - 1, y, z)) ADD_PLANE(left, SC_LEFT_BLOCK_SIDE);
@@ -509,7 +503,7 @@ get_vbo(sc_world_t *world, int x, int y, int z)
 }
 
 static int
-find_visible_vbos(sc_world_t *world, const sc_block_t *block, int x, int y,
+find_visible_vbos(sc_world_t *world, sc_blocktype_t block, int x, int y,
                   int z, size_t size, void *closure)
 {
     sc_vec3_t vec1, vec2, distance;
@@ -549,7 +543,7 @@ find_visible_vbos(sc_world_t *world, const sc_block_t *block, int x, int y,
 }
 
 static int
-flush_vbos(sc_world_t *world, const sc_block_t *block, int x, int y, int z,
+flush_vbos(sc_world_t *world, sc_blocktype_t block, int x, int y, int z,
            size_t size, void *closure)
 {
     if (size != SC_CHUNK_VBO_SIZE)
@@ -577,7 +571,7 @@ sc_free_world(sc_world_t *world)
     free_chunk_node(world->root);
 }
 
-const sc_block_t *
+sc_blocktype_t
 sc_world_get_block(sc_world_t *world, int x, int y, int z)
 {
     return get_block(world, x, z, y);
@@ -585,14 +579,14 @@ sc_world_get_block(sc_world_t *world, int x, int y, int z)
 
 int
 sc_world_set_block(sc_world_t *world, int x, int y, int z,
-                   const sc_block_t *block)
+                   sc_blocktype_t block)
 {
     return set_block(world, x, z, y, block, 0);
 }
 
 int
 sc_world_set_block_fast(sc_world_t *world, int x, int y, int z,
-                        const sc_block_t *block)
+                        sc_blocktype_t block)
 {
     return set_block(world, x, z, y, block, 1);
 }
