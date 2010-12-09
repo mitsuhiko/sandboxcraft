@@ -81,20 +81,6 @@ insert_child_node(struct atlas_node *node, SDL_Surface *img)
 }
 
 static void
-update_texture_coords(struct atlas_node *node, sc_atlas_t *atlas)
-{
-    /* the +1 is required to offset the left edge fix */
-    float atlas_width = (float)atlas->root->width;
-    float atlas_height = (float)atlas->root->height;
-    float u1 = (node->x + 1) / atlas_width;
-    float v1 = (node->y + 1) / atlas_height;
-    float u2 = (node->x + node->texture.width + 1) / atlas_width;
-    float v2 = (node->y + node->texture.height + 1) / atlas_height;
-    float new_coords[8] = {u1, v1, u2, v1, u2, v2, u1, v2};
-    memcpy(node->texture.coords, new_coords, sizeof(float) * 8);
-}
-
-static void
 update_texture_id_recursive(struct atlas_node *node, sc_atlas_t *atlas)
 {
     if (node->in_use)
@@ -212,13 +198,14 @@ sc_atlas_add_from_surface(sc_atlas_t *atlas, SDL_Surface *img)
     rv->texture.stored_height = atlas->root->height;
     rv->texture.target = GL_TEXTURE_2D;
     rv->texture.index = -1;
-    update_texture_coords(rv, atlas);
+    rv->texture.off_x = rv->x + 1;
+    rv->texture.off_y = rv->y + 1;
 
     return &rv->texture;
 }
 
 int
-sc_finalize_atlas(sc_atlas_t *atlas)
+sc_atlas_finalize(sc_atlas_t *atlas)
 {
     sc_texture_t *texture;
     assert(!atlas->finalized);

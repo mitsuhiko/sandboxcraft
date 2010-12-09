@@ -1,7 +1,9 @@
 #include "lighting.shader"
+#extension GL_EXT_texture_array : enable
 
 varying vec3 normal, half_vec;
-varying vec2 coord;
+varying vec3 coord;
+uniform sampler2DArray sc_texture;
 
 void
 main(void)
@@ -9,7 +11,7 @@ main(void)
     vec4 ambient = sc_ambient_color;
     vec4 diffuse = vec4(0.0);
     vec4 specular = vec4(0.0);
-    vec4 color = texture2D(sc_texture, coord);
+    vec4 color = texture2DArray(sc_texture, coord);
 
     directional_light(normal, sc_sun_direction, half_vec,
                       30.0, sc_sun_color, vec4(0.0),

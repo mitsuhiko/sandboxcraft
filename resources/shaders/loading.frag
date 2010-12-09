@@ -1,5 +1,6 @@
 varying vec3 N, L;
 varying vec2 coord;
+uniform sampler2D sc_texture;
 
 void
 main(void)

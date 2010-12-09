@@ -47,7 +47,7 @@ sc_atlas_t *sc_new_atlas(size_t width, size_t height);
 
 /* finalizes the atlas and uploads the texture into vram.  This also
    frees memory in the main memory for the surface */
-int sc_finalize_atlas(sc_atlas_t *atlas);
+int sc_atlas_finalize(sc_atlas_t *atlas);
 
 /* frees the atlas.  This can be called both after and before finalizing */
 void sc_free_atlas(sc_atlas_t *atlas);

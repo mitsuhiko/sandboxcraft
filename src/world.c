@@ -442,9 +442,9 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
     int max_z = min_z + size;
 
     if (node->vbo)
-        sc_vbo_reuse(node->vbo);
+        sc_vbo_reuse(node->vbo, 3);
     else
-        node->vbo = sc_new_vbo();
+        node->vbo = sc_new_vbo(3);
 
     /* quick test if a neighboring node is air.  This will attempt to check
        the current vbo's child nodes if possible and if we have to deal with
@@ -462,7 +462,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
 #define ADD_PLANE(Side, TextureIndex) do { \
     sc_cube_add_##Side##_plane(node->vbo, SC_BLOCK_SIZE, x * SC_BLOCK_SIZE, \
                                y * SC_BLOCK_SIZE, z * SC_BLOCK_SIZE); \
-    sc_vbo_update_texcoords_from_texture_range( \
+    sc_vbo_update_texcoords_range( \
         node->vbo, node->vbo->vertices - 6, node->vbo->vertices, \
         sc_get_block(block)->textures[TextureIndex]); \
 } while (0)
@@ -619,7 +619,7 @@ sc_world_draw(sc_world_t *world, const sc_camera_t *cam)
     sc_list_sort(closure.vbos, compare_vbo_by_distance, NULL);
 
     if (closure.vbos->size > 0) {
-        sc_texture_bind(sc_blocks_get_atlas_texture());
+        sc_texture_bind(sc_blocks_get_combined_texture());
         for (i = 0; i < closure.vbos->size; i++) {
             struct vboinfo *info = closure.vbos->items[i];
             sc_vbo_draw(info->vbo);

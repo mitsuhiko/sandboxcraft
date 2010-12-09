@@ -10,28 +10,24 @@
 #define MODE_FINALIZED 1
 #define MODE_REUESD 2
 
-typedef struct {
-    GLuint buffers[3];
-    size_t vertices;
-    size_t _buffer_size;
-    int _mode;
-    /* this is where the vertices are stored in main memory until they
-       are uploaded to the graphics device.  The first three items above
-       are the only ones exposed in the header, everything down here is
-       specific to the implementation. */
-    sc_vec3_t *_vertices;
-    sc_vec3_t *_normals;
-    sc_vec2_t *_tex_coords;
-} sc_vbo_t;
-
-/* internally a vbo is more than what we expose */
 #define _SC_DONT_DEFINE_VBO
 #include "sc_vbo.h"
 
+struct _sc_vbo {
+    SC_VBO_HEADER;
+    size_t _buffer_size;
+    int _mode;
+    float *_vertices;
+    float *_normals;
+    float *_tex_coords;
+};
+
 sc_vbo_t *
-sc_new_vbo(void)
+sc_new_vbo(int texcoord_dimension)
 {
     sc_vbo_t *rv = sc_xalloc(sc_vbo_t);
+    assert(texcoord_dimension >= 2 && texcoord_dimension <= 3);
+    rv->texcoord_dimension = texcoord_dimension;
     rv->vertices = 0;
     rv->_mode = MODE_FRESH;
     rv->_buffer_size = 0;
@@ -75,7 +71,8 @@ sc_vbo_finalize(sc_vbo_t *vbo, int dynamic)
 
     /* texture coordinates */
     glBindBuffer(GL_ARRAY_BUFFER, vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vbo->vertices * 2,
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(float) * vbo->vertices * vbo->texcoord_dimension,
                  vbo->_tex_coords, mode);
 
     sc_free(vbo->_vertices);
@@ -89,11 +86,12 @@ sc_vbo_finalize(sc_vbo_t *vbo, int dynamic)
 }
 
 void
-sc_vbo_reuse(sc_vbo_t *vbo)
+sc_vbo_reuse(sc_vbo_t *vbo, int texcoord_dimension)
 {
     ASSERT_FINALIZED();
-    
+    assert(texcoord_dimension >= 2 && texcoord_dimension <= 3);
     vbo->_mode = MODE_REUESD;
+    vbo->texcoord_dimension = texcoord_dimension;
     vbo->vertices = 0;
     vbo->_buffer_size = 0;
     vbo->_vertices = NULL;
@@ -111,9 +109,10 @@ enlarge_if_necessary(sc_vbo_t *vbo)
 
     size = !vbo->_buffer_size ? INITIAL_SIZE : (size_t)(vbo->_buffer_size * 1.3);
 
-    vbo->_vertices = sc_xrealloc(vbo->_vertices, sizeof(sc_vec3_t) * size * 3);
-    vbo->_normals = sc_xrealloc(vbo->_normals, sizeof(sc_vec3_t) * size * 3);
-    vbo->_tex_coords = sc_xrealloc(vbo->_tex_coords, sizeof(sc_vec3_t) * size * 2);
+    vbo->_vertices = sc_xrealloc(vbo->_vertices, sizeof(float) * size * 3);
+    vbo->_normals = sc_xrealloc(vbo->_normals, sizeof(float) * size * 3);
+    vbo->_tex_coords = sc_xrealloc(vbo->_tex_coords, sizeof(float) * size *
+                                   vbo->texcoord_dimension);
     vbo->_buffer_size = size;
 }
 
@@ -123,55 +122,48 @@ sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
                     const sc_vec2_t *tex_coords)
 {
     int i;
+    void *texoff;
     sc_vec3_t normal;
 
     for (i = 0; i < 3; i++) {
-        sc_vec3_normalize(&normal, &normals[i]);
         enlarge_if_necessary(vbo);
-        memcpy(vbo->_vertices + vbo->vertices, &vertices[i], sizeof(sc_vec3_t));
-        memcpy(vbo->_normals + vbo->vertices, &normal, sizeof(sc_vec3_t));
-        memcpy(vbo->_tex_coords + vbo->vertices, &tex_coords[i], sizeof(sc_vec2_t));
+        texoff = vbo->_tex_coords + vbo->vertices * vbo->texcoord_dimension;
+        sc_vec3_normalize(&normal, &normals[i]);
+        *(sc_vec3_t *)(vbo->_vertices + vbo->vertices * 3) = vertices[i];
+        *(sc_vec3_t *)(vbo->_normals + vbo->vertices * 3) = normal;
+        *(sc_vec2_t *)(texoff) = tex_coords[i];
+        if (vbo->texcoord_dimension == 3)
+            *(float *)(texoff + sizeof(float) * 2) = 0.0f;
         vbo->vertices++;
     }
 }
 
 void
 sc_vbo_update_texcoords_range(sc_vbo_t *vbo, int start, int end,
-                              float offset_x, float offset_y,
-                              float factor_x, float factor_y)
+                              const sc_texture_t *tex)
 {
     int i;
+    float fac_x, fac_y, off_x, off_y;
     ASSERT_NOT_FINALIZED();
 
+    fac_x = (float)tex->width / tex->stored_width;
+    fac_y = (float)tex->height / tex->stored_height;
+    off_x = (float)tex->off_x / tex->stored_width;
+    off_y = (float)tex->off_y / tex->stored_height;
+
     for (i = start; i < end; i++) {
-        vbo->_tex_coords[i].x = vbo->_tex_coords[i].x * factor_x + offset_x;
-        vbo->_tex_coords[i].y = vbo->_tex_coords[i].y * factor_y + offset_y;
+        size_t off = vbo->texcoord_dimension * i;
+        vbo->_tex_coords[off] = vbo->_tex_coords[off] * fac_x + off_x;
+        vbo->_tex_coords[off + 1] = vbo->_tex_coords[off + 1] * fac_y + off_y;
+        if (vbo->texcoord_dimension == 3)
+            vbo->_tex_coords[off + 2] = (float)tex->index;
     }
 }
 
 void
-sc_vbo_update_texcoords(sc_vbo_t *vbo, float offset_x, float offset_y,
-                        float factor_x, float factor_y)
+sc_vbo_update_texcoords(sc_vbo_t *vbo, const sc_texture_t *tex)
 {
-    return sc_vbo_update_texcoords_range(vbo, 0, vbo->vertices,
-                                         offset_x, offset_y,
-                                         factor_x, factor_y);
-}
-
-void
-sc_vbo_update_texcoords_from_texture_range(sc_vbo_t *vbo, int start, int end,
-                                           const sc_texture_t *texture)
-{
-    sc_vbo_update_texcoords_range(vbo, start, end,
-                                  texture->coords[0], texture->coords[1],
-                                  texture->coords[2] - texture->coords[0],
-                                  texture->coords[5] - texture->coords[1]);
-}
-
-void
-sc_vbo_update_texcoords_from_texture(sc_vbo_t *vbo, const sc_texture_t *texture)
-{
-    sc_vbo_update_texcoords_from_texture_range(vbo, 0, vbo->vertices, texture);
+    return sc_vbo_update_texcoords_range(vbo, 0, vbo->vertices, tex);
 }
 
 void
@@ -183,11 +175,17 @@ sc_vbo_draw(const sc_vbo_t *vbo)
 
     sc_floatb_attrib(NULL, "sc_vertex", 3, vbo->buffers[SC_VERTEX_BUFFER_ID]);
     sc_floatb_attrib(NULL, "sc_normal", 3, vbo->buffers[SC_NORMAL_BUFFER_ID]);
-    sc_floatb_attrib(NULL, "sc_texcoord", 2, vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
+    if (vbo->texcoord_dimension == 2)
+        sc_floatb_attrib(NULL, "sc_texcoord", 2, vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
+    else
+        sc_floatb_attrib(NULL, "sc_texcoord3", 3, vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
 
     glDrawArrays(GL_TRIANGLES, 0, vbo->vertices);
 
-    sc_disable_buffer_attrib(NULL, "sc_texcoord");
+    if (vbo->texcoord_dimension == 2)
+        sc_disable_buffer_attrib(NULL, "sc_texcoord");
+    else
+        sc_disable_buffer_attrib(NULL, "sc_texcoord3");
     sc_disable_buffer_attrib(NULL, "sc_normal");
     sc_disable_buffer_attrib(NULL, "sc_vertex");
 }

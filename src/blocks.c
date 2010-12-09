@@ -1,9 +1,9 @@
 #include "sc_blocks.h"
-#include "sc_atlas.h"
+#include "sc_arraytex.h"
 #include "sc_primitives.h"
 
 #define LOAD_TEXTURE(Id, Fn) \
-    const sc_texture_t *Id = sc_atlas_add_from_resource(block_atlas, Fn); \
+    const sc_texture_t *Id = sc_arraytex_add_from_resource(block_arraytex, Fn); \
     if (!Id) sc_error_make_critical();
 #define DECLARE_BLOCK(Type, Top, Side, Bottom, FallsDown, MovementFactor) do { \
     sc_block_t *block = &blocks[Type]; \
@@ -21,7 +21,7 @@
     DECLARE_BLOCK(Type, Tex, Tex, Tex, FallsDown, MovementFactor)
 
 static sc_block_t *blocks;
-static sc_atlas_t *block_atlas;
+static sc_arraytex_t *block_arraytex;
 
 static void
 create_blocks(void)
@@ -50,7 +50,7 @@ sc_init_blocks(void)
     if (blocks)
         return;
     blocks = sc_memassert(sc_xcalloc(SC_BLOCK_SLOTS, sizeof(sc_block_t)));
-    block_atlas = sc_new_atlas(512, 512);
+    block_arraytex = sc_new_arraytex(128, 128);
 
     /* air is special, it's not really a block.  This works because the ID
        of the air block is zero. */
@@ -58,7 +58,7 @@ sc_init_blocks(void)
     assert(SC_BLOCK_AIR == 0);
     create_blocks();
 
-    if (!sc_finalize_atlas(block_atlas))
+    if (!sc_arraytex_finalize(block_arraytex))
         sc_error_make_critical();
 }
 
@@ -82,7 +82,7 @@ sc_free_blocks(void)
 {
     if (!blocks)
         return;
-    sc_free_atlas(block_atlas);
+    sc_free_arraytex(block_arraytex);
     sc_free(blocks);
     blocks = 0;
 }
@@ -95,7 +95,7 @@ sc_get_block(sc_blocktype_t type)
 }
 
 const sc_texture_t *
-sc_blocks_get_atlas_texture(void)
+sc_blocks_get_combined_texture(void)
 {
-    return sc_atlas_get_texture(block_atlas);
+    return sc_arraytex_get_texture(block_arraytex);
 }

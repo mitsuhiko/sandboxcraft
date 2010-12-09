@@ -92,6 +92,11 @@ sc_engine_init(void)
 
     /* show detected features on stderr */
     sc_engine_dump_info();
+
+    /* assert crutial features */
+    if (!GLEE_EXT_texture_array)
+        sc_critical_error(SC_EGRAPHIC, NULL, 0,
+            "Required device feature 'EXT_texture_array' missing");
 }
 
 void
@@ -113,6 +118,8 @@ sc_engine_dump_info(void)
             GLEE_ARB_texture_non_power_of_two ? "yes" : "no");
     fprintf(stderr, "ARB multisampling:         %s\n",
             GLEE_ARB_multisample ? "yes" : "no");
+    fprintf(stderr, "Texture arrays:            %s\n",
+            GLEE_EXT_texture_array ? "yes" : "no");
 }
 
 const char *

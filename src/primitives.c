@@ -4,7 +4,7 @@
 sc_vbo_t *
 sc_new_cube(float size)
 {
-    sc_vbo_t *rv = sc_new_vbo();
+    sc_vbo_t *rv = sc_new_vbo(2);
 
     sc_cube_add_near_plane(rv, size, 0.0f, 0.0f, 0.0f);
     sc_cube_add_far_plane(rv, size, 0.0f, 0.0f, 0.0f);

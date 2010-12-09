@@ -22,17 +22,23 @@
 #define SC_TEXCOORD_BUFFER_ID       2
 
 /* internally a vbo provides more information, but this is not part of the
-   public interface and subject to change.  Due to how the implementation
-   looks like we have to not define this type if we are asked for it. */
+   public interface and subject to change. */
+struct _sc_vbo;
+typedef struct _sc_vbo sc_vbo_t;
+
+#define SC_VBO_HEADER \
+    GLuint buffers[3]; \
+    int texcoord_dimension; \
+    size_t vertices
+
 #ifndef _SC_DONT_DEFINE_VBO
-typedef struct {
-    GLuint buffers[3];
-    size_t vertices;
-} sc_vbo_t;
+struct _sc_vbo {
+    SC_VBO_HEADER;
+};
 #endif
 
 /* creates a new vbo waiting for triangles */
-sc_vbo_t *sc_new_vbo(void);
+sc_vbo_t *sc_new_vbo(int texcoord_dimension);
 
 /* frees the vbo.  This will remove the vertex buffer from the graphics
    device memory as well as main memory in case some data is still there */
@@ -44,30 +50,21 @@ void sc_vbo_finalize(sc_vbo_t *vbo, int dynamic);
 /* reopens the vbo to add new data.  That way the vbo is not deleted
    from the device but replaced by new uploaded data.  vertices are
    set back to zero count, vbo has to refilled. */
-void sc_vbo_reuse(sc_vbo_t *vbo);
+void sc_vbo_reuse(sc_vbo_t *vbo, int texcoord_dimension);
 
 /* adds a new triangle to the vbo */
 void sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
                          const sc_vec3_t *normals,
                          const sc_vec2_t *tex_coords);
 
-/* updates the texture coordiates.  This is intended for use with texture
-   atlasses and probably only useful for quad-ish textures. */
-void sc_vbo_update_texcoords(sc_vbo_t *vbo, float offset_x,
-                             float offset_y, float factor_x, float factor_y);
+/* updates the texture coordiates from a texture.  This scales the x and
+   y coordinates with the given texture offsets and sets the z index to
+   the texture's index in case the dimension is 3 */
+void sc_vbo_update_texcoords(sc_vbo_t *vbo, const sc_texture_t *tex);
 
-/* like sc_vbo_update_texcoords but with additional range */
+/* like sc_vbo_update_texcoords but with additional range. */
 void sc_vbo_update_texcoords_range(sc_vbo_t *vbo, int start, int end,
-                                   float offset_x, float offset_y,
-                                   float factor_x, float factor_y);
-
-/* shortcut for sc_vbo_update_texcoords when texture coordinates should be
-   updated from the texture coordinates of a texture (for use with atlasses) */
-void sc_vbo_update_texcoords_from_texture(sc_vbo_t *vbo, const sc_texture_t *texture);
-
-/* like sc_vbo_update_texcoords_from_texture but with a range */
-void sc_vbo_update_texcoords_from_texture_range(sc_vbo_t *vbo, int start, int end,
-                                                const sc_texture_t *texture);
+                                   const sc_texture_t *tex);
 
 /* draws the complete vbo */
 void sc_vbo_draw(const sc_vbo_t *vbo);
