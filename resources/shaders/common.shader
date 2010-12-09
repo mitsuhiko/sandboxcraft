@@ -24,6 +24,10 @@ attribute vec2 sc_texcoord;
 attribute vec3 sc_texcoord3;
 #endif
 
+/* note on sc_texture: because the samplers are of different kind and not known
+   at compile time in a generic fashing the fragment shader has to set it itself
+   accordingly (for instance uniform sampler2D sc_texture); */
+
 /* the sunlight and global light information from the scene manager.  These
    are available when the rendering was triggered from the scene manager's
    draw function */
