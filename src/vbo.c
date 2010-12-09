@@ -3,8 +3,6 @@
 #include "sc_shading.h"
 
 #define INITIAL_SIZE 255
-#define ASSERT_FINALIZED() assert(vbo->_mode == MODE_FINALIZED)
-#define ASSERT_NOT_FINALIZED() assert(vbo->_mode != MODE_FINALIZED)
 
 #define MODE_FRESH 0
 #define MODE_FINALIZED 1
@@ -54,7 +52,7 @@ void
 sc_vbo_finalize(sc_vbo_t *vbo, int dynamic)
 {
     GLenum mode = dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
-    ASSERT_NOT_FINALIZED();
+    assert(vbo->_mode != MODE_FINALIZED);
 
     if (vbo->_mode == MODE_FRESH)
         glGenBuffers(3, vbo->buffers);
@@ -88,7 +86,7 @@ sc_vbo_finalize(sc_vbo_t *vbo, int dynamic)
 void
 sc_vbo_reuse(sc_vbo_t *vbo, int texcoord_dimension)
 {
-    ASSERT_FINALIZED();
+    assert(vbo->_mode == MODE_FINALIZED);
     assert(texcoord_dimension >= 2 && texcoord_dimension <= 3);
     vbo->_mode = MODE_REUESD;
     vbo->texcoord_dimension = texcoord_dimension;
@@ -144,7 +142,7 @@ sc_vbo_update_texcoords_range(sc_vbo_t *vbo, int start, int end,
 {
     int i;
     float fac_x, fac_y, off_x, off_y;
-    ASSERT_NOT_FINALIZED();
+    assert(vbo->_mode != MODE_FINALIZED);
 
     fac_x = (float)tex->width / tex->stored_width;
     fac_y = (float)tex->height / tex->stored_height;
@@ -170,7 +168,7 @@ void
 sc_vbo_draw(const sc_vbo_t *vbo)
 {
     const char *texcoord_uniform = "sc_texcoord";
-    ASSERT_FINALIZED();
+    assert(vbo->_mode == MODE_FINALIZED);
     if (!vbo->vertices)
         return;
 
