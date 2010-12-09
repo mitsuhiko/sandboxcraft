@@ -169,23 +169,21 @@ sc_vbo_update_texcoords(sc_vbo_t *vbo, const sc_texture_t *tex)
 void
 sc_vbo_draw(const sc_vbo_t *vbo)
 {
+    const char *texcoord_uniform = "sc_texcoord";
     ASSERT_FINALIZED();
     if (!vbo->vertices)
         return;
 
     sc_floatb_attrib(NULL, "sc_vertex", 3, vbo->buffers[SC_VERTEX_BUFFER_ID]);
     sc_floatb_attrib(NULL, "sc_normal", 3, vbo->buffers[SC_NORMAL_BUFFER_ID]);
-    if (vbo->texcoord_dimension == 2)
-        sc_floatb_attrib(NULL, "sc_texcoord", 2, vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
-    else
-        sc_floatb_attrib(NULL, "sc_texcoord3", 3, vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
+    if (vbo->texcoord_dimension == 3)
+        texcoord_uniform = "sc_texcoord3";
+    sc_floatb_attrib(NULL, texcoord_uniform, vbo->texcoord_dimension,
+                     vbo->buffers[SC_TEXCOORD_BUFFER_ID]);
 
     glDrawArrays(GL_TRIANGLES, 0, vbo->vertices);
 
-    if (vbo->texcoord_dimension == 2)
-        sc_disable_buffer_attrib(NULL, "sc_texcoord");
-    else
-        sc_disable_buffer_attrib(NULL, "sc_texcoord3");
+    sc_disable_buffer_attrib(NULL, texcoord_uniform);
     sc_disable_buffer_attrib(NULL, "sc_normal");
     sc_disable_buffer_attrib(NULL, "sc_vertex");
 }
