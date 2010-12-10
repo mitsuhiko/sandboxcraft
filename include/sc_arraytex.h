@@ -5,11 +5,19 @@
 #include "sc_boot.h"
 #include "sc_texture.h"
 
+/* usage modes for the array texture.  Because array textures are currently
+   used to generate the world of sandboxcraft it has some extra usage modes
+   over atlases and raw textures.  Namely that they can scale up and down
+   with nearest neighbor when SC_ARRAYTEX_NEAREST and SC_ARRAYTEX_MIPMAPS
+   are set. */
+#define SC_ARRAYTEX_NEAREST 1   /* scale images with nearest neigbour */
+#define SC_ARRAYTEX_MIPMAPS 2   /* generate mipmaps */
+
 struct _sc_arraytex;
 typedef struct _sc_arraytex sc_arraytex_t;
 
 /* creates a new array texture of a specific size */
-sc_arraytex_t *sc_new_arraytex(size_t width, size_t height);
+sc_arraytex_t *sc_new_arraytex(size_t width, size_t height, int flags);
 
 /* frees the texture again */
 void sc_free_arraytex(sc_arraytex_t *arr);

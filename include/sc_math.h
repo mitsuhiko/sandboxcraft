@@ -31,4 +31,7 @@ sc_is_power_of_two(size_t value)
     return (value & (value - 1)) == 0;
 }
 
+/* integer binary logarithmic base */
+size_t sc_intlog2(size_t value);
+
 #endif

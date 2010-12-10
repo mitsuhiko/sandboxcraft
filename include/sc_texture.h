@@ -34,8 +34,9 @@ void sc_free_texture(sc_texture_t *texture);
    appropriately.  When we need more that one unit we have to update this. */
 void sc_texture_bind(const sc_texture_t *texture);
 
-/* helper for texture uploading.  Figures out format and flips it */
-uint8_t *sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out);
+/* helper for texture uploading.  Figures out format and flips it into a
+   new surface. */
+SDL_Surface *sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out);
 
 /* returns the dimension of texture coordinates for this target */
 int sc_get_texcoord_dimension(GLenum target);

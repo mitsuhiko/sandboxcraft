@@ -31,12 +31,30 @@ sc_texture_from_resource(const char *filename, int mipmaps)
     return rv;
 }
 
+static int
+upscale_surface(SDL_Surface **surface_ptr, size_t width, size_t height)
+{
+    SDL_Surface *img = *surface_ptr;
+    SDL_Rect rect = {0, 0, img->w, img->h};
+    SDL_Surface *stored_img = SDL_CreateRGBSurface(img->flags, width, height,
+        img->format->BitsPerPixel, img->format->Rmask, img->format->Gmask,
+        img->format->Bmask, img->format->Amask);
+    if (!stored_img) {
+        sc_set_error(SC_EGRAPHIC, __FILE__, __LINE__,
+                     "Unable to resize texture");
+        return 0;
+    }
+    SDL_BlitSurface(img, &rect, stored_img, &rect);
+    *surface_ptr = stored_img;
+    SDL_FreeSurface(img);
+    return 1;
+}
+
 sc_texture_t *
 sc_texture_from_surface(SDL_Surface *img, int mipmaps)
 {
     GLenum format;
     GLuint tex;
-    uint8_t *data;
     SDL_Surface *stored_img = NULL;
     sc_texture_t *texture = sc_xalloc(sc_texture_t);
 
@@ -47,28 +65,20 @@ sc_texture_from_surface(SDL_Surface *img, int mipmaps)
     texture->target = GL_TEXTURE_2D;
     texture->shared = 0;
 
-    data = sc_prepare_surface_for_upload(img, &format);
-    if (!data)
+    stored_img = sc_prepare_surface_for_upload(img, &format);
+    if (!stored_img)
         return NULL;
 
     /* if stored size differ we have to blit the image to a new surface
        with the requested size before uploading */
     if (texture->stored_width != texture->width ||
         texture->stored_height != texture->height) {
-        SDL_Rect rect = {0, 0, img->w, img->h};
-        stored_img = SDL_CreateRGBSurface(img->flags,
-            texture->stored_width, texture->stored_height,
-            img->format->BitsPerPixel, img->format->Rmask,
-            img->format->Gmask, img->format->Bmask,
-            img->format->Amask);
-        if (!stored_img) {
-            sc_set_error(SC_EGRAPHIC, __FILE__, __LINE__, "Unable to resize texture");
+        if (!upscale_surface(&stored_img, texture->stored_width,
+                             texture->stored_height)) {
             sc_free(texture);
             texture = NULL;
             goto bailout;
         }
-        SDL_BlitSurface(img, &rect, stored_img, &rect);
-        data = (uint8_t *)stored_img->pixels;
     }
 
     /* upload texture to graphics device */
@@ -81,7 +91,7 @@ sc_texture_from_surface(SDL_Surface *img, int mipmaps)
     glTexParameteri(texture->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(texture->target, 0, GL_RGBA8, texture->stored_width,
                  texture->stored_height, 0, format, GL_UNSIGNED_BYTE,
-                 data);
+                 stored_img->pixels);
 
     /* build a bunch of mipmaps */
     if (mipmaps)
@@ -95,7 +105,7 @@ sc_texture_from_surface(SDL_Surface *img, int mipmaps)
     texture->height = img->h;
 
 bailout:
-    sc_free(stored_img);
+    SDL_FreeSurface(stored_img);
     glBindTexture(texture->target, 0);
 
     return texture;
@@ -120,12 +130,17 @@ sc_texture_bind(const sc_texture_t *texture)
     glBindTexture(texture->target, texture->id);
 }
 
-uint8_t *
+SDL_Surface *
 sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out)
 {
     int yl, yh;
-    uint8_t *data, *line;
+    uint8_t *data_in, *data_out;
     GLenum format;
+    SDL_Surface *rv = SDL_CreateRGBSurface(img->flags, img->w, img->h,
+        img->format->BitsPerPixel, img->format->Rmask, img->format->Gmask,
+        img->format->Bmask, img->format->Amask);
+    sc_memassert(rv);
+    assert(rv->pitch == img->pitch);
 
     /* figure out format */
     switch (img->format->BytesPerPixel) {
@@ -140,21 +155,20 @@ sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out)
         return NULL;
     }
 
-    /* flip image data because of flipped opengl coordinate system */
-    data = (uint8_t *)img->pixels;
-    line = sc_xmalloc(sizeof(uint8_t) * img->pitch);
+    /* flip image data because of flipped opengl coordinate system into
+       the new surface. */
+    data_in = (uint8_t *)img->pixels;
+    data_out = (uint8_t *)rv->pixels;
     yl = 0;
     yh = img->h - 1;
     while (yl < yh) {
-        memcpy(line, data + img->pitch * yl, img->pitch);
-        memcpy(data + img->pitch * yl, data + img->pitch * yh, img->pitch);
-        memcpy(data + img->pitch * yh, line, img->pitch);
+        memcpy(data_out + rv->pitch * yh, data_in + rv->pitch * yl, rv->pitch);
+        memcpy(data_out + rv->pitch * yl, data_in + rv->pitch * yh, rv->pitch);
         yl++, yh--;
     }
-    sc_free(line);
 
     *format_out = format;
-    return data;
+    return rv;
 }
 
 int
