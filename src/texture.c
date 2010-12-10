@@ -154,7 +154,8 @@ sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out)
         format = (img->format->Rmask == 0x000000ff) ? GL_RGB : GL_BGR;
         break;
     default:
-        sc_set_error(SC_EGRAPHIC, __FILE__, __LINE__, "Unsupported texture depth");
+        sc_set_error(SC_EGRAPHIC, __FILE__, __LINE__,
+            "Unsupported texture depth %d", img->format->BytesPerPixel);
         return NULL;
     }
 

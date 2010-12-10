@@ -15,8 +15,8 @@ sc_resize_surface_nearest(const SDL_Surface *img, size_t width, size_t height)
         for (x = 0; x < width; x++) {
             ix = (size_t)((float)x / width * img->w);
             iy = (size_t)((float)y / height * img->h);
-            memcpy(rv->pixels + rv->pitch * y + d * x,
-                   img->pixels + img->pitch * iy + d * ix, d);
+            memcpy((char *)rv->pixels + rv->pitch * y + d * x,
+                   (const char *)img->pixels + img->pitch * iy + d * ix, d);
         }
 
     return rv;

@@ -4,7 +4,7 @@
 #include "sc_utils.h"
 
 /* XXX: make this thread local */
-static sc_error_t *last_error;
+static sc_error_t *last_error = 0;
 
 static const char *error_names[] = {
     "out of memory",                                        /* SC_EOOM */
@@ -20,6 +20,16 @@ static const char *error_names[] = {
 static void
 show_error(int code, const char *filename, int lineno, const char *msg)
 {
+#if SC_PLATFORM == SC_PLATFORM_WINDOWS
+    /* maximum filename length on windows is 255, we allocate much more than that */
+    char title[1024], *text;
+    sprintf(title, "Error %d [%s]", code, error_names[code]);
+    text = sc_malloc(strlen(msg) + 4096);
+    sprintf(text, "%s\n\nproblem location: %s:%d\n", msg,
+            filename ? filename : "Unknown file", lineno);
+    MessageBox(NULL, text, title, MB_OK);
+    sc_free(text);
+#else
     fprintf(stderr, "Error %d [%s]: %s\n", code,
             error_names[code], msg ? msg : "no further error description");
     if (filename) {
@@ -29,6 +39,7 @@ show_error(int code, const char *filename, int lineno, const char *msg)
         fputs("\n", stderr);
     }
     fflush(stderr);
+#endif
 }
 
 void
