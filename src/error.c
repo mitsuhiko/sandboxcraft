@@ -14,6 +14,7 @@ static const char *error_names[] = {
     "Threading error",                                      /* SC_ETHREAD */
     "Shading system error",                                 /* SC_ESHADING */
     "Missing entity",                                       /* SC_ENOENT */
+    "Input/Output error",                                   /* SC_EIO */
     NULL
 };
 

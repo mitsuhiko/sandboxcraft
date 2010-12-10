@@ -6,6 +6,7 @@
 #   include "shlwapi.h"
 #elif SC_PLATFORM == SC_PLATFORM_OSX
 #   include <CoreFoundation/CoreFoundation.h>
+#   include <unistd.h>
 #elif SC_PLATFORM == SC_PLATFORM_LINUX
 #   include <unistd.h>
 #endif
@@ -116,4 +117,23 @@ sc_path_join_with_dir(const char *a, const char *b)
     char *rv = sc_path_join(dirname, b);
     sc_free(dirname);
     return rv;
+}
+
+int
+sc_path_delete_file(const char *path)
+{
+#if SC_PLATFORM == SC_PLATFORM_WINDOWS
+    if (!DeleteFileA(path) && 
+        GetLastError() != ERROR_FILE_NOT_FOUND &&
+        GetLastError() != ERROR_PATH_NOT_FOUND)
+        goto error;
+#else
+    if (unlink(path) < 0 && errno == ENOENT)
+        goto error;
+#endif
+    return 1;
+
+error:
+    sc_set_error(SC_EIO, path, 0, "Could not delete file");
+    return 0;
 }

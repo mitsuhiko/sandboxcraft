@@ -22,4 +22,9 @@ char *sc_path_join_with_dir(const char *a, const char *b);
    resource therein.  The return value must be sc_free()ed */
 char *sc_path_to_resource(const char *kind, const char *resource);
 
+/* deletes a file.  Sets SC_EIO if that is not possible and returns 0.
+   If the file wasn't there in the first place or it was deleted
+   properly, 1 is returned. */
+int sc_path_delete_file(const char *path);
+
 #endif

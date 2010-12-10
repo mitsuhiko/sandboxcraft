@@ -6,6 +6,7 @@ set(TESTS
     test_path
     test_strbuf
     test_strmap
+    test_inifile
 )
 
 foreach(TEST ${TESTS})

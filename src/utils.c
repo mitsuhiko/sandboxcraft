@@ -6,6 +6,7 @@
    Operating on chars instead of void * is required otherwise visual c
    compiler complains about unknown sizes. */
 #include "sc_utils.h"
+#include <ctype.h>
 
 /* we specify wordsize as what the compiler most likely aligns to.  This
    would be 4 bytes (int) on 32 and 64bit x86 machines */
@@ -145,4 +146,31 @@ sc_vasprintf(va_list argptr, const char *fmt)
     vasprintf(&buf, fmt, argptr);
 #endif
     return buf;
+}
+
+char *
+sc_sprintf(const char *fmt, ...)
+{
+    char *buf;
+    va_list argptr;
+    va_start(argptr, fmt);
+    buf = sc_vasprintf(argptr, fmt);
+    va_end(argptr);
+    return buf;
+}
+
+char *
+sc_strip_string(char *str)
+{
+    ssize_t i;
+
+    while (*str && isspace(*str))
+        str++;
+
+    for (i = strlen(str) - 1; i > 0; i--)
+        if (!isspace(str[i]))
+            break;
+    str[i + 1] = '\0';
+    
+    return str;
 }
