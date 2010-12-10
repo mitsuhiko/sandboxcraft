@@ -5,6 +5,7 @@ set(TESTS
     test_alloc
     test_path
     test_strbuf
+    test_strmap
 )
 
 foreach(TEST ${TESTS})

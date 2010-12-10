@@ -15,6 +15,7 @@ set(LIB_SOURCES
     src/texture.c
     src/atlas.c
     src/arraytex.c
+    src/strmap.c
     src/imaging.c
     src/blocks.c
     src/world.c
@@ -56,6 +57,7 @@ set(LIB_HEADERS
     include/sc_texture.h
     include/sc_atlas.h
     include/sc_arraytex.h
+    include/sc_strmap.h
     include/sc_imaging.h
     include/sc_blocks.h
     include/sc_world.h
