@@ -29,17 +29,6 @@ skip_to(const char *str, char c)
 }
 
 static void
-assert_key_valid(const char *key)
-{
-#ifndef NDEBUG
-    while (*key)
-        if (*key++ == '.')
-            return;
-    assert(0);
-#endif
-}
-
-static void
 write_item(const char *key, void *value, void *closure)
 {
     struct writer_info *info = closure;
@@ -169,7 +158,7 @@ sc_inifile_set_int(const sc_inifile_t *inifile, const char *key, int val)
 {
     void *old_val = sc_strmap_get(inifile->values, key);
     char *value;
-    assert_key_valid(key);
+    assert(sc_inifile_key_is_valid(key));
     sc_free(old_val);
     value = sc_sprintf("%d", val);
     sc_strmap_set(inifile->values, key, value);
@@ -193,7 +182,7 @@ sc_inifile_set_bool(const sc_inifile_t *inifile, const char *key, int val)
 {
     void *old_val = sc_strmap_get(inifile->values, key);
     char *value;
-    assert_key_valid(key);
+    assert(sc_inifile_key_is_valid(key));
     sc_free(old_val);
     sc_strmap_set(inifile->values, key, sc_strdup(value ? "true" : "false"));
 }
@@ -215,7 +204,7 @@ sc_inifile_set_float(const sc_inifile_t *inifile, const char *key, float val)
 {
     void *old_val = sc_strmap_get(inifile->values, key);
     char *value;
-    assert_key_valid(key);
+    assert(sc_inifile_key_is_valid(key));
     sc_free(old_val);
     value = sc_sprintf("%f", val);
     sc_strmap_set(inifile->values, key, value);
@@ -234,7 +223,7 @@ sc_inifile_set_string(const sc_inifile_t *inifile, const char *key,
                       const char *val)
 {
     void *old_val = sc_strmap_get(inifile->values, key);
-    assert_key_valid(key);
+    assert(sc_inifile_key_is_valid(key));
     sc_free(old_val);
     sc_strmap_set(inifile->values, key, sc_strdup(val));
 }
@@ -243,7 +232,16 @@ void
 sc_inifile_remove_option(const sc_inifile_t *inifile, const char *key)
 {
     void *old_val = sc_strmap_get(inifile->values, key);
-    assert_key_valid(key);
+    assert(sc_inifile_key_is_valid(key));
     sc_strmap_remove(inifile->values, key);
     sc_free(old_val);
+}
+
+int
+sc_inifile_key_is_valid(const char *key)
+{
+    while (*key)
+        if (*key++ == '.')
+            return 1;
+    return 0;
 }

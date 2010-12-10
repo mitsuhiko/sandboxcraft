@@ -51,9 +51,16 @@ sc_test(basic_interface)
     atexit(delete_testfile);
 }
 
+sc_test(keycheck)
+{
+    sc_assert(sc_inifile_key_is_valid("foo.bar"));
+    sc_assert(!sc_inifile_key_is_valid("foo"));
+}
+
 sc_testsetup()
 {
     sc_testgroup(inifile) {
         sc_run_test(basic_interface);
+        sc_run_test(keycheck);
     }
 }

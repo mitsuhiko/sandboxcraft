@@ -53,4 +53,10 @@ void sc_inifile_set_string(const sc_inifile_t *inifile, const char *key,
 /* removes an option */
 void sc_inifile_remove_option(const sc_inifile_t *inifile, const char *key);
 
+/* checks if a key is valid for setting in an inifile.  This is used as an
+   assertion before each set but when arbitrary strings are passed to the
+   functions this function has to be called before to not trigger a
+   possible crash. */
+int sc_inifile_key_is_valid(const char *key);
+
 #endif
