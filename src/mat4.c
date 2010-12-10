@@ -1,6 +1,10 @@
 #include "sc_mat4.h"
 #include "sc_math.h"
 
+/* thank you windows header */
+#undef near
+#undef far
+
 #define EPSILON (1e-6)
 
 sc_mat4_t *

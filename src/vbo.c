@@ -131,7 +131,7 @@ sc_vbo_add_triangle(sc_vbo_t *vbo, const sc_vec3_t *vertices,
         *(sc_vec3_t *)(vbo->_normals + vbo->vertices * 3) = normal;
         *(sc_vec2_t *)(texoff) = tex_coords[i];
         if (vbo->texcoord_dimension == 3)
-            *(float *)(texoff + sizeof(float) * 2) = 0.0f;
+            *(float *)((uintptr_t)texoff + sizeof(float) * 2) = 0.0f;
         vbo->vertices++;
     }
 }
@@ -161,7 +161,7 @@ sc_vbo_update_texcoords_range(sc_vbo_t *vbo, int start, int end,
 void
 sc_vbo_update_texcoords(sc_vbo_t *vbo, const sc_texture_t *tex)
 {
-    return sc_vbo_update_texcoords_range(vbo, 0, vbo->vertices, tex);
+    sc_vbo_update_texcoords_range(vbo, 0, vbo->vertices, tex);
 }
 
 void

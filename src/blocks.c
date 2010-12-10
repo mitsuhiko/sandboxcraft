@@ -3,8 +3,8 @@
 #include "sc_primitives.h"
 
 #define LOAD_TEXTURE(Id, Fn) \
-    const sc_texture_t *Id = sc_arraytex_add_from_resource(block_arraytex, Fn); \
-    if (!Id) sc_error_make_critical();
+    const sc_texture_t *Id = assert_texture_loaded(\
+        sc_arraytex_add_from_resource(block_arraytex, Fn))
 #define DECLARE_BLOCK(Type, Top, Side, Bottom, FallsDown, MovementFactor) do { \
     sc_block_t *block = &blocks[Type]; \
     block->type = Type; \
@@ -22,6 +22,13 @@
 
 static sc_block_t *blocks;
 static sc_arraytex_t *block_arraytex;
+
+static const sc_texture_t *
+assert_texture_loaded(const sc_texture_t *ptr)
+{
+    if (!ptr) sc_error_make_critical();
+    return ptr;
+}
 
 static void
 create_blocks(void)

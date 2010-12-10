@@ -34,10 +34,19 @@ sc_new_arraytex(size_t width, size_t height, int flags)
     rv->height = height;
     rv->slices = 0;
     rv->texture = NULL;
-    if (flags & SC_ARRAYTEX_MIPMAPS && flags & SC_ARRAYTEX_NEAREST)
+        
+    /* XXX: nearest neighbour mipmap generation appears broken on windows.
+        this might be caused by wrong mipmap levels, a memory corruption
+        in the algorithm or unexpected pitch. */
+#if SC_PLATFORM != SC_PLATFORM_WINDOWS
+    if (flags & SC_ARRAYTEX_MIPMAPS && flags & SC_ARRAYTEX_NEAREST
         rv->mipmap_levels = sc_intlog2(sc_max(width, height)) + 1;
     else
         rv->mipmap_levels = 1;
+#else
+    rv->mipmap_levels = 1;
+#endif
+
     rv->buffers = sc_xmalloc(sizeof(sc_strbuf_t *) * rv->mipmap_levels);
     for (i = 0; i < rv->mipmap_levels; i++)
         rv->buffers[i] = sc_new_strbuf();
@@ -97,14 +106,14 @@ append_image(sc_strbuf_t *buffer, SDL_Surface *img)
     /* if the size is the pitch, we can copy all bytes over directly as
        the files are next to each other in the file */
     if (size == img->pitch) {
-        sc_strbuf_append_bytes(buffer, img->pixels, size);
+        sc_strbuf_append_bytes(buffer, (const char *)img->pixels, size);
         return;
     }
 
     /* seems like SDL decided to pad the image, we have to copy line for
        line over and skip some pieces */
     for (i = 0; i < img->h; i++)
-        sc_strbuf_append_bytes(buffer, img->pixels + (img->pitch * i), span);
+        sc_strbuf_append_bytes(buffer, (const char *)img->pixels + (img->pitch * i), span);
 }
 
 const sc_texture_t *

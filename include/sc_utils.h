@@ -6,7 +6,7 @@
 
 /* string duplication function */
 #if SC_PLATFORM == SC_PLATFORM_WINDOWS
-#   define sc_safe_strdup(X) sc_strdup
+#   define sc_safe_strdup _strdup
 #else
 #   define sc_safe_strdup strdup
 #endif
