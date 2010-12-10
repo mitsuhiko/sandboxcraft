@@ -3,6 +3,7 @@
 #include <unistd.h>
 #endif
 #include <stdarg.h>
+#include <setjmp.h>
 #include "sc_test.h"
 
 static struct {
@@ -13,6 +14,8 @@ static struct {
     int total_failed;
     int segfault;
 } context;
+
+static jmp_buf current_test_jump;
 
 int
 sc_test_begin_group(const char *name)
@@ -38,10 +41,13 @@ sc_test_end_group(const char *name)
 void
 sc_run_actual_test(const char *name, void (*func)())
 {
-    context.test_failed = 0;
-    context.group_tests++;
-    printf("  - %s\n", name);
-    func();
+    int rv = setjmp(current_test_jump);
+    if (rv == 0) {
+        context.test_failed = 0;
+        context.group_tests++;
+        printf("  - %s\n", name);
+        func();
+    }
     if (context.test_failed) {
         context.group_failed++;
         context.total_failed++;
@@ -62,6 +68,8 @@ sc_test_fail(const int lineno, const char *file, const char *func,
     context.test_failed = 1;
     if (context.segfault)
         SC_SEGFAULT;
+    else
+        longjmp(current_test_jump, 1);
 }
 
 int

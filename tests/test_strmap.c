@@ -28,7 +28,7 @@ static void
 iteration_func(const char *key, void *value, void *closure)
 {
     *(int *)closure += 1;
-    assert((uintptr_t)(key[0] - 'a') == (uintptr_t)value);
+    sc_assert((uintptr_t)(key[0] - 'a') == (uintptr_t)value);
 }
 
 sc_test(iteration)

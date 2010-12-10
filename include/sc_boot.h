@@ -54,7 +54,7 @@ typedef signed long ssize_t;
 #endif
 
 /* handy little helper to trigger a segfault */
-#define SC_SEGFAULT { int *x = 0; *x = 42; }
+#define SC_SEGFAULT do { int *x = 0; *x = 42; } while (0)
 
 /* GLee */
 #include "GLee.h"
