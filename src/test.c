@@ -10,7 +10,6 @@ static struct {
     int group_entered;
     int group_tests;
     int group_failed;
-    int test_failed;
     int total_failed;
     int segfault;
 } context;
@@ -42,13 +41,14 @@ void
 sc_run_actual_test(const char *name, void (*func)())
 {
     int rv = setjmp(current_test_jump);
+    /* this evaluates to 1 in case the test failed as indicated by the
+       sc_test_fail function.  In that case we don't want to call the
+       function again but just display the result. */
     if (rv == 0) {
-        context.test_failed = 0;
         context.group_tests++;
         printf("  - %s\n", name);
         func();
-    }
-    if (context.test_failed) {
+    } else {
         context.group_failed++;
         context.total_failed++;
     }
@@ -65,7 +65,6 @@ sc_test_fail(const int lineno, const char *file, const char *func,
     vfprintf(stderr, format, args);
     va_end(args);
     fprintf(stderr, "\n\n      Location: %s:%d\n", file, lineno);
-    context.test_failed = 1;
     if (context.segfault)
         SC_SEGFAULT;
     else
