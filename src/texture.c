@@ -84,6 +84,9 @@ sc_texture_from_surface(SDL_Surface *img, int mipmaps)
     /* upload texture to graphics device */
     glGenTextures(1, &tex);
     glBindTexture(texture->target, tex);
+    /* use ansitropic filtering if possible */
+    if (GLEE_EXT_texture_filter_anisotropic)
+        glTexParameterf(texture->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
     glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER,
         mipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
     glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

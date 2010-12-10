@@ -50,7 +50,7 @@ sc_init_blocks(void)
     if (blocks)
         return;
     blocks = sc_memassert(sc_xcalloc(SC_BLOCK_SLOTS, sizeof(sc_block_t)));
-    block_arraytex = sc_new_arraytex(128, 128, SC_ARRAYTEX_NEAREST |
+    block_arraytex = sc_new_arraytex(256, 256, SC_ARRAYTEX_NEAREST |
                                                SC_ARRAYTEX_MIPMAPS);
 
     /* air is special, it's not really a block.  This works because the ID

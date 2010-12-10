@@ -197,6 +197,9 @@ sc_arraytex_finalize(sc_arraytex_t *arr)
     texture = sc_xalloc(sc_texture_t);
     glGenTextures(1, &texture->id);
     glBindTexture(TARGET, texture->id);
+    /* use ansitropic filtering if possible */
+    if (GLEE_EXT_texture_filter_anisotropic)
+        glTexParameterf(TARGET, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
     glTexParameteri(TARGET, GL_TEXTURE_MIN_FILTER,
                     use_mipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
     glTexParameteri(TARGET, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

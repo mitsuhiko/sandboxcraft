@@ -120,6 +120,8 @@ sc_engine_dump_info(void)
             GLEE_ARB_multisample ? "yes" : "no");
     fprintf(stderr, "Texture arrays:            %s\n",
             GLEE_EXT_texture_array ? "yes" : "no");
+    fprintf(stderr, "Ansitropic filtering:      %s\n",
+            GLEE_EXT_texture_array ? "yes" : "no");
 }
 
 const char *
