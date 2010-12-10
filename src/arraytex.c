@@ -39,7 +39,7 @@ sc_new_arraytex(size_t width, size_t height, int flags)
         this might be caused by wrong mipmap levels, a memory corruption
         in the algorithm or unexpected pitch. */
 #if SC_PLATFORM != SC_PLATFORM_WINDOWS
-    if (flags & SC_ARRAYTEX_MIPMAPS && flags & SC_ARRAYTEX_NEAREST
+    if (flags & SC_ARRAYTEX_MIPMAPS && flags & SC_ARRAYTEX_NEAREST)
         rv->mipmap_levels = sc_intlog2(sc_max(width, height)) + 1;
     else
         rv->mipmap_levels = 1;
