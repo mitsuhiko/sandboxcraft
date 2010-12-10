@@ -113,7 +113,7 @@ sc_arraytex_add_from_surface(sc_arraytex_t *arr, SDL_Surface *img)
     size_t i;
     size_t w = arr->width, h = arr->height;
     sc_texture_t *rv;
-    SDL_Surface *helper_img;
+    SDL_Surface *helper_img, *previous_img;
     GLenum format;
     ASSERT_NOT_FINALIZED(arr);
 
@@ -169,12 +169,15 @@ sc_arraytex_add_from_surface(sc_arraytex_t *arr, SDL_Surface *img)
 
     /* all other levels are scaled down */
     helper_img = NULL;
+    previous_img = NULL;
     for (i = 1; i < arr->mipmap_levels; i++) {
         if (w > 1) w /= 2;
         if (h > 1) h /= 2;
-        SDL_FreeSurface(helper_img);
-        helper_img = sc_resize_surface_nearest(img, w, h);
+        helper_img = sc_resize_surface_nearest(
+            previous_img ? previous_img : img, w, h);
+        SDL_FreeSurface(previous_img);
         append_image(arr->buffers[i], helper_img);
+        previous_img = helper_img;
     }
 
     SDL_FreeSurface(img);
