@@ -7,6 +7,13 @@
 /* returns the path to the resource folder */
 const char *sc_get_resource_path(void);
 
+/* return the path to the home folder */
+const char *sc_get_home_path(void);
+
+/* returns the path to the game configuration directory.  This does
+   not create the directory however. */
+const char *sc_get_settings_path(void);
+
 /* joins two paths */
 char *sc_path_join(const char *a, const char *b);
 
@@ -26,5 +33,10 @@ char *sc_path_to_resource(const char *kind, const char *resource);
    If the file wasn't there in the first place or it was deleted
    properly, 1 is returned. */
 int sc_path_delete_file(const char *path);
+
+/* creates all necessary directories up to path.  If all already
+   existed or it succeeded, 1 is returned.  Otherwise SC_EIO is set
+   and 0 is returned. */
+int sc_path_makedirs(const char *path);
 
 #endif

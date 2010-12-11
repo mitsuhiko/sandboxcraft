@@ -1,3 +1,5 @@
+/* provides access to compile time config as well as the actual game and
+   engine configuration */
 #ifndef _INC_SC_CONFIG_H_
 #define _INC_SC_CONFIG_H_
 

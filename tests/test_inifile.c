@@ -47,8 +47,6 @@ sc_test(basic_interface)
     ini = sc_inifile_from_filename(TESTFILE);
     common_assertions(ini);
     sc_free_inifile(ini);
-
-    atexit(delete_testfile);
 }
 
 sc_test(keycheck)
@@ -59,6 +57,7 @@ sc_test(keycheck)
 
 sc_testsetup()
 {
+    atexit(delete_testfile);
     sc_testgroup(inifile) {
         sc_run_test(basic_interface);
         sc_run_test(keycheck);
