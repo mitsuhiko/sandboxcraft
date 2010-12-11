@@ -102,7 +102,10 @@ sc_worldgen_new_world(const sc_worldgen_t *worldgen)
             /* otherwise find high and down of island and set accordingly */
             find_extremes(worldgen, x, y, &min, &max);
             for (z = 0; z < worldgen->world_size; z++) {
-                block = z >= min && z <= max ? SC_BLOCK_GRASS : SC_BLOCK_AIR;
+                if (z >= min && z <= max)
+                    block = z == max ? SC_BLOCK_GRASS : SC_BLOCK_DIRT;
+                else
+                    block = SC_BLOCK_AIR;
                 sc_world_set_block_fast(world, x, y, z, block);
             }
         }
