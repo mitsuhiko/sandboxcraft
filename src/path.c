@@ -220,15 +220,15 @@ int
 sc_path_makedirs(const char *path)
 {
     int rv, first_try = 1;
+
 try_again:
-    if (mkdir(path, 0700) == 0)
+    if (mkdir(path, 0700) == 0) {
         return 1;
-    if (errno == EEXIST)
+    } else if (errno == EEXIST) {
         return 1;
-    else if (errno == ENOENT || errno == ENOTDIR) {
+    } else if (errno == ENOENT || errno == ENOTDIR) {
         char *parent = sc_path_dirname(path);
-        if (strcmp(parent, ".") == 0 ||
-            strcmp(parent, path) == 0) {
+        if (strcmp(parent, ".") == 0 || strcmp(parent, path) == 0) {
             sc_free(parent);
             goto error;
         }
