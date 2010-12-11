@@ -3,7 +3,7 @@
 #include "sc_math.h"
 #include "sc_mat4.h"
 
-#define NEAR_PLANE 1.0f
+#define NEAR_PLANE 0.1f
 #define FAR_PLANE 1000.0f
 
 sc_camera_t *

@@ -212,11 +212,8 @@ sc_perlin_noise2_ex(const sc_perlin_t *perlin, float x, float y,
     float max = 1.0f;
     float total = 1.0f;
 
-    if (octaves == 1)
-        return sc_perlin_noise2(perlin, x, y);
-
     for (i = 0; i < octaves; i++) {
-        total += sc_perlin_noise2(perlin, x, y);
+        total += sc_perlin_noise2(perlin, x * freq, y * freq) * amp;
         max += amp;
         freq *= lacunarity;
         amp *= persistence;
@@ -236,11 +233,8 @@ sc_perlin_noise3_ex(const sc_perlin_t *perlin, float x, float y,
     float max = 1.0f;
     float total = 1.0f;
 
-    if (octaves == 1)
-        return sc_perlin_noise3(perlin, x, y, z);
-
     for (i = 0; i < octaves; i++) {
-        total += sc_perlin_noise3(perlin, x, y, z);
+        total += sc_perlin_noise3(perlin, x * freq, y * freq, z * freq) * amp;
         max += amp;
         freq *= lacunarity;
         amp *= persistence;
