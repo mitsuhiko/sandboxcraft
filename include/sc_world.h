@@ -34,7 +34,6 @@
 #ifndef _SC_DONT_DEFINE_WORLD
 typedef struct {
     size_t size;
-    size_t water_level;
 } sc_world_t;
 #endif
 

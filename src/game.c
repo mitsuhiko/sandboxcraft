@@ -35,7 +35,7 @@ init_game_in_thread(void *closure)
     int *done = closure;
 
     scenemgr = sc_new_scenemgr();
-    sc_scenemgr_set_world(scenemgr, sc_create_random_world(128));
+    sc_scenemgr_set_world(scenemgr, sc_create_random_world(512));
     cam = sc_scenemgr_get_active_camera(scenemgr);
 
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);

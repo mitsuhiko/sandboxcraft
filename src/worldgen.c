@@ -2,8 +2,6 @@
 #include "sc_rnd.h"
 #include "sc_math.h"
 
-#define DEFAULT_WATER_LEVEL     0.0f
-
 sc_world_t *
 sc_create_random_world(size_t world_size)
 {
@@ -22,44 +20,55 @@ sc_new_worldgen(size_t world_size, uint32_t seed)
     sc_fast_rnd_seed(&rnd, 0);
     rv->world_size = world_size;
     rv->perlin = sc_new_perlin(seed);
-    rv->water_level = (int)(world_size * DEFAULT_WATER_LEVEL);
     rv->off_x = sc_fast_rnd_next_float(&rnd) * 5000.0f - 2500.0f;
     rv->off_y = sc_fast_rnd_next_float(&rnd) * 5000.0f - 2500.0f;
     rv->off_z = sc_fast_rnd_next_float(&rnd) * 5000.0f - 2500.0f;
     rv->off_x = rv->off_y = rv->off_z = 0.0f;
+    rv->max_depth = 0.2f;
+    rv->max_altitude = 0.5f;
+    rv->edge_factor = 0.15f;
+    rv->octaves = 3;
+
     return rv;
 }
 
-static float
-positioned_base_noise(const sc_worldgen_t *worldgen, int x, int y, int z)
+static int
+in_base_radius(const sc_worldgen_t *worldgen, int x, int y)
 {
-    float radius = worldgen->world_size / 2.0f;
-    float half = worldgen->world_size / 2.0f;
-    float xh = x - half;
-    float yh = y - half;
-    float zh = z - half;
-    float density = (radius * radius) /
-        ((radius * radius) - (xh * xh + yh * yh + zh * zh));
-    if (density < 0.0f)
-        density = 0.0f;
-    return sc_perlin_noise3_ex(worldgen->perlin,
-        (x / (float)worldgen->world_size) + worldgen->off_x,
-        (y / (float)worldgen->world_size) + worldgen->off_y,
-        (z / (float)worldgen->world_size) + worldgen->off_z,
-        5, 0.5f, 1.0f, 10.0f, 2.0f
-    ) * pow(density, 2.0f);
+    float r = worldgen->world_size * 0.45f;
+    float edge;
+    x = (x - worldgen->world_size / 2);
+    y = (y - worldgen->world_size / 2);
+    edge = (sc_perlin_noise2(worldgen->perlin,
+        (x / (float)worldgen->world_size) * 5.0f,
+        (y / (float)worldgen->world_size) * 5.0f
+    ) * 0.5f + 0.5f) * pow(worldgen->edge_factor * worldgen->world_size, 2.0f);
+    return (x * x + y * y) <= (r * r) - edge;
 }
 
-static int
-block_is_solid(const sc_worldgen_t *worldgen, int x, int y, int z)
+static void
+find_extremes(const sc_worldgen_t *worldgen, int x, int y,
+              int *min_out, int *max_out)
 {
-    float noise;
-    if (x < 0 || x >= worldgen->world_size ||
-        y < 0 || y >= worldgen->world_size ||
-        z < 0 || z >= worldgen->world_size)
-        return 0;
-    noise = positioned_base_noise(worldgen, x, y, z);
-    return noise > 0.5f;
+    float min_noise, max_noise, cutoff;
+    float r = worldgen->world_size * 0.3f;
+    int hx = (x - worldgen->world_size / 2);
+    int hy = (y - worldgen->world_size / 2);
+    max_noise = sc_perlin_noise2_ex(worldgen->perlin,
+        (x / (float)worldgen->world_size) + worldgen->off_x,
+        (y / (float)worldgen->world_size) + worldgen->off_y,
+        worldgen->octaves, 0.7f, 1.0f, 1.0f, 2.0f) * 0.5f + 0.5f;
+    min_noise = (sc_perlin_noise2(worldgen->perlin,
+        (x / (float)worldgen->world_size) + worldgen->off_x * 2.2f,
+        (y / (float)worldgen->world_size) + worldgen->off_y * 2.2f) * 0.5f + 0.5f);
+
+    cutoff = (r * r) / (hx * hx + hy * hy);
+    cutoff = sc_clamp(cutoff, 0.0f, 1.0f) * 0.5f;
+
+    *min_out = (int)(min_noise * worldgen->max_depth * cutoff *
+                     worldgen->world_size);
+    *max_out = (int)(max_noise * worldgen->max_altitude * cutoff *
+                     worldgen->world_size);
 }
 
 void
@@ -74,25 +83,29 @@ sc_free_worldgen(sc_worldgen_t *worldgen)
 sc_world_t *
 sc_worldgen_new_world(const sc_worldgen_t *worldgen)
 {
-    int x, y, z, is_solid;
+    int x, y, z, in_radius, min, max;
     sc_blocktype_t block;
     sc_world_t *world = sc_new_world(worldgen->world_size);
-    world->water_level = 0;
 
     for (x = 0; x < worldgen->world_size; x++)
-        for (y = 0; y < worldgen->world_size; y++)
+        for (y = 0; y < worldgen->world_size; y++) {
+            in_radius = in_base_radius(worldgen, x, y);
+
+            /* this block is completely outside of the radius of the island.
+               Just fill everything here with air from bottom to top */
+            if (!in_radius) {
+                for (z = 0; z < worldgen->world_size; z++)
+                    sc_world_set_block_fast(world, x, y, z, SC_BLOCK_AIR);
+                continue;
+            }
+
+            /* otherwise find high and down of island and set accordingly */
+            find_extremes(worldgen, x, y, &min, &max);
             for (z = 0; z < worldgen->world_size; z++) {
-                is_solid = block_is_solid(worldgen, x, y, z);
-                if (is_solid) {
-                    if (!block_is_solid(worldgen, x, y, z + 1))
-                        block = SC_BLOCK_GRASS;
-                    else
-                        block = SC_BLOCK_DIRT;
-                }
-                else
-                    block = SC_BLOCK_AIR;
+                block = z >= min && z <= max ? SC_BLOCK_GRASS : SC_BLOCK_AIR;
                 sc_world_set_block_fast(world, x, y, z, block);
             }
+        }
 
     return world;
 }
