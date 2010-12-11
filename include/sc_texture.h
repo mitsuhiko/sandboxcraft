@@ -41,4 +41,8 @@ SDL_Surface *sc_prepare_surface_for_upload(SDL_Surface *img, GLenum *format_out)
 /* returns the dimension of texture coordinates for this target */
 int sc_get_texcoord_dimension(GLenum target);
 
+/* enables ansitropic filtering for a texture target as specified in the
+   config.  This automatically falls back to supported levels. */
+void sc_filter_ansitropic(GLenum target);
+
 #endif

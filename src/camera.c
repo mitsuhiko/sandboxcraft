@@ -6,8 +6,6 @@
 #define NEAR_PLANE 1.0f
 #define FAR_PLANE 1000.0f
 
-#define MAX_STACK 32
-
 sc_camera_t *
 sc_new_camera(void)
 {
@@ -15,7 +13,7 @@ sc_new_camera(void)
     sc_vec3_zero(&rv->position);
     sc_vec3_set(&rv->forward, 0.0f, 0.0f, -1.0f);
     sc_vec3_set(&rv->up, 0.0f, 1.0f, 0.0f);
-    rv->fov = 55.0f;
+    rv->fov = sc_config.fov;
     return rv;
 }
 

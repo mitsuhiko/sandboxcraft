@@ -10,6 +10,7 @@ set(LIB_SOURCES
     src/error.c
     src/utils.c
     src/engine.c
+    src/config.c
     src/game.c
     src/path.c
     src/texture.c
@@ -54,6 +55,7 @@ set(LIB_HEADERS
     include/sc_utils.h
     include/sc_path.h
     include/sc_engine.h
+    include/sc_config.h
     include/sc_game.h
     include/sc_texture.h
     include/sc_atlas.h

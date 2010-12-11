@@ -3,6 +3,7 @@
 #include "sc_path.h"
 #include "sc_error.h"
 #include "sc_math.h"
+#include "sc_utils.h"
 
 static size_t
 power_of_two_if_needed(size_t value)
@@ -84,9 +85,7 @@ sc_texture_from_surface(SDL_Surface *img, int mipmaps)
     /* upload texture to graphics device */
     glGenTextures(1, &tex);
     glBindTexture(texture->target, tex);
-    /* use ansitropic filtering if possible */
-    if (GLEE_EXT_texture_filter_anisotropic)
-        glTexParameterf(texture->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
+    sc_filter_ansitropic(texture->target);
     glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER,
         mipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
     glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -190,4 +189,18 @@ sc_get_texcoord_dimension(GLenum target)
         assert(0);
         return 0;
     }
+}
+
+void
+sc_filter_ansitropic(GLenum target)
+{
+    static float max = -1.0f;
+    float level;
+    if (!GLEE_EXT_texture_filter_anisotropic)
+        return;
+    if (max < 0)
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
+    level = sc_min((int)max, sc_config.ansitropic_filtering);
+    if (level > 1)
+        glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, level);
 }

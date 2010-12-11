@@ -11,9 +11,18 @@
 #  define FREE_ON_SHUTDOWN(x) (void)0
 #endif
 
+static void
+write_config_if_changed(void)
+{
+    if (sc_config.dirty)
+        sc_save_config();
+}
+
 static int
 run_game_controlled(int argc, char **argv)
 {
+    sc_load_config();
+    atexit(write_config_if_changed);
     sc_engine_init();
     FREE_ON_SHUTDOWN(sc_engine_shutdown);
     FREE_ON_SHUTDOWN(sc_game_shutdown);

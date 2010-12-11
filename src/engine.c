@@ -3,11 +3,8 @@
 #include "sc_error.h"
 #include "sc_rnd.h"
 #include "sc_debug.h"
+#include "sc_path.h"
 
-/* TODO: move to config */
-#define WIDTH 800
-#define HEIGHT 600
-#define FULLSCREEN 0
 #define FPS_LIMIT 60
 
 sc_gametime_t sc_gametime;
@@ -31,9 +28,10 @@ resize_viewport(void)
 {
     sc_mat4_t identity;
     Uint32 flags = SDL_OPENGL;
-    if (FULLSCREEN)
+    if (sc_config.fullscreen)
         flags |= SDL_FULLSCREEN;
-    if (!SDL_SetVideoMode(WIDTH, HEIGHT, 32, flags))
+    if (!SDL_SetVideoMode(sc_config.screen_width, sc_config.screen_height,
+                          32, flags))
         sc_critical_error(SC_ESDL, __FILE__, __LINE__, "%s", SDL_GetError());
 
     SDL_WM_SetCaption("SandboxCraft", NULL);
@@ -47,7 +45,7 @@ resize_viewport(void)
     glCullFace(GL_BACK);
 
     /* setup viewport */
-    glViewport(0, 0, WIDTH, HEIGHT);
+    glViewport(0, 0, sc_config.screen_width, sc_config.screen_height);
 
     /* matrix defaults */
     sc_mat4_set_identity(&identity);
@@ -122,6 +120,8 @@ sc_engine_dump_info(void)
             GLEE_EXT_texture_array ? "yes" : "no");
     fprintf(stderr, "Ansitropic filtering:      %s\n",
             GLEE_EXT_texture_array ? "yes" : "no");
+    fprintf(stderr, "Config path:               %s\n",
+            sc_get_settings_path());
 }
 
 const char *
