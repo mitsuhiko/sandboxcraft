@@ -16,59 +16,9 @@ sc_worldgen_t *
 sc_new_worldgen(size_t world_size, uint32_t seed)
 {
     sc_worldgen_t *rv = sc_xalloc(sc_worldgen_t);
-    sc_fast_rnd_t rnd;
-    sc_fast_rnd_seed(&rnd, 0);
-    rv->world_size = world_size;
     rv->perlin = sc_new_perlin(seed);
-    rv->off_x = sc_fast_rnd_next_float(&rnd) * 5000.0f - 2500.0f;
-    rv->off_y = sc_fast_rnd_next_float(&rnd) * 5000.0f - 2500.0f;
-    rv->off_z = sc_fast_rnd_next_float(&rnd) * 5000.0f - 2500.0f;
-    rv->off_x = rv->off_y = rv->off_z = 0.0f;
-    rv->max_depth = 0.2f;
-    rv->max_altitude = 0.5f;
-    rv->edge_factor = 0.15f;
-    rv->octaves = 3;
-
+    rv->world_size = world_size;
     return rv;
-}
-
-static int
-in_base_radius(const sc_worldgen_t *worldgen, int x, int y)
-{
-    float r = worldgen->world_size * 0.45f;
-    float edge;
-    x = (x - worldgen->world_size / 2);
-    y = (y - worldgen->world_size / 2);
-    edge = (sc_perlin_noise2(worldgen->perlin,
-        (x / (float)worldgen->world_size) * 5.0f,
-        (y / (float)worldgen->world_size) * 5.0f
-    ) * 0.5f + 0.5f) * pow(worldgen->edge_factor * worldgen->world_size, 2.0f);
-    return (x * x + y * y) <= (r * r) - edge;
-}
-
-static void
-find_extremes(const sc_worldgen_t *worldgen, int x, int y,
-              int *min_out, int *max_out)
-{
-    float min_noise, max_noise, cutoff;
-    float r = worldgen->world_size * 0.3f;
-    int hx = (x - worldgen->world_size / 2);
-    int hy = (y - worldgen->world_size / 2);
-    max_noise = sc_perlin_noise2_ex(worldgen->perlin,
-        (x / (float)worldgen->world_size) + worldgen->off_x,
-        (y / (float)worldgen->world_size) + worldgen->off_y,
-        worldgen->octaves, 0.7f, 1.0f, 1.0f, 2.0f) * 0.5f + 0.5f;
-    min_noise = (sc_perlin_noise2(worldgen->perlin,
-        (x / (float)worldgen->world_size) + worldgen->off_x * 2.2f,
-        (y / (float)worldgen->world_size) + worldgen->off_y * 2.2f) * 0.5f + 0.5f);
-
-    cutoff = (r * r) / (hx * hx + hy * hy);
-    cutoff = sc_clamp(cutoff, 0.0f, 1.0f) * 0.5f;
-
-    *min_out = (int)(min_noise * worldgen->max_depth * cutoff *
-                     worldgen->world_size);
-    *max_out = (int)(max_noise * worldgen->max_altitude * cutoff *
-                     worldgen->world_size);
 }
 
 void
@@ -80,35 +30,125 @@ sc_free_worldgen(sc_worldgen_t *worldgen)
     sc_free(worldgen);
 }
 
-sc_world_t *
-sc_worldgen_new_world(const sc_worldgen_t *worldgen)
+static int
+block_is_solid(const sc_worldgen_t *worldgen, float x, float y, float z)
 {
-    int x, y, z, in_radius, min, max;
+    float noise, density, center_falloff, plateau_falloff;
+    
+    /* caves */
+    if (powf(sc_perlin_noise3(worldgen->perlin, x * 5.0f, y * 5.0f,
+                              z * 5.0f), 3.0f) < -0.5f)
+        return 0;
+
+    /* falloff from the top */
+    if (z > 0.9f)
+        return SC_BLOCK_AIR;
+    else if (z > 0.8f)
+        plateau_falloff = 1.0f - (z - 0.8f) * 10.0f;
+    else
+        plateau_falloff = 1.0f;
+
+    /* falloff from center */
+    center_falloff = 0.1f / (
+        powf((x - 0.5f) * 1.5f, 2.0f) +
+        powf((y - 0.5f) * 1.5f, 2.0f) +
+        powf((z - 1.0f) * 0.8f, 2.0f)
+    );
+
+    /* noise combined density */
+    noise = sc_perlin_noise3_ex(worldgen->perlin, x, y, z * 0.5, 7);
+    density = noise * center_falloff * plateau_falloff;
+    return density > 0.2f ? SC_BLOCK_STONE : SC_BLOCK_AIR;
+}
+
+static void
+generate_rock(const sc_worldgen_t *worldgen, sc_world_t *world)
+{
+    int x, y, z;
     sc_blocktype_t block;
-    sc_world_t *world = sc_new_world(worldgen->world_size);
+
+    for (x = 0; x < worldgen->world_size; x++)
+        for (y = 0; y < worldgen->world_size; y++)
+            for (z = 0; z < worldgen->world_size; z++) {
+                block = block_is_solid(worldgen,
+                    (float)x / worldgen->world_size,
+                    (float)y / worldgen->world_size,
+                    (float)z / worldgen->world_size
+                ) ? SC_BLOCK_STONE : SC_BLOCK_AIR;
+                sc_world_set_block(world, x, y, z, block);
+            }
+}
+
+static void
+erode_down(const sc_worldgen_t *worldgen, sc_world_t *world,
+           int x, int y, int z)
+{
+    sc_blocktype_t block;
+    int levels_left = 2 + 4 * (sc_perlin_noise3(worldgen->perlin,
+        x / (float)worldgen->world_size,
+        y / (float)worldgen->world_size,
+        z / (float)worldgen->world_size
+    ) * 0.5 + 0.5);
+
+    for (; z > 0 && levels_left > 0; z--, levels_left--) {
+        block = sc_world_get_block(world, x, y, z);
+        if (block != SC_BLOCK_STONE)
+            return;
+        sc_world_set_block(world, x, y, z, SC_BLOCK_DIRT);
+    }
+}
+
+static void
+erode_world(const sc_worldgen_t *worldgen, sc_world_t *world)
+{
+    sc_blocktype_t block;
+    int x, y, z, above_the_air;
 
     for (x = 0; x < worldgen->world_size; x++)
         for (y = 0; y < worldgen->world_size; y++) {
-            in_radius = in_base_radius(worldgen, x, y);
-
-            /* this block is completely outside of the radius of the island.
-               Just fill everything here with air from bottom to top */
-            if (!in_radius) {
-                for (z = 0; z < worldgen->world_size; z++)
-                    sc_world_set_block_fast(world, x, y, z, SC_BLOCK_AIR);
-                continue;
-            }
-
-            /* otherwise find high and down of island and set accordingly */
-            find_extremes(worldgen, x, y, &min, &max);
-            for (z = 0; z < worldgen->world_size; z++) {
-                if (z >= min && z <= max)
-                    block = z == max ? SC_BLOCK_GRASS : SC_BLOCK_DIRT;
-                else
-                    block = SC_BLOCK_AIR;
-                sc_world_set_block_fast(world, x, y, z, block);
+            above_the_air = 1;
+            for (z = worldgen->world_size - 1; z > 0; z--) {
+                block = sc_world_get_block(world, x, y, z);
+                if (block == SC_BLOCK_AIR) {
+                    above_the_air = 1;
+                    continue;
+                } else if (block == SC_BLOCK_STONE) {
+                    if (above_the_air)
+                        erode_down(worldgen, world, x, y, z);
+                }
+                above_the_air = 0;
             }
         }
+}
+
+static void
+grow_grass(const sc_worldgen_t *worldgen, sc_world_t *world)
+{
+    int x, y, z;
+
+    for (x = 0; x < worldgen->world_size; x++)
+        for (y = 0; y < worldgen->world_size; y++)
+            for (z = worldgen->world_size - 1; z > 0; z--) {
+                if (sc_world_get_block(world, x, y, z) == SC_BLOCK_DIRT &&
+                    (z == worldgen->world_size - 1 ||
+                     sc_world_get_block(world, x, y, z + 1) == SC_BLOCK_AIR))
+                    sc_world_set_block(world, x, y, z, SC_BLOCK_GRASS);
+            }
+}
+
+sc_world_t *
+sc_worldgen_new_world(const sc_worldgen_t *worldgen)
+{
+    sc_world_t *world = sc_new_world(worldgen->world_size);
+
+    /* fill the world with one large floating rock (and maybe some small rocks) */
+    generate_rock(worldgen, world);
+
+    /* next step is eroding stone into dirt */
+    erode_world(worldgen, world);
+
+    /* grow grass on the high dirt levels */
+    grow_grass(worldgen, world);
 
     return world;
 }

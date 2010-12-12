@@ -7,13 +7,6 @@
 typedef struct {
     sc_perlin_t *perlin;
     size_t world_size;
-    float off_x;
-    float off_y;
-    float off_z;
-    float max_altitude;
-    float max_depth;
-    float edge_factor;
-    int octaves;
 } sc_worldgen_t;
 
 /* generates a random new world */

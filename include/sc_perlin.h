@@ -21,22 +21,12 @@ float sc_perlin_noise2(const sc_perlin_t *perlin, float x, float y);
 /* returns sampled 3D noise in the range -1 and 1 */
 float sc_perlin_noise3(const sc_perlin_t *perlin, float x, float y, float z);
 
-/* extended version of noise2 with octaves and persistence.  The base
-   frequency and amplication can also be provided, though 1.0f are
-   sensible defaults.  lacunarity is the difference in frequency
-   between the octaves.  2.0f is a good default. */
+/* extended version of noise2 with octaves */
 float sc_perlin_noise2_ex(const sc_perlin_t *perlin, float x, float y,
-                          int octaves, float persistence,
-                          float base_frequency, float base_amp,
-                          float lacunarity);
+                          int octaves);
 
-/* extended version of noise3 with octaves and persistence.  The base
-   frequency and amplication can also be provided, though 1.0f are
-   sensible defaults.  lacunarity is the difference in frequency
-   between the octaves.  2.0f is a good default. */
+/* extended version of noise3 with octaves */
 float sc_perlin_noise3_ex(const sc_perlin_t *perlin, float x, float y,
-                          float z, int octaves, float persistence,
-                          float base_frequency, float base_amp,
-                          float lacunarity);
+                          float z, int octaves);
 
 #endif

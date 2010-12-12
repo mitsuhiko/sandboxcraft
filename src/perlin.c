@@ -76,7 +76,8 @@ sc_new_perlin(uint32_t seed)
     rv->permutation_table = sc_xmalloc(TABLE_SIZE);
     rv->period = TABLE_SIZE;
     memcpy(rv->permutation_table, default_permutation_table, TABLE_SIZE);
-    randomize_table(rv->permutation_table, TABLE_SIZE, seed);
+    if (seed)
+        randomize_table(rv->permutation_table, TABLE_SIZE, seed);
     return rv;
 }
 
@@ -202,42 +203,32 @@ sc_perlin_noise3(const sc_perlin_t *perlin, float x, float y, float z)
 
 float
 sc_perlin_noise2_ex(const sc_perlin_t *perlin, float x, float y,
-                    int octaves, float persistence,
-                    float base_frequency, float base_amp,
-                    float lacunarity)
+                    int octaves)
 {
     int i;
-    float freq = base_frequency;
-    float amp = base_amp;
-    float max = 1.0f;
-    float total = 1.0f;
+    float total = 0.0f;
+    float freq = 1.0f;
 
     for (i = 0; i < octaves; i++) {
-        total += sc_perlin_noise2(perlin, x * freq, y * freq) * amp;
-        max += amp;
-        freq *= lacunarity;
-        amp *= persistence;
+        total += sc_perlin_noise2(perlin, x * freq, y * freq) / freq;
+        freq *= 2.0f;
     }
-    return total / max;
+
+    return total;
 }
 
 float
 sc_perlin_noise3_ex(const sc_perlin_t *perlin, float x, float y,
-                    float z, int octaves, float persistence,
-                    float base_frequency, float base_amp,
-                    float lacunarity)
+                    float z, int octaves)
 {
     int i;
-    float freq = base_frequency;
-    float amp = base_amp;
-    float max = 1.0f;
-    float total = 1.0f;
+    float total = 0.0f;
+    float freq = 1.0f;
 
     for (i = 0; i < octaves; i++) {
-        total += sc_perlin_noise3(perlin, x * freq, y * freq, z * freq) * amp;
-        max += amp;
-        freq *= lacunarity;
-        amp *= persistence;
+        total += sc_perlin_noise3(perlin, x * freq, y * freq, z * freq) / freq;
+        freq *= 2.0f;
     }
-    return total / max;
+
+    return total;
 }
