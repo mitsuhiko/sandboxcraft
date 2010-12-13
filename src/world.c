@@ -6,7 +6,6 @@
 struct chunk_node;
 typedef struct {
     size_t size;                        /* the size is public */
-    size_t water_level;                 /* where the water is in blocks */
     struct chunk_node *root;            /* the root node of the octree */
 } sc_world_t;
 
