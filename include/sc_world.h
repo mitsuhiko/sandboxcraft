@@ -66,6 +66,12 @@ int sc_world_set_block(sc_world_t *world, int x, int y, int z,
 int sc_world_set_block_fast(sc_world_t *world, int x, int y, int z,
                             sc_blocktype_t block);
 
+/* returns the light information of a block.  That is the amount of light
+   the block is exposed to.  It's a floating point value but internally
+   stored as 4 bits of light information so unless the block is emitting
+   light itself the value will not be of arbitrary precision. */
+float sc_world_get_block_light(sc_world_t *world, int x, int y, int z);
+
 /* draws the world.  The OpenGL projection and model matrices are used
    to calculate the visbility for the block of the world.
 
@@ -94,5 +100,10 @@ void sc_walk_world(sc_world_t *world, sc_chunk_walk_cb cb, void *closure);
    sense to halt the render loop and show a loading screen and then call
    this method to update the vbos at once. */
 void sc_world_flush_vbos(sc_world_t *world);
+
+/* Finalizes the world.  This must be called after the world generator
+   created the world so that initial lighting is calculated and realtime
+   light updates are enabled.  This does not flush the vbos. */
+void sc_world_finalize(sc_world_t *world);
 
 #endif

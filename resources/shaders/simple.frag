@@ -3,6 +3,7 @@
 
 varying vec3 normal, half_vec;
 varying vec3 coord;
+varying float vertex_light;
 uniform sampler2DArray sc_texture;
 
 void
@@ -17,6 +18,6 @@ main(void)
                       30.0, sc_sun_color, vec4(0.0),
                       diffuse, specular);
 
-    color = color * clamp(ambient + diffuse, 0.0, 1.0);
+    color = color * clamp(ambient + diffuse * vertex_light, 0.0, 1.0);
     gl_FragColor = clamp(color, 0.0, 1.0);
 }

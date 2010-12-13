@@ -84,11 +84,7 @@ remove_solitaries(const sc_worldgen_t *worldgen, sc_world_t *world)
 {
     int x, y, z;
 
-#define IS_AIR(X, Y, Z) \
-    ((X) < 0 || (X) >= worldgen->world_size || \
-     (Y) < 0 || (Y) >= worldgen->world_size || \
-     (Z) < 0 || (Z) >= worldgen->world_size || \
-     sc_world_get_block(world, X, Y, Z) == SC_BLOCK_AIR)
+#define IS_AIR(X, Y, Z) (sc_world_get_block(world, X, Y, Z) == SC_BLOCK_AIR)
 
     for (x = 0; x < worldgen->world_size; x++)
         for (y = 0; y < worldgen->world_size; y++)
@@ -153,8 +149,7 @@ grow_grass(const sc_worldgen_t *worldgen, sc_world_t *world)
         for (y = 0; y < worldgen->world_size; y++)
             for (z = worldgen->world_size - 1; z > 0; z--) {
                 if (sc_world_get_block(world, x, y, z) == SC_BLOCK_DIRT &&
-                    (z == worldgen->world_size - 1 ||
-                     sc_world_get_block(world, x, y, z + 1) == SC_BLOCK_AIR))
+                    sc_world_get_block(world, x, y, z + 1) == SC_BLOCK_AIR)
                     sc_world_set_block(world, x, y, z, SC_BLOCK_GRASS);
             }
 }
@@ -178,5 +173,6 @@ sc_worldgen_new_world(const sc_worldgen_t *worldgen)
     /* grow grass on the high dirt levels when they touch air */
     grow_grass(worldgen, world);
 
+    sc_world_finalize(world);
     return world;
 }

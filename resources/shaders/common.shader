@@ -16,12 +16,16 @@ uniform mat4 sc_mvp_matrix;
 uniform mat3 sc_normal_matrix;
 
 /* same for attributes.  These are set when a vertex buffer object is drawn.
-   We only add these if we are a vertex shader. */
+   Not all might be available at all times as the flags of the buffer specify
+   which attributes are available.
+   
+   Furthermore we obviously only add these if we are a vertex shader. */
 #ifdef SC_VERTEX_SHADER
 attribute vec3 sc_vertex;
 attribute vec3 sc_normal;
 attribute vec2 sc_texcoord;
 attribute vec3 sc_texcoord3;
+attribute float sc_vertex_light;
 #endif
 
 /* note on sc_texture: because the samplers are of different kind and not known

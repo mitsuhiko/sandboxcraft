@@ -60,7 +60,7 @@ init_game(void)
     sc_shader_t *loading_shader;
 
     cube = sc_new_cube(30.0f);
-    sc_vbo_finalize(cube, 0);
+    sc_vbo_finalize(cube);
 
     cam = sc_new_camera();
     sc_vec3_set(&cam->position, 0.0f, 30.0f, 100.0f);

@@ -6,6 +6,7 @@
 struct chunk_node;
 typedef struct {
     size_t size;                        /* the size is public */
+    int state;                          /* the state the world is in */
     struct chunk_node *root;            /* the root node of the octree */
 } sc_world_t;
 
@@ -27,6 +28,11 @@ typedef struct {
 #define CHUNK_FLAG_LEAF         1       /* this node has no children */
 #define CHUNK_FLAG_VBO          2       /* this node stores a vbo */
 #define CHUNK_FLAG_DIRTY        4       /* this node's vbo needs update */
+
+/* different states of the world */
+#define WORLD_STATE_EARLY       1       /* not yet finalized */
+#define WORLD_STATE_PREFILLED   2       /* filled once, disables fast setting */
+#define WORLD_STATE_FINALIZED   3       /* light updates happen on change */
 
 /* defines the different structs for the octree nodes.  The flags above
    tell which version of the struct we're dealing with. */
@@ -244,6 +250,16 @@ any_children_set(const struct chunk_node_children *node)
 }
 
 static void
+calculate_lighting(sc_world_t *world)
+{
+}
+
+static void
+calculate_incremental_lighting(sc_world_t *world, int x, int y, int z)
+{
+}
+
+static void
 compress_partial_tree(struct chunk_node **relations, size_t count)
 {
     struct chunk_node *node;
@@ -292,7 +308,7 @@ compress_partial_tree(struct chunk_node **relations, size_t count)
 
 static int
 set_block(sc_world_t *world, int x, int y, int z, sc_blocktype_t block,
-          int assume_dirty)
+          int early_optimizations)
 {
     size_t size, idx, last_relation = 0;
     struct chunk_node *node, *child;
@@ -300,10 +316,14 @@ set_block(sc_world_t *world, int x, int y, int z, sc_blocktype_t block,
     struct chunk_node *relations[MAX_RELATIONS];
     struct chunk_node *vbo_container = 0;
 
+    /* that won't work in non early states */
+    if (early_optimizations)
+        assert(world->state == WORLD_STATE_EARLY);
+
     /* bail out early */
     if (OUT_OF_BOUNDS(world, x, y, z)) {
         return 0;
-    } else if (assume_dirty) {
+    } else if (early_optimizations) {
         if (block == SC_BLOCK_AIR)
             return 1;
     } else if (get_block(world, x, y, z) == block) {
@@ -366,7 +386,7 @@ set_block(sc_world_t *world, int x, int y, int z, sc_blocktype_t block,
     compress_partial_tree(relations, last_relation);
 
     /* if we assume the whole world is already dirty we can skip this */
-    if (assume_dirty)
+    if (early_optimizations)
         return 1;
 
     /* make sure we have found a container */
@@ -398,6 +418,13 @@ set_block(sc_world_t *world, int x, int y, int z, sc_blocktype_t block,
         if ((z + 1) % world->size == 0) MARK_DIRTY(x, y, z + z);
         if ((z - 1) % world->size == 0) MARK_DIRTY(x, y, z - 1);
     }
+
+    /* automatically upgrade the state now if necessary */
+    if (world->state == WORLD_STATE_EARLY)
+        world->state = WORLD_STATE_PREFILLED;
+    /* in finalized state we have to upgrade the lighting now */
+    else if (world->state == WORLD_STATE_FINALIZED)
+        calculate_incremental_lighting(world, x, y, z);
 
     return 1;
 }
@@ -445,11 +472,12 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
     int max_x = min_x + size;
     int max_y = min_y + size;
     int max_z = min_z + size;
+    int vbo_flags = SC_VBO_LIGHT | SC_VBO_DYNAMIC | SC_VBO_3D_TEXTURE;
 
     if (node->vbo)
-        sc_vbo_reuse(node->vbo, 3);
+        sc_vbo_reuse(node->vbo, vbo_flags);
     else
-        node->vbo = sc_new_vbo(3);
+        node->vbo = sc_new_vbo(vbo_flags);
 
     /* quick test if a neighboring node is air.  This will attempt to check
        the current vbo's child nodes if possible and if we have to deal with
@@ -490,7 +518,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
             }
 
     node->flags &= ~CHUNK_FLAG_DIRTY;
-    sc_vbo_finalize(node->vbo, 1);
+    sc_vbo_finalize(node->vbo);
 }
 
 const sc_vbo_t *
@@ -562,6 +590,7 @@ sc_new_world(uint32_t size)
     sc_world_t *world = sc_xalloc(sc_world_t);
     world->root = new_chunk_node_with_children(SC_BLOCK_AIR, 0);
     world->size = size;
+    world->state = WORLD_STATE_EARLY;
     assert(sc_is_power_of_two(world->size));
     assert(world->size % SC_CHUNK_VBO_SIZE == 0);
     return world;
@@ -579,6 +608,26 @@ sc_blocktype_t
 sc_world_get_block(sc_world_t *world, int x, int y, int z)
 {
     return get_block(world, x, z, y);
+}
+
+float
+sc_world_get_block_light(sc_world_t *world, int x, int y, int z)
+{
+    size_t offset;
+    uint8_t byte;
+    float baselight;
+    static struct chunk_node *block_node;
+    static struct chunk_node_vbo *vbo_node;
+    vbo_node = find_vbo_node(world, x, z, y, NULL, 0, NULL);
+    if (!vbo_node)
+        return 0.0f;
+    offset = (x * SC_CHUNK_VBO_SIZE + y * SC_CHUNK_VBO_SIZE + z / 2);
+    byte = *(vbo_node->light + offset);
+    baselight = ((z % 2) == 0 ? (byte & 0xffff) : (byte >> 4)) / 16.0f;
+    block_node = find_node(world, x, y, z, 1, (struct chunk_node *)vbo_node,
+                           SC_CHUNK_VBO_SIZE, NULL);
+    assert(block_node);
+    return baselight + sc_get_block(block_node->block)->emits_light;
 }
 
 int
@@ -643,4 +692,12 @@ void
 sc_world_flush_vbos(sc_world_t *world)
 {
     sc_walk_world(world, flush_vbos, NULL);
+}
+
+void
+sc_world_finalize(sc_world_t *world)
+{
+    assert(world->state != WORLD_STATE_FINALIZED);
+    world->state = WORLD_STATE_FINALIZED;
+    calculate_lighting(world);
 }
