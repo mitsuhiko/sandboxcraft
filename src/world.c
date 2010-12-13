@@ -30,11 +30,11 @@ typedef struct {
 
 /* defines the different structs for the octree nodes.  The flags above
    tell which version of the struct we're dealing with. */
-#define CHUNK_NODE_BASE char flags; sc_blocktype_t block
+#define CHUNK_NODE_BASE uint8_t flags; sc_blocktype_t block
 #define CHUNK_NODE_CHILDREN CHUNK_NODE_BASE; struct chunk_node *children[8]
 struct chunk_node { CHUNK_NODE_BASE; };
 struct chunk_node_children { CHUNK_NODE_CHILDREN; };
-struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; };
+struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; uint8_t *light; };
 
 /* various helper macros to test for bits */
 #define CHUNK_IS_LEAF(C)    (((C)->flags & CHUNK_FLAG_LEAF) != 0)
@@ -118,9 +118,13 @@ new_chunk_node_with_children(sc_blocktype_t block_type, int with_vbo)
 {
     struct chunk_node_children *rv;
     if (with_vbo) {
+        uint8_t *light_info = sc_xmalloc(SC_CHUNK_VBO_SIZE *
+                                         SC_CHUNK_VBO_SIZE *
+                                         SC_CHUNK_VBO_SIZE / 2);
         rv = sc_xalloc(struct chunk_node_vbo);
         rv->flags = CHUNK_FLAG_VBO | CHUNK_FLAG_DIRTY;
         ((struct chunk_node_vbo *)rv)->vbo = NULL;
+        ((struct chunk_node_vbo *)rv)->light = light_info;
     } else {
         if (free_children_nodes_count)
             rv = (struct chunk_node_children *)
@@ -155,10 +159,12 @@ free_chunk_node(struct chunk_node *node)
         TRY_PUT_ON_FREELIST(leaf, node);
     else {
         struct chunk_node_children *cn;
-        if (!CHUNK_HAS_VBO(node))
+        if (!CHUNK_HAS_VBO(node)) {
             TRY_PUT_ON_FREELIST(children, node);
-        else
+        } else {
             sc_free_vbo(((struct chunk_node_vbo *)node)->vbo);
+            sc_free(((struct chunk_node_vbo *)node)->light);
+        }
         cn = (struct chunk_node_children *)node;
         for (i = 0; i < 8; i++)
             free_chunk_node(cn->children[i]);

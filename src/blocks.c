@@ -16,9 +16,15 @@
     block->textures[SC_FAR_BLOCK_SIDE] = Side; \
     block->falls_down = FallsDown; \
     block->movement_factor = MovementFactor; \
+    block->emits_light = 0.0f; \
+    block->translucency = 0.0f; \
 } while (0)
 #define DECLARE_SIMPLE_BLOCK(Type, Tex, FallsDown, MovementFactor) \
     DECLARE_BLOCK(Type, Tex, Tex, Tex, FallsDown, MovementFactor)
+#define SET_LIGHT(Type, Light, Translucency) do { \
+    blocks[Type].emits_light = Light; \
+    blocks[Type].translucency = Translucency; \
+} while (0)
 
 static sc_block_t *blocks;
 static sc_arraytex_t *block_arraytex;
@@ -49,6 +55,9 @@ create_blocks(void)
     DECLARE_SIMPLE_BLOCK(SC_BLOCK_WATER, water, 0, 0.4f);
     DECLARE_SIMPLE_BLOCK(SC_BLOCK_SAND, sand, 0, 0.0f);
     DECLARE_SIMPLE_BLOCK(SC_BLOCK_DIRT, dirt, 1, 0.0f);
+
+    /* update light information */
+    SET_LIGHT(SC_BLOCK_AIR, 0, 1.0f);
 }
 
 void

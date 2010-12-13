@@ -30,6 +30,8 @@ typedef struct {
     int falls_down;
     float destruction_time;
     float movement_factor;
+    float emits_light;
+    float translucency;
 } sc_block_t;
 
 #define SC_BLOCK_SLOTS 7
