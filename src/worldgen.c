@@ -80,6 +80,29 @@ generate_rock(const sc_worldgen_t *worldgen, sc_world_t *world)
 }
 
 static void
+remove_solitaries(const sc_worldgen_t *worldgen, sc_world_t *world)
+{
+    int x, y, z;
+
+#define IS_AIR(X, Y, Z) \
+    ((X) < 0 || (X) >= worldgen->world_size || \
+     (Y) < 0 || (Y) >= worldgen->world_size || \
+     (Z) < 0 || (Z) >= worldgen->world_size || \
+     sc_world_get_block(world, X, Y, Z) == SC_BLOCK_AIR)
+
+    for (x = 0; x < worldgen->world_size; x++)
+        for (y = 0; y < worldgen->world_size; y++)
+            for (z = 0; z < worldgen->world_size; z++) {
+                if (!IS_AIR(x, y, z))
+                    continue;
+                if (IS_AIR(x + 1, y, z) && IS_AIR(x - 1, y, z) &&
+                    IS_AIR(x, y + 1, z) && IS_AIR(x, y - 1, z) &&
+                    IS_AIR(x, y, z + 1) && IS_AIR(x, y, z - 1))
+                    sc_world_set_block(world, x, y, z, SC_BLOCK_AIR);
+            }
+}
+
+static void
 erode_down(const sc_worldgen_t *worldgen, sc_world_t *world,
            int x, int y, int z)
 {
@@ -145,6 +168,9 @@ sc_worldgen_new_world(const sc_worldgen_t *worldgen)
        rocks).  This uses fast block setting and because of that must
        absolutely happen first. */
     generate_rock(worldgen, world);
+
+    /* remove solitary blocks floating around */
+    remove_solitaries(worldgen, world);
 
     /* next step is eroding stone into dirt */
     erode_world(worldgen, world);
