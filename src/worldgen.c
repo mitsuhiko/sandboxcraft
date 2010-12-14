@@ -41,22 +41,22 @@ block_is_solid(const sc_worldgen_t *worldgen, float x, float y, float z)
         return 0;
 
     /* falloff from the top */
-    if (z > 0.9f)
+    if (y > 0.9f)
         return SC_BLOCK_AIR;
-    else if (z > 0.8f)
-        plateau_falloff = 1.0f - (z - 0.8f) * 10.0f;
+    else if (y > 0.8f)
+        plateau_falloff = 1.0f - (y - 0.8f) * 10.0f;
     else
         plateau_falloff = 1.0f;
 
     /* falloff from center */
     center_falloff = 0.1f / (
         powf((x - 0.5f) * 1.5f, 2.0f) +
-        powf((y - 0.5f) * 1.5f, 2.0f) +
-        powf((z - 1.0f) * 0.8f, 2.0f)
+        powf((y - 1.0f) * 0.8f, 2.0f) +
+        powf((z - 0.5f) * 1.5f, 2.0f)
     );
 
     /* noise combined density */
-    noise = sc_perlin_noise3_ex(worldgen->perlin, x, y, z * 0.5, 7);
+    noise = sc_perlin_noise3_ex(worldgen->perlin, x, y * 0.5, z, 7);
     density = noise * center_falloff * plateau_falloff;
     return density > 0.2f ? SC_BLOCK_STONE : SC_BLOCK_AIR;
 }
@@ -109,7 +109,7 @@ erode_down(const sc_worldgen_t *worldgen, sc_world_t *world,
         z / (float)worldgen->world_size
     ) * 0.5 + 0.5);
 
-    for (; z > 0 && levels_left > 0; z--, levels_left--) {
+    for (; y > 0 && levels_left > 0; y--, levels_left--) {
         block = sc_world_get_block(world, x, y, z);
         if (block != SC_BLOCK_STONE)
             return;
@@ -124,9 +124,9 @@ erode_world(const sc_worldgen_t *worldgen, sc_world_t *world)
     int x, y, z, above_the_air;
 
     for (x = 0; x < worldgen->world_size; x++)
-        for (y = 0; y < worldgen->world_size; y++) {
+        for (z = 0; z < worldgen->world_size; z++) {
             above_the_air = 1;
-            for (z = worldgen->world_size - 1; z > 0; z--) {
+            for (y = worldgen->world_size - 1; y > 0; y--) {
                 block = sc_world_get_block(world, x, y, z);
                 if (block == SC_BLOCK_AIR) {
                     above_the_air = 1;
@@ -149,7 +149,7 @@ grow_grass(const sc_worldgen_t *worldgen, sc_world_t *world)
         for (y = 0; y < worldgen->world_size; y++)
             for (z = worldgen->world_size - 1; z > 0; z--) {
                 if (sc_world_get_block(world, x, y, z) == SC_BLOCK_DIRT &&
-                    sc_world_get_block(world, x, y, z + 1) == SC_BLOCK_AIR)
+                    sc_world_get_block(world, x, y + 1, z) == SC_BLOCK_AIR)
                     sc_world_set_block(world, x, y, z, SC_BLOCK_GRASS);
             }
 }

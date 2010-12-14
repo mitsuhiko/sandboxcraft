@@ -60,8 +60,8 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; uint8_t *light; };
 /* helper that creates an aabb for a given block */
 #define MAKE_BLOCK_AABB(V1, V2, X, Y, Z, Size) do { \
     sc_vec3_set(V1, SC_BLOCK_SIZE * X - SC_BLOCK_SIZE / 2, \
-                    SC_BLOCK_SIZE * Z - SC_BLOCK_SIZE / 2, \
-                    SC_BLOCK_SIZE * Y - SC_BLOCK_SIZE / 2); \
+                    SC_BLOCK_SIZE * Y - SC_BLOCK_SIZE / 2, \
+                    SC_BLOCK_SIZE * Z - SC_BLOCK_SIZE / 2); \
     sc_vec3_set(V2, SC_BLOCK_SIZE * Size, \
                     SC_BLOCK_SIZE * Size, \
                     SC_BLOCK_SIZE * Size); \
@@ -290,18 +290,18 @@ calculate_lighting(sc_world_t *world)
     for (x = 0; x < world->size; x++) \
         for (y = 0; y < world->size; y++) \
             for (FIND_SUNLIGHT_LOOP(Reverse)) { \
-                block = sc_world_get_block(world, x, y, z); \
+                block = sc_world_get_block(world, X, Y, Z); \
                 if (block != SC_BLOCK_AIR) \
                     break; \
-                sc_world_set_block_light(world, x, y, z, 1.0f); \
+                sc_world_set_block_light(world, X, Y, Z, 1.0f); \
             } \
 } while (0)
     FIND_SUNLIGHT(x, y, z, 0);
     FIND_SUNLIGHT(x, y, z, 1);
     FIND_SUNLIGHT(x, z, y, 0);
     FIND_SUNLIGHT(x, z, y, 1);
-    FIND_SUNLIGHT(z, y, x, 0);
-    FIND_SUNLIGHT(z, y, x, 1);
+    FIND_SUNLIGHT(y, z, x, 0);
+    FIND_SUNLIGHT(y, z, x, 1);
 
 #define TRY_LIGHT(Light, X, Y, Z) do { \
     float new_light= sc_world_get_block_light(world, X, Y, Z) * 0.9f; \
@@ -518,7 +518,7 @@ walk_chunk(sc_world_t *world, const struct chunk_node **children,
     int i;
     const struct chunk_node *child, **inner_children;
 
-    if (!cb(world, block, x, z, y, size, closure) ||
+    if (!cb(world, block, x, y, z, size, closure) ||
         (size /= 2) < 1)
         return;
 
@@ -635,8 +635,7 @@ find_visible_vbos(sc_world_t *world, sc_blocktype_t block, int x, int y,
        that and stop recursing.  get_vbo will automatically
        update the vbo if necessary. */
     if (size == SC_CHUNK_VBO_SIZE) {
-        /* get_vbo operates on flipped coordinates */
-        const sc_vbo_t *vbo = get_vbo(world, x, z, y);
+        const sc_vbo_t *vbo = get_vbo(world, x, y, z);
         /* in case a piece of world is still completely empty, we won't
            have a vbo so far.  In that case, just ignore that.  We also
            ignore a generated vbo that has not a single vertex */
@@ -665,7 +664,7 @@ flush_vbos(sc_world_t *world, sc_blocktype_t block, int x, int y, int z,
 {
     if (size != SC_CHUNK_VBO_SIZE)
         return 1;
-    get_vbo(world, x, z, y);
+    get_vbo(world, x, y, z);
     return 0;
 }
 
@@ -692,17 +691,17 @@ sc_free_world(sc_world_t *world)
 sc_blocktype_t
 sc_world_get_block(sc_world_t *world, int x, int y, int z)
 {
-    return get_block(world, x, z, y);
+    return get_block(world, x, y, z);
 }
 
 float
 sc_world_get_block_light(sc_world_t *world, int x, int y, int z)
 {
     static struct chunk_node_vbo *vbo_node;
-    vbo_node = find_vbo_node(world, x, z, y, NULL, 0, NULL);
+    vbo_node = find_vbo_node(world, x, y, z, NULL, 0, NULL);
     if (!vbo_node)
         return 0.0f;
-    return block_light_from_vbo_node(vbo_node, x, z, y);
+    return block_light_from_vbo_node(vbo_node, x, y, z);
 }
 
 int
@@ -710,10 +709,10 @@ sc_world_set_block_light(sc_world_t *world, int x, int y, int z, float val)
 {
     size_t offset;
     static struct chunk_node_vbo *vbo_node;
-    vbo_node = find_vbo_node(world, x, z, y, NULL, 0, NULL);
+    vbo_node = find_vbo_node(world, x, y, z, NULL, 0, NULL);
     if (!vbo_node)
         return 0;
-    offset = LIGHT_ADDR(x, z, y);
+    offset = LIGHT_ADDR(x, y, z);
     assert(offset < LIGHT_CONTAINER_SIZE);
     *(vbo_node->light + offset) = (uint8_t)(val * 255.0f);
     return 1;
@@ -723,14 +722,14 @@ int
 sc_world_set_block(sc_world_t *world, int x, int y, int z,
                    sc_blocktype_t block)
 {
-    return set_block(world, x, z, y, block, 0);
+    return set_block(world, x, y, z, block, 0);
 }
 
 int
 sc_world_set_block_fast(sc_world_t *world, int x, int y, int z,
                         sc_blocktype_t block)
 {
-    return set_block(world, x, z, y, block, 1);
+    return set_block(world, x, y, z, block, 1);
 }
 
 static int
