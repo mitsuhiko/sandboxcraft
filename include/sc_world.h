@@ -68,9 +68,11 @@ int sc_world_set_block_fast(sc_world_t *world, int x, int y, int z,
 
 /* returns the light information of a block.  That is the amount of light
    the block is exposed to.  It's a floating point value but internally
-   stored as 4 bits of light information so unless the block is emitting
-   light itself the value will not be of arbitrary precision. */
+   stored as 4 bits of discrete light information. */
 float sc_world_get_block_light(sc_world_t *world, int x, int y, int z);
+
+/* sets the light information of a block. */
+int sc_world_set_block_light(sc_world_t *world, int x, int y, int z, float val);
 
 /* draws the world.  The OpenGL projection and model matrices are used
    to calculate the visbility for the block of the world.
