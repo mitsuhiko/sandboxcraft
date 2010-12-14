@@ -223,13 +223,6 @@ find_node(sc_world_t *world, int x, int y, int z, size_t limit,
 }
 
 static sc_blocktype_t
-get_block(sc_world_t *world, int x, int y, int z)
-{
-    struct chunk_node *rv = find_node(world, x, y, z, 1, NULL, 0, NULL);
-    return (rv == NULL) ? SC_BLOCK_AIR : CHUNK_GET_BLOCK(rv);
-}
-
-static sc_blocktype_t
 get_block_below(sc_world_t *world, int x, int y, int z,
                 struct chunk_node *node, size_t size)
 {
@@ -263,67 +256,20 @@ static int
 set_native_lighting(sc_world_t *world, sc_blocktype_t block, int x, int y,
                     int z, size_t size, void *closure)
 {
-    float native_light = sc_get_block(block)->emits_light;
-    if (size == 1)
-        sc_world_set_block_light(world, x, y, z, native_light);
+    /* not yet native, but 1.0 looks nicer :) */
+    sc_world_set_block_light(world, x, y, z, 1.0f);
     return 1;
 }
 
 static void
 calculate_lighting(sc_world_t *world)
 {
-    int x, y, z;
-    sc_blocktype_t block;
-
-    /* set all blocks to their native emitting light.  Currently we do not
-       have any light emitting blocks. */
     sc_walk_world(world, set_native_lighting, NULL);
+}
 
-    /* now set all air blocks to sunlight in case they are outside of the
-       actual world.  Because we do not have a lightmap we have to go
-       through the world six times, each direction twice */
-#define FIND_SUNLIGHT_LOOP(Reverse) \
-    z = (Reverse ? world->size - 1 : 0); \
-    (Reverse ? z > 0 : z < world->size); \
-    (Reverse ? z-- : z++)
-#define FIND_SUNLIGHT(X, Y, Z, Reverse) do { \
-    for (x = 0; x < world->size; x++) \
-        for (y = 0; y < world->size; y++) \
-            for (FIND_SUNLIGHT_LOOP(Reverse)) { \
-                block = sc_world_get_block(world, X, Y, Z); \
-                if (block != SC_BLOCK_AIR) \
-                    break; \
-                sc_world_set_block_light(world, X, Y, Z, 1.0f); \
-            } \
-} while (0)
-    FIND_SUNLIGHT(x, y, z, 0);
-    FIND_SUNLIGHT(x, y, z, 1);
-    FIND_SUNLIGHT(x, z, y, 0);
-    FIND_SUNLIGHT(x, z, y, 1);
-    FIND_SUNLIGHT(y, z, x, 0);
-    FIND_SUNLIGHT(y, z, x, 1);
-
-#define TRY_LIGHT(Light, X, Y, Z) do { \
-    float new_light= sc_world_get_block_light(world, X, Y, Z) * 0.9f; \
-    if (new_light > Light) \
-        Light = new_light; \
-} while (0)
-
-    /* very simply light flooding.  Just for testing purposes */
-    for (x = 0; x < world->size; x++)
-        for (y = 0; y < world->size; y++)
-            for (z = 0; z < world->size; z++) {
-                float light = sc_world_get_block_light(world, x, y, z);
-                if (light >= 1.0f)
-                    continue;
-                TRY_LIGHT(light, x - 1, y, z);
-                TRY_LIGHT(light, x + 1, y, z);
-                TRY_LIGHT(light, x, y - 1, z);
-                TRY_LIGHT(light, x, y + 1, z);
-                TRY_LIGHT(light, x, y, z - 1);
-                TRY_LIGHT(light, x, y, z + 1);
-                sc_world_set_block_light(world, x, y, z, light);
-            }
+static void
+calculate_incremental_lighting(sc_world_t *world, int x, int y, int z)
+{
 }
 
 static float
@@ -333,11 +279,6 @@ block_light_from_vbo_node(struct chunk_node_vbo *node, int x, int y, int z)
     offset = LIGHT_ADDR(x, y, z);
     assert(offset < LIGHT_CONTAINER_SIZE);
     return *(node->light + offset) / 255.0f;
-}
-
-static void
-calculate_incremental_lighting(sc_world_t *world, int x, int y, int z)
-{
 }
 
 static void
@@ -407,7 +348,7 @@ set_block(sc_world_t *world, int x, int y, int z, sc_blocktype_t block,
     } else if (early_optimizations) {
         if (block == SC_BLOCK_AIR)
             return 1;
-    } else if (get_block(world, x, y, z) == block) {
+    } else if (sc_world_get_block(world, x, y, z) == block) {
         return 1;
     }
 
@@ -569,7 +510,7 @@ update_vbo(sc_world_t *world, struct chunk_node_vbo *node, int min_x,
        (Y) >= min_y && (Y) < (max_y) && \
        (Z) >= min_z && (Z) < (max_z)) \
          ? get_block_below(world, X, Y, Z, (struct chunk_node *)node, size) \
-         : get_block(world, X, Y, Z)) == SC_BLOCK_AIR)
+         : sc_world_get_block(world, X, Y, Z)) == SC_BLOCK_AIR)
 
     /* calls into the primitive cube functions to add a given side of a
        cube to the vbo with the texture of the block as well as the light
@@ -691,7 +632,8 @@ sc_free_world(sc_world_t *world)
 sc_blocktype_t
 sc_world_get_block(sc_world_t *world, int x, int y, int z)
 {
-    return get_block(world, x, y, z);
+    struct chunk_node *rv = find_node(world, x, y, z, 1, NULL, 0, NULL);
+    return (rv == NULL) ? SC_BLOCK_AIR : CHUNK_GET_BLOCK(rv);
 }
 
 float
