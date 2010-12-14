@@ -691,6 +691,8 @@ sc_world_draw(sc_world_t *world, const sc_camera_t *cam)
     char vboinfo_stack[VBOINFO_STACK_SIZE];
     sc_stackalloc_t vboinfo_stackalloc;
 
+    assert(world->state == WORLD_STATE_FINALIZED);
+
     sc_stackalloc_init(&vboinfo_stackalloc, &vboinfo_stack,
                        VBOINFO_STACK_SIZE);
     sc_get_current_frustum(&frustum);
