@@ -20,7 +20,7 @@ sc_new_scenemgr(void)
     rv->active_cam = sc_scenemgr_create_camera(rv);
     rv->world = NULL;
 
-    rv->ambient_color = sc_color(0x444444ff);
+    rv->ambient_color = sc_color(0x888888ff);
     rv->sun_color = sc_color(0xdbf3f1ff);
     sc_vec3_set(&rv->sun_direction, 0.6f, 0.4f, 1.0f);
     sc_vec3_normalize(&rv->sun_direction, &rv->sun_direction);

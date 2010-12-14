@@ -73,16 +73,16 @@ struct chunk_node_vbo { CHUNK_NODE_CHILDREN; sc_vbo_t *vbo; uint8_t *light; };
     (!!((X) & (Size)) << 2 | !!((Y) & (Size)) << 1 | !!((Z) & (Size)))
 
 /* size of the light container */
-#define LIGHT_CONTAINER_SIZE ((SC_CHUNK_VBO_SIZE * SC_CHUNK_VBO_SIZE * \
-                               SC_CHUNK_VBO_SIZE) / 2)
+#define LIGHT_CONTAINER_SIZE (SC_CHUNK_VBO_SIZE * SC_CHUNK_VBO_SIZE * \
+                              SC_CHUNK_VBO_SIZE)
 
 /* returns the address of a block's light information in a vbo node's
    light info array.  The coordinates can be global as they are
    transposed into the node local coordinate system automatically */
 #define LIGHT_ADDR(X, Y, Z) \
-    ((((X) % SC_CHUNK_VBO_SIZE) + \
-      ((Y) % SC_CHUNK_VBO_SIZE) * SC_CHUNK_VBO_SIZE + \
-      ((Z) % SC_CHUNK_VBO_SIZE) * SC_CHUNK_VBO_SIZE * SC_CHUNK_VBO_SIZE) / 2)
+    (((X) % SC_CHUNK_VBO_SIZE) + \
+     ((Y) % SC_CHUNK_VBO_SIZE) * SC_CHUNK_VBO_SIZE + \
+     ((Z) % SC_CHUNK_VBO_SIZE) * SC_CHUNK_VBO_SIZE * SC_CHUNK_VBO_SIZE)
 
 /* maximum size of the free lists for chunks */
 #define FREELIST_SIZE 64
@@ -272,19 +272,67 @@ set_native_lighting(sc_world_t *world, sc_blocktype_t block, int x, int y,
 static void
 calculate_lighting(sc_world_t *world)
 {
+    int x, y, z;
+    sc_blocktype_t block;
+
     /* set all blocks to their native emitting light.  Currently we do not
        have any light emitting blocks. */
     sc_walk_world(world, set_native_lighting, NULL);
+
+    /* now set all air blocks to sunlight in case they are outside of the
+       actual world.  Because we do not have a lightmap we have to go
+       through the world six times, each direction twice */
+#define FIND_SUNLIGHT_LOOP(Reverse) \
+    z = (Reverse ? world->size - 1 : 0); \
+    (Reverse ? z > 0 : z < world->size); \
+    (Reverse ? z-- : z++)
+#define FIND_SUNLIGHT(X, Y, Z, Reverse) do { \
+    for (x = 0; x < world->size; x++) \
+        for (y = 0; y < world->size; y++) \
+            for (FIND_SUNLIGHT_LOOP(Reverse)) { \
+                block = sc_world_get_block(world, x, y, z); \
+                if (block != SC_BLOCK_AIR) \
+                    break; \
+                sc_world_set_block_light(world, x, y, z, 1.0f); \
+            } \
+} while (0)
+    FIND_SUNLIGHT(x, y, z, 0);
+    FIND_SUNLIGHT(x, y, z, 1);
+    FIND_SUNLIGHT(x, z, y, 0);
+    FIND_SUNLIGHT(x, z, y, 1);
+    FIND_SUNLIGHT(z, y, x, 0);
+    FIND_SUNLIGHT(z, y, x, 1);
+
+#define TRY_LIGHT(Light, X, Y, Z) do { \
+    float new_light= sc_world_get_block_light(world, X, Y, Z) * 0.9f; \
+    if (new_light > Light) \
+        Light = new_light; \
+} while (0)
+
+    /* very simply light flooding.  Just for testing purposes */
+    for (x = 0; x < world->size; x++)
+        for (y = 0; y < world->size; y++)
+            for (z = 0; z < world->size; z++) {
+                float light = sc_world_get_block_light(world, x, y, z);
+                if (light >= 1.0f)
+                    continue;
+                TRY_LIGHT(light, x - 1, y, z);
+                TRY_LIGHT(light, x + 1, y, z);
+                TRY_LIGHT(light, x, y - 1, z);
+                TRY_LIGHT(light, x, y + 1, z);
+                TRY_LIGHT(light, x, y, z - 1);
+                TRY_LIGHT(light, x, y, z + 1);
+                sc_world_set_block_light(world, x, y, z, light);
+            }
 }
 
 static float
 block_light_from_vbo_node(struct chunk_node_vbo *node, int x, int y, int z)
 {
     size_t offset;
-    uint8_t byte;
     offset = LIGHT_ADDR(x, y, z);
-    byte = *(node->light + offset);
-    return ((z % 2) == 0 ? (byte & 0xffff) : (byte >> 4)) / 16.0f;
+    assert(offset < LIGHT_CONTAINER_SIZE);
+    return *(node->light + offset) / 255.0f;
 }
 
 static void
@@ -651,7 +699,7 @@ float
 sc_world_get_block_light(sc_world_t *world, int x, int y, int z)
 {
     static struct chunk_node_vbo *vbo_node;
-    vbo_node = find_vbo_node(world, x, y, z, NULL, 0, NULL);
+    vbo_node = find_vbo_node(world, x, z, y, NULL, 0, NULL);
     if (!vbo_node)
         return 0.0f;
     return block_light_from_vbo_node(vbo_node, x, z, y);
@@ -661,21 +709,13 @@ int
 sc_world_set_block_light(sc_world_t *world, int x, int y, int z, float val)
 {
     size_t offset;
-    uint8_t *byte_ptr, value;
     static struct chunk_node_vbo *vbo_node;
-    vbo_node = find_vbo_node(world, x, y, z, NULL, 0, NULL);
+    vbo_node = find_vbo_node(world, x, z, y, NULL, 0, NULL);
     if (!vbo_node)
         return 0;
     offset = LIGHT_ADDR(x, z, y);
     assert(offset < LIGHT_CONTAINER_SIZE);
-    byte_ptr = vbo_node->light + offset;
-    value = (uint8_t)(val * 16.0f);
-    if (value > 16)
-        value = 16;
-    if (x % 2 == 0)
-        *byte_ptr = (*byte_ptr & 0xffff0000) | value;
-    else
-        *byte_ptr = (*byte_ptr & 0xffff) | (value << 4);
+    *(vbo_node->light + offset) = (uint8_t)(val * 255.0f);
     return 1;
 }
 
