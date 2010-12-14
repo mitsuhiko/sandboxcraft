@@ -181,10 +181,9 @@ void
 sc_inifile_set_bool(const sc_inifile_t *inifile, const char *key, int val)
 {
     void *old_val = sc_strmap_get(inifile->values, key);
-    char *value;
     assert(sc_inifile_key_is_valid(key));
     sc_free(old_val);
-    sc_strmap_set(inifile->values, key, sc_strdup(value ? "true" : "false"));
+    sc_strmap_set(inifile->values, key, sc_strdup(val ? "true" : "false"));
 }
 
 float
