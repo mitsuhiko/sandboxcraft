@@ -104,15 +104,15 @@ sc_mat4_look_at(sc_mat4_t *mat_out, const sc_vec3_t *eye,
 
     m[0] = s.x;
     m[1] = u.x;
-    m[2] = -forward->x;
+    m[2] = -f.x;
     m[3] = 0.0f;
     m[4] = s.y;
     m[5] = u.y;
-    m[6] = -forward->y;
+    m[6] = -f.y;
     m[7] = 0.0f;
     m[8] = s.z;
     m[9] = u.z;
-    m[10] = -forward->z;
+    m[10] = -f.z;
     m[11] = 0.0f;
     m[12] = 0.0f;
     m[13] = 0.0f;

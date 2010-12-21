@@ -106,6 +106,7 @@ endif()
 find_package(SDL 1.2.7 REQUIRED)
 find_package(SDL_image 1.2 REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(ZLIB REQUIRED)
 
 if (NOT WIN32)
     set(CMAKE_C_FLAGS "-g -Wall")
