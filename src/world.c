@@ -747,13 +747,14 @@ sc_world_save(sc_world_t *world, const char *filename)
 
     file = gzopen(filename, "wb");
     if (!file) {
+        gzclose(file);
         sc_set_error(SC_EIO, filename, 0, "Could not save the world.");
         return 0;
     }
 
-    /* TODO: endianess */
-    gzprintf(file, "SCW\x01");
+    gzputc(file, '\x01');
 
+    /* TODO: endianess */
     size = world->size;
     gzwrite(file, (void *)&world->size, 4);
 
@@ -771,7 +772,7 @@ sc_world_load(const char *filename)
 {
     int x, y, z;
     int32_t size;
-    char header[4];
+    char version;
     sc_world_t *rv;
     gzFile file = gzopen(filename, "rb");
 
@@ -780,13 +781,20 @@ sc_world_load(const char *filename)
         return NULL;
     }
 
-    gzread(file, header, 4);
-    if (strncmp(header, "SCW\x01", 4) != 0) {
-        sc_set_error(SC_EIO, filename, 0, "Invalid world format.");
+    version = gzgetc(file);
+    if (version != 1) {
+        gzclose(file);
+        sc_set_error(SC_EIO, filename, 0, "Invalid world version");
         return NULL;
     }
 
     gzread(file, (void *)&size, 4);
+    if (size > 512 || size < 16 || !sc_is_power_of_two(size)) {
+        gzclose(file);
+        sc_set_error(SC_EIO, filename, 0, "Invalid world size");
+        return NULL;
+    }
+
     rv = sc_new_world(size);
 
     for (x = 0; x < size; x++)

@@ -42,6 +42,7 @@ init_game_in_thread(void *closure)
     /* load or create new world */
     world = sc_world_load(worldfile);
     if (!world) {
+        sc_error_make_critical();
         sc_path_makedirs(sc_get_settings_path());
         world = sc_create_random_world(256);
         if (!sc_world_save(world, worldfile))
