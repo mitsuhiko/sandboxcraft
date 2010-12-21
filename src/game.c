@@ -9,6 +9,7 @@
 #include "sc_shading.h"
 #include "sc_worldgen.h"
 #include "sc_threads.h"
+#include "sc_path.h"
 
 static int running;
 
@@ -32,10 +33,23 @@ static int
 init_game_in_thread(void *closure)
 {
     sc_camera_t *cam;
+    sc_world_t *world;
     int *done = closure;
+    char *worldfile = sc_path_join(sc_get_settings_path(), "default.world");
 
     scenemgr = sc_new_scenemgr();
-    sc_scenemgr_set_world(scenemgr, sc_create_random_world(256));
+
+    /* load or create new world */
+    world = sc_world_load(worldfile);
+    if (!world) {
+        sc_path_makedirs(sc_get_settings_path());
+        world = sc_create_random_world(256);
+        if (!sc_world_save(world, worldfile))
+            sc_error_make_critical();
+    }
+    sc_scenemgr_set_world(scenemgr, world);
+    sc_free(worldfile);
+
     cam = sc_scenemgr_get_active_camera(scenemgr);
 
     sc_camera_set_position(cam, 0.0f, 40.0f, 40.0f);

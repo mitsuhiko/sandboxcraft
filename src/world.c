@@ -1,4 +1,5 @@
 #include "sc_boot.h"
+#include "zlib.h"
 
 /* internal version of the world struct.  The public one is completely
    empty as we do not expose anything currently.  This will change once
@@ -732,4 +733,71 @@ sc_world_finalize(sc_world_t *world)
     assert(world->state != WORLD_STATE_FINALIZED);
     world->state = WORLD_STATE_FINALIZED;
     calculate_lighting(world);
+}
+
+int
+sc_world_save(sc_world_t *world, const char *filename)
+{
+    int x, y, z;
+    int32_t size;
+    gzFile file;
+
+    /* current file format requires blocks being a char */
+    assert(sizeof(sc_blocktype_t) == 1);
+
+    file = gzopen(filename, "wb");
+    if (!file) {
+        sc_set_error(SC_EIO, filename, 0, "Could not save the world.");
+        return 0;
+    }
+
+    /* TODO: endianess */
+    gzprintf(file, "SCW\x01");
+
+    size = world->size;
+    gzwrite(file, (void *)&world->size, 4);
+
+    for (x = 0; x < world->size; x++)
+        for (y = 0; y < world->size; y++)
+            for (z = 0; z < world->size; z++)
+                gzputc(file, (int)sc_world_get_block(world, x, y, z));
+
+    gzclose(file);
+    return 1;
+}
+
+sc_world_t *
+sc_world_load(const char *filename)
+{
+    int x, y, z;
+    int32_t size;
+    char header[4];
+    sc_world_t *rv;
+    gzFile file = gzopen(filename, "rb");
+
+    if (!file) {
+        sc_set_error(SC_ENOENT, filename, 0, "World save not found.");
+        return NULL;
+    }
+
+    gzread(file, header, 4);
+    if (strncmp(header, "SCW\x01", 4) != 0) {
+        sc_set_error(SC_EIO, filename, 0, "Invalid world format.");
+        return NULL;
+    }
+
+    gzread(file, (void *)&size, 4);
+    rv = sc_new_world(size);
+
+    for (x = 0; x < size; x++)
+        for (y = 0; y < size; y++)
+            for (z = 0; z < size; z++) {
+                int block = gzgetc(file);
+                sc_world_set_block(rv, x, y, z, (sc_blocktype_t)block);
+            }
+
+    gzclose(file);
+    sc_world_finalize(rv);
+
+    return rv;
 }

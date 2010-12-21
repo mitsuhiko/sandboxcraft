@@ -141,6 +141,7 @@ target_link_libraries(
 	${SDLIMAGE_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${GLU_LIBRARY}
+	${ZLIB_LIBRARY}
 )
 
 add_subdirectory(tests)

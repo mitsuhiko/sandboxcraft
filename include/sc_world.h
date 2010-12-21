@@ -94,4 +94,12 @@ void sc_world_flush_vbos(sc_world_t *world);
    light updates are enabled.  This does not flush the vbos. */
 void sc_world_finalize(sc_world_t *world);
 
+/* writes the world to a given filename.  Might fail in which case 0
+   is returned, 1 otherwise. */
+int sc_world_save(sc_world_t *world, const char *filename);
+
+/* loads a world from a save.  If it does not exist, NULL is returned
+   and SC_ENOENT is set. */
+sc_world_t *sc_world_load(const char *filename);
+
 #endif
