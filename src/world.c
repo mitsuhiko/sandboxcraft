@@ -739,7 +739,6 @@ int
 sc_world_save(sc_world_t *world, const char *filename)
 {
     int x, y, z;
-    int32_t size;
     gzFile file;
 
     /* current file format requires blocks being a char */
@@ -752,11 +751,10 @@ sc_world_save(sc_world_t *world, const char *filename)
         return 0;
     }
 
+    /* version and world size */
     gzputc(file, '\x01');
-
-    /* TODO: endianess */
-    size = world->size;
-    gzwrite(file, (void *)&world->size, 4);
+    gzputc(file, (world->size >> 8) & 0xff);
+    gzputc(file, world->size & 0xff);
 
     for (x = 0; x < world->size; x++)
         for (y = 0; y < world->size; y++)
@@ -770,8 +768,9 @@ sc_world_save(sc_world_t *world, const char *filename)
 sc_world_t *
 sc_world_load(const char *filename)
 {
+    char buffer[4];
     int x, y, z;
-    int32_t size;
+    int size;
     char version;
     sc_world_t *rv;
     gzFile file = gzopen(filename, "rb");
@@ -788,10 +787,12 @@ sc_world_load(const char *filename)
         return NULL;
     }
 
-    gzread(file, (void *)&size, 4);
+    gzread(file, buffer, 2);
+    size = (int)buffer[0] << 8 | (int)buffer[1];
+
     if (size > 512 || size < 16 || !sc_is_power_of_two(size)) {
         gzclose(file);
-        sc_set_error(SC_EIO, filename, 0, "Invalid world size");
+        sc_set_error(SC_EIO, filename, 0, "Invalid world size (%d)", size);
         return NULL;
     }
 
