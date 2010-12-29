@@ -119,7 +119,7 @@ sc_engine_dump_info(void)
     fprintf(stderr, "Texture arrays:            %s\n",
             GLEE_EXT_texture_array ? "yes" : "no");
     fprintf(stderr, "Ansitropic filtering:      %s\n",
-            GLEE_EXT_texture_array ? "yes" : "no");
+            GLEE_EXT_texture_filter_anisotropic ? "yes" : "no");
     fprintf(stderr, "Config path:               %s\n",
             sc_get_settings_path());
 }
