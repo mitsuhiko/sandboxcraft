@@ -22,6 +22,7 @@ struct _sc_shader {
 };
 
 static const sc_shader_t *current_shader;
+static int attach_from_file(sc_shader_t *, const char *, int);
 
 static GLenum
 convert_shader_type(int type)
@@ -45,15 +46,10 @@ sc_new_shader(void)
 }
 
 sc_shader_t *
-sc_shader_from_file(const char *basename)
+sc_shader_from_file(const char *filename)
 {
-#define ATTACH(Suffix, Type) do { \
-    size_t bn_len = strlen(basename); \
-    size_t s_len = strlen(Suffix); \
-    char *buf = sc_xmalloc(bn_len + s_len + 1); \
-    strcpy(buf, basename); \
-    strcpy(buf + bn_len, Suffix); \
-    if (!sc_shader_attach_from_file(rv, buf, Type)) { \
+#define ATTACH(Type) do { \
+    if (!attach_from_file(rv, filename, Type)) { \
         if (sc_get_errno() != SC_ENOENT) \
             goto error; \
         sc_clear_error(); \
@@ -61,12 +57,13 @@ sc_shader_from_file(const char *basename)
 } while (0)
 
     sc_shader_t *rv = sc_new_shader();
-    ATTACH(".vert", SC_VERTEX_SHADER);
-    ATTACH(".frag", SC_FRAGMENT_SHADER);
+    ATTACH(SC_VERTEX_SHADER);
+    ATTACH(SC_FRAGMENT_SHADER);
     if (sc_shader_finalize(rv))
         return rv;
 
 error:
+    sc_free_shader(rv);
     sc_error_make_critical();
     return NULL;
 }
@@ -131,6 +128,7 @@ read_shader_source(sc_strbuf_t *strbuf, sc_shader_t *shader,
 source_found:
     if (type) {
         char *common_file = sc_path_to_resource("shaders", "common.shader");
+        sc_strbuf_appendf(strbuf, "#version 120\n");
         switch (type) {
         case SC_VERTEX_SHADER:
             sc_strbuf_appendf(strbuf, "#define SC_VERTEX_SHADER\n");
@@ -182,9 +180,8 @@ set_shading_error(const sc_shader_t *shader, const char *info_log,
                  msg, source_info, info_log);
 }
 
-int
-sc_shader_attach_from_file(sc_shader_t *shader, const char *filename,
-                           int type)
+static int
+attach_from_file(sc_shader_t *shader, const char *filename, int type)
 {
     int success;
     char *path;

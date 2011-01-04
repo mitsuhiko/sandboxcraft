@@ -6,6 +6,19 @@ varying vec3 coord;
 varying float vertex_light;
 uniform sampler2DArray sc_texture;
 
+#ifdef SC_VERTEX_SHADER
+void
+main(void)
+{
+    coord = sc_texcoord3;
+    vertex_light = sc_vertex_light;
+    gl_Position = sc_mvp_matrix * vec4(sc_vertex, 1.0);
+    normal = sc_normal_matrix * sc_normal;
+    half_vec = normalize(sc_vertex + sc_sun_direction) / 2.0;
+}
+#endif
+
+#ifdef SC_FRAGMENT_SHADER
 void
 main(void)
 {
@@ -22,3 +35,4 @@ main(void)
     color = color * clamp(darkness + (ambient + diffuse) * vertex_light, 0.0, 1.0);
     gl_FragColor = clamp(color, 0.0, 1.0);
 }
+#endif
