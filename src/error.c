@@ -87,9 +87,11 @@ sc_clear_error(void)
 {
     if (!last_error)
         return;
-    /* description froms from vasprintf which might use malloc */
+    /* description comes from vasprintf which might use malloc */
     free(last_error->description);
+    free(last_error->filename);
     sc_free(last_error);
+    last_error = NULL;
 }
 
 void
