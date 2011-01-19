@@ -139,7 +139,8 @@ sc_mat4_from_axis_rotation_vector(sc_mat4_t *mat, float angle, const sc_vec3_t *
     sc_vec3_t vec;
     float c = cosf(sc_deg2rad(angle));
     float s = sinf(sc_deg2rad(angle));
-    sc_vec3_normalize(&vec, axis);
+    if (!sc_vec3_normalize(&vec, axis))
+        return NULL;
 
     mat->elms[0]  = c + vec.x * vec.x * (1 - c);
     mat->elms[1]  = vec.z * s + vec.y * vec.x * (1 - c);
